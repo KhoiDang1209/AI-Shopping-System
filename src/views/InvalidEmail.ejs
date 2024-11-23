@@ -1,0 +1,38 @@
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> Invalid Email Page</title>
+    <link rel="stylesheet" href="/css/InvalidEmail.css">
+</head>
+
+<body>
+    <div class="container">
+        <img src="/images/login.png" alt="Login page">
+        <div class="Title">Invalid Email</div>
+        <div class="InvalidEmail">
+            <form action="/RegisterWithFilledInformation" method="get">
+                <fieldset>
+                    <legend>Invalid Email</legend>
+                    <div class="input-group">
+                        <label>Your email is not a valid email please enter again. </label>
+                    </div>
+                    <!-- Hidden inputs to pass the additional data -->
+                    <input type="hidden" name="firstname" value="<%= firstname %>">
+                    <input type="hidden" name="lastname" value="<%= lastname %>">
+                    <input type="hidden" name="address" value="<%= address %>">
+                    <input type="hidden" name="city" value="<%= city %>">
+                    <input type="hidden" name="email" value="<%= email %>">
+                    <input type="hidden" name="username" value="<%= username %>">
+                    <input type="hidden" name="password" value="<%= password %>">
+                    <input type="hidden" name="dob" value="<%= dob %>">
+                    <input type="hidden" name="listCitys" value="<%= JSON.stringify(listCitys) %>">
+                    <button type="submit">Back to Register</button>
+                </fieldset>
+            </form>
+        </div>
+    </div>
+</body>
+
+</html>

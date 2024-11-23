@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> Authentication</title>
+    <link rel="stylesheet" href="/css/Authentication.css">
+</head>
+
+<body>
+    <div class="container">
+        <img src="/images/login.png" alt="Login page">
+        <div class="Title">Authentication</div>
+        <div class="Authentication">
+            <form action="/verify-code" method="POST">
+                <fieldset>
+                    <legend>Authentication</legend>
+                    <div class="input-group">
+                        <label for="code">Authentication Code:</label>
+                        <input type="text" id="code" name="code" required>
+                    </div>
+                    <!-- Hidden inputs to pass the additional data -->
+                    <input type="hidden" name="firstname" value="<%= firstname %>">
+                    <input type="hidden" name="lastname" value="<%= lastname %>">
+                    <input type="hidden" name="address" value="<%= address %>">
+                    <input type="hidden" name="city" value="<%= city %>">
+                    <input type="hidden" name="email" value="<%= email %>">
+                    <input type="hidden" name="username" value="<%= username %>">
+                    <input type="hidden" name="password" value="<%= password %>">
+                    <input type="hidden" name="dob" value="<%= dob %>">
+                    <button type="submit">Submit</button>
+                </fieldset>
+            </form>
+            <div class="Login">
+                <form action="/" method="get">
+                    <button type="submit">Back to Login</button>
+                </form>
+            </div>
+            <div class="Resent">
+                <form action="/resend-authentication-code" method="get">
+                    <button type="submit">Resend the authentication code</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

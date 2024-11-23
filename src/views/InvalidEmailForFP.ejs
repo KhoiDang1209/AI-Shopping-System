@@ -1,0 +1,30 @@
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> Invalid Email Page</title>
+    <link rel="stylesheet" href="/css/InvalidEmailForFP.css">
+</head>
+
+<body>
+    <div class="container">
+        <img src="/images/login.png" alt="Login page">
+        <div class="Title">Invalid Email</div>
+        <div class="InvalidEmail">
+            <form action="/ForgetPasswordWithFilledInformation" method="get">
+                <fieldset>
+                    <legend>Invalid Email</legend>
+                    <div class="input-group">
+                        <label>Your email is not a valid email please enter again. </label>
+                    </div>
+                    <!-- Hidden inputs to pass the additional data -->
+                    <input type="hidden" name="email" value="<%= email %>">
+                    <button type="submit">Back to Forget Password</button>
+                </fieldset>
+            </form>
+        </div>
+    </div>
+</body>
+
+</html>

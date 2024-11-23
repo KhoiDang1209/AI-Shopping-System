@@ -1,0 +1,140 @@
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Homepage</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .table-container {
+            padding: 15px 20px;
+        }
+
+        .title {
+            font-size: 25px;
+            font-weight: 600;
+            padding-bottom: 10px;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        th,
+        td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        tr:hover {
+            background-color: #ccc;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="topnav">
+        <a class="active" href="/">Home</a>
+        <a href="/create">Create Users</a>
+    </div>
+
+    <!-- <div class="form-add-new">
+        <form action="/createuser" method="post">
+            <fieldset>
+                <legend>User Form </legend>
+
+                <div class="input-group">
+                    <label>Email: </label>
+                    <input type="text" name="email" />
+                </div>
+                <div class="input-group">
+                    <label>Name: </label>
+                    <input type="text" name="name" />
+                </div>
+                <div class="input-group">
+                    <label>City: </label>
+                    <input type="text" name="city" />
+                </div>
+
+                <div>
+                    <button type="submit"> Save </button>
+                </div>
+            </fieldset>
+        </form>
+    </div> -->
+    <div class="Table-container">
+        <!-- <%= listUsers %> -->
+        <!-- in ra object-->
+        <!-- <%= JSON.stringify(listUsers) %> Convert to string -->
+        <div class="Title">List Users</div>
+        <table>
+
+            <tr>
+                <th>ID</th>
+                <th>Email</th>
+                <th>Name</th>
+                <th>City</th>
+                <th>Action</th>
+            </tr>
+            <!-- <% for (var i=0; i < listUsers.length; i++){ %>
+                <tr>
+                    <td>
+                        <%= listUsers[i].id %>
+                    </td>
+                    <td>
+                        <%= listUsers[i].email %>
+                    </td>
+                    <td>
+                        <%= listUsers[i].name %>
+                    </td>
+                    <td>
+                        <%= listUsers[i].city %>
+                    </td> -->
+            <!-- <td>$100</td> -->
+            <!-- <td>
+                        <button>Edit</button>
+                        <button>Delete</button>
+
+                    </td>
+                </tr>
+
+                <% } %> -->
+            <% listUsers.forEach(function(user, index) { %>
+                <tr>
+                    <!-- from 0 to x-1 -->
+                    <td>
+                        <%= user.id %>
+                    </td>
+                    <td>
+                        <%= user.email %>
+                    </td>
+                    <td>
+                        <%= user.name %>
+                    </td>
+                    <td>
+                        <%= user.city %>
+                    </td>
+                    <td>
+                        <a href="/edit/<%= user.id %>"> <button>Edit</button></a>
+                        <!-- need to pass id of user to get infor -->
+                        <!-- <a href="/deleteuser/<%= user.id %>">
+                            <form action="/deleteUser/<%= user.id %>" method="get">
+                                <button>Delete</button>
+                            </form>
+                        </a> -->
+                        <a href="/deleteuser/<%= user.id %>"> <button>Delete</button></a>
+
+
+                    </td>
+                </tr>
+
+                <% }); %>
+
+        </table>
+    </div>
+
+</body>
+
+</html>
