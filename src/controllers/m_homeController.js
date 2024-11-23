@@ -2,7 +2,7 @@
 const nodemailer = require('nodemailer');
 const user = process.env.EMAIL_USER;
 const pass = process.env.EMAIL_PASS;
-const { getAllCity, insertNewUser, resetPassword, checkIfEmailExist } = require('../services/m_CRUDService')
+const { checkIfLoginInforCorrect, getAllCity, insertNewUser, resetPassword, checkIfEmailExist } = require('../services/m_CRUDService')
 
 const getLoginPage = (req, res) => {
     res.render('login.ejs');
@@ -15,10 +15,6 @@ const postRegisterUser = async (req, res) => {
     const { firstname, lastname, address, city, email, username, password, dob } = req.body;
     //Check if user email exist as it is unique
     let results = await checkIfEmailExist(email);
-    console.log('Results:', results);
-    console.log('Is results null:', results === null);
-    console.log('Is results an empty object:', Object.keys(results).length === 0);
-    console.log('Type of results:', typeof results);
     // console.log(req.body);
     if (Array.isArray(results) && results.length === 0) {
         res.redirect(
@@ -93,14 +89,10 @@ const getAuthenticationPage = async (req, res) => {
         res.render('Authentication.ejs', { firstname, lastname, address, city, email, username, password, dob });
     });
 
-    // console.log(req.query);
-    // console.log({ firstname, lastname, address, city, email, username, password, dob });
-    // TO PASS THIS TO THE postVerifyCode you can not pass directly bacause this this render a web page
-    // => not to pass as hidden data onto the page and use req.body to get
 };
 
 const resendAuthenticationCode = async (req, res) => {
-    // Retrieve user info from session
+
     const userInfo = req.session.userInfo;
 
     if (!userInfo) {
@@ -134,8 +126,6 @@ const resendAuthenticationCode = async (req, res) => {
 const getRegisterWithFilledInformationPage = async (req, res) => {
     let { listCitys, firstname, lastname, address, city, email, username, password, dob } = req.query;
 
-    // Check if listCitys is a string and needs to be parsed
-    //Need to change to string then change back
     if (typeof listCitys === 'string') {
         try {
             listCitys = JSON.parse(listCitys); // Parse the string to an array
@@ -144,9 +134,6 @@ const getRegisterWithFilledInformationPage = async (req, res) => {
             listCitys = []; // Default to an empty array if parsing fails
         }
     }
-
-    // Now, listCitys is guaranteed to be an array (or empty array if parsing fails)
-    // console.log(listCitys);
 
     res.render('RegisterWithFilledInformation.ejs', { listCitys, firstname, lastname, address, city, email, username, password, dob });
 };
@@ -157,8 +144,7 @@ const getForgetPasswordWithFilledInformationPage = async (req, res) => {
 };
 const postVerifyCode = async (req, res) => {
     const { firstname, lastname, address, city, email, username, password, dob } = req.body;
-    // const { firstname, lastname, address, city, email, username, password, dob } = req.query;
-    // console.log(req.query);
+
     console.log(req.body);
     const userCode = req.body.code; // Get the code entered by the user
     if (userCode === req.session.authCode) {
@@ -186,6 +172,16 @@ const postResetPassword = async (req, res) => {
     await resetPassword(email, password, confirmPassword);
     res.render('ResetPasswordSuccess.ejs');
 };
+
+const postloginValidation = async (req, res) => {
+    const { username, password } = req.body;
+    // console.log(req.body);
+    let result = await checkIfLoginInforCorrect(username, password);
+    if (Array.isArray(result) && result.length === 0) {
+        return res.render('loginWithInfor.ejs', { username, password });
+    }
+    res.render('homepage.ejs');
+};
 module.exports = {
     getLoginPage,
     getRegisterPage,
@@ -199,5 +195,6 @@ module.exports = {
     getAccountExistedPage,
     getRegisterWithFilledInformationPage,
     getForgetPasswordWithFilledInformationPage,
-    resendAuthenticationCode
+    resendAuthenticationCode,
+    postloginValidation
 }

@@ -1,6 +1,6 @@
 const express = require('express');
 
-const { resendAuthenticationCode, getForgetPasswordWithFilledInformationPage, getRegisterWithFilledInformationPage, getAccountExistedPage, postResetPassword, getResetPasswordPage, getLoginPage, getRegisterPage, postRegisterUser, getAuthenticationPage, getAuthenticationSuccessPage, getForgetPasswordPage, postVerifyCode } = require('../controllers/m_homeController');
+const { postloginValidation, resendAuthenticationCode, getForgetPasswordWithFilledInformationPage, getRegisterWithFilledInformationPage, getAccountExistedPage, postResetPassword, getResetPasswordPage, getLoginPage, getRegisterPage, postRegisterUser, getAuthenticationPage, getAuthenticationSuccessPage, getForgetPasswordPage, postVerifyCode } = require('../controllers/m_homeController');
 
 const m_router = express.Router();
 
@@ -23,5 +23,6 @@ m_router.get('/AccountExisted', getAccountExistedPage);
 m_router.post('/registerUser', postRegisterUser);
 m_router.post('/verify-code', postVerifyCode);
 m_router.post('/ResetPassword', postResetPassword);
+m_router.post('/loginValidation', postloginValidation);
 
 module.exports = m_router;

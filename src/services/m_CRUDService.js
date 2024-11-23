@@ -20,9 +20,20 @@ const checkIfEmailExist = async (email) => {
         'SELECT Email FROM Users u WHERE Email = ?', [email]);
     return results;
 }
+
+const checkIfLoginInforCorrect = async (username, password) => {
+    let [results, fields] = await connection.query(
+        'SELECT * FROM Users u WHERE UserName = ? AND Password = ?', [username, password]);
+    if (Array.isArray(results) && results.length === 0) {
+        [results, fields] = await connection.query(
+            'SELECT * FROM Users u WHERE Email = ? AND Password = ?', [username, password]);//case username is an email
+    }
+    return results;
+}
 module.exports = {
     getAllCity,
     insertNewUser,
     resetPassword,
-    checkIfEmailExist
+    checkIfEmailExist,
+    checkIfLoginInforCorrect
 }
