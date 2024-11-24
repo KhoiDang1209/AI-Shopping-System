@@ -1,9 +1,10 @@
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login page</title>
+    <title>Register page</title>
     <link rel="stylesheet" href="/css/Register.css">
 </head>
 
@@ -15,7 +16,17 @@
             <form action="/registerUser" method="post">
                 <fieldset>
                     <legend>Register</legend>
-
+                    <div class="input-group">
+                        <label>Country: </label>
+                        <select name="country" id="country" required>
+                            <option value="">--Select a country--</option>
+                            <% countries.forEach(function(country, index) { %>
+                                <option>
+                                    <%= country.name %>
+                                </option>
+                                <% }); %>
+                        </select>
+                    </div>
                     <div class="input-row">
                         <div class="input-group">
                             <label>First Name:</label>
@@ -28,19 +39,33 @@
                     </div>
 
                     <div class="input-group">
-                        <label>Address: </label>
-                        <input type="text" name="address" required>
+                        <div class="input-row">
+                            <div class="input-group">
+                                <label>Unit Number:</label>
+                                <input type="text" name="unitnumber" required>
+                            </div>
+                            <div class="input-group">
+                                <label>Street number:</label>
+                                <input type="text" name="streetnumber" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="input-group" id="city-container">
+                        <label>City: </label>
+                        <input type="text" name="city" id="city" required>
                     </div>
                     <div class="input-group">
-                        <label for="city">City:</label>
-                        <select name="city" id="city" required>
-                            <option value="">--Select a City--</option>
-                            <% listCitys.forEach(function(city, index) { %>
-                                <option>
-                                    <%= city.name %>
-                                </option>
-                                <% }); %>
-                        </select>
+                        <label>Address line 1: </label>
+                        <input type="text" name="Addressline1" required>
+                    </div>
+                    <div class="input-group">
+                        <label>Address line 2: </label>
+                        <input type="text" name="Addressline2" required>
+                    </div>
+                    <div class="input-group">
+                        <label>Postal code: </label>
+                        <input type="text" name="Postalcode" required>
                     </div>
                     <div class="input-group">
                         <label>Email: </label>
@@ -56,31 +81,11 @@
                     </div>
                     <div class="input-group">
                         <label for="Dob">Date Of Birth:</label>
-                        <!-- <select name="Year" id="Year">
-                            <option value="">--Select a Year--</option>
-                            <% for (var i=2025; i>= 1900; i--) { %>
-                                <option value="<%= i %>">
-                                    <%= i %>
-                                </option>
-                                <% } %>
-                        </select>
-                        <select name="Month" id="Month">
-                            <option value="">--Select a Month--</option>
-                            <% for (var i=13; i>= 1; i--) { %>
-                                <option value="<%= i %>">
-                                    <%= i %>
-                                </option>
-                                <% } %>
-                        </select>
-                        <select name="Day" id="Day">
-                            <option value="">--Select a Day--</option>
-                            <% for (var i=32; i>= 1; i--) { %>
-                                <option value="<%= i %>">
-                                    <%= i %>
-                                </option>
-                                <% } %>
-                        </select> -->
                         <input type="date" id="dob" name="dob" min="1900-01-01" max="2025-12-31" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="Dob">Phone Number:</label>
+                        <input type="text" name="PhoneNumber" required>
                     </div>
                     <div>
                         <button type="submit">Register</button>
@@ -97,6 +102,38 @@
             </div>
         </div>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            document.getElementById('country').addEventListener('change', function () {
+                const selectedCountry = this.value;
+                const cityContainer = document.getElementById('city-container');
+
+                if (selectedCountry === 'VIET NAM') {
+                    // Replace input with dropdown for Vietnamese cities
+                    cityContainer.innerHTML = `
+                        <div class="input-group">
+                            <label for="city">City:</label>
+                            <select name="city" id="city" required>
+                                <option value="">--Select a City--</option>
+                                <% listCitys.forEach(function(city, index) { %>
+                                    <option>
+                                        <%= city.name %>
+                                    </option>
+                                <% }); %>
+                            </select>
+                        </div>
+                    `;
+                } else {
+                    // Replace dropdown with text input for other countries
+                    cityContainer.innerHTML = `
+                        <label>City: </label>
+                        <input type="text" name="city" id="city" required>
+                    `;
+                }
+            });
+        });
+    </script>
 </body>
 
 </html>

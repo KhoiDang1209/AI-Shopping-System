@@ -2,23 +2,24 @@
 const nodemailer = require('nodemailer');
 const user = process.env.EMAIL_USER;
 const pass = process.env.EMAIL_PASS;
-const { checkIfLoginInforCorrect, getAllCity, insertNewUser, resetPassword, checkIfEmailExist } = require('../services/m_CRUDService')
+const { getAllCountry, checkIfLoginInforCorrect, getAllCity, insertNewUser, resetPassword, checkIfEmailExist } = require('../services/m_CRUDService')
 
 const getLoginPage = (req, res) => {
     res.render('login.ejs');
 }
 const getRegisterPage = async (req, res) => {
     let results = await getAllCity(); //wait for the result return to use => if not await then error occur as this empty
-    return res.render('Register.ejs', { listCitys: results });
+    let countries = await getAllCountry();
+    return res.render('Register.ejs', { listCitys: results, countries });
 }
 const postRegisterUser = async (req, res) => {
-    const { firstname, lastname, address, city, email, username, password, dob } = req.body;
+    const { country, firstname, lastname, unitnumber, streetnumber, city, Addressline1, Addressline2, Postalcode, email, username, password, dob, PhoneNumber } = req.body;
     //Check if user email exist as it is unique
     let results = await checkIfEmailExist(email);
     // console.log(req.body);
     if (Array.isArray(results) && results.length === 0) {
         res.redirect(
-            `/Authentication?firstname=${encodeURIComponent(firstname)}&lastname=${encodeURIComponent(lastname)}&address=${encodeURIComponent(address)}&city=${encodeURIComponent(city)}&email=${encodeURIComponent(email)}&username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}&dob=${encodeURIComponent(dob)}`
+            `/Authentication?country=${encodeURIComponent(country)}&firstname=${encodeURIComponent(firstname)}&lastname=${encodeURIComponent(lastname)}&unitnumber=${encodeURIComponent(unitnumber)}&streetnumber=${encodeURIComponent(streetnumber)}&city=${encodeURIComponent(city)}&Addressline1=${encodeURIComponent(Addressline1)}&Addressline2=${encodeURIComponent(Addressline2)}&Postalcode=${encodeURIComponent(Postalcode)}&email=${encodeURIComponent(email)}&username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}&dob=${encodeURIComponent(dob)}&PhoneNumber=${encodeURIComponent(PhoneNumber)} }`
         );
     }
     else {
@@ -49,8 +50,9 @@ const getForgetPasswordPage = async (req, res) => {
 };
 
 const getAuthenticationPage = async (req, res) => {
-    const { firstname, lastname, address, city, email, username, password, dob } = req.query;
-    let results = await getAllCity(); //wait for the result return to use => if not await then error occur as this empty
+    const { country, firstname, lastname, unitnumber, streetnumber, city, Addressline1, Addressline2, Postalcode, email, username, password, dob, PhoneNumber } = req.query;
+    let results = await getAllCity();
+    let countries = await getAllCountry();
     // Why query => the method is get => query if post then it will be body
     // const { Forgetpasswordemail } = req.body;
     console.log(req.query);
@@ -61,14 +63,7 @@ const getAuthenticationPage = async (req, res) => {
     console.log('email: ', email);
     // Store user info in the session
     req.session.userInfo = {
-        firstname,
-        lastname,
-        address,
-        city,
-        email,
-        username,
-        password,
-        dob
+        country, firstname, lastname, unitnumber, streetnumber, city, Addressline1, Addressline2, Postalcode, email, username, password, dob, PhoneNumber
     };
     const mailOptions = {
         from: 'skygrep@gmail.com',
@@ -80,13 +75,13 @@ const getAuthenticationPage = async (req, res) => {
     transporter.sendMail(mailOptions, (error, info) => {
         if (error) {
             console.log('Error occurred: ', error);
-            if (!firstname || !lastname || !address) {
+            if (!firstname || !lastname) {
                 return res.render('InvalidEmailForFP.ejs', { email });
             }
-            return res.render('InvalidEmail.ejs', { listCitys: results, firstname, lastname, address, city, email, username, password, dob });
+            return res.render('InvalidEmail.ejs', { country, listCitys: results, countries, firstname, lastname, unitnumber, streetnumber, city, Addressline1, Addressline2, Postalcode, email, username, password, dob, PhoneNumber });
         }
         console.log('Email sent: ', info.response);
-        res.render('Authentication.ejs', { firstname, lastname, address, city, email, username, password, dob });
+        res.render('Authentication.ejs', { country, firstname, lastname, unitnumber, streetnumber, city, Addressline1, Addressline2, Postalcode, email, username, password, dob, PhoneNumber });
     });
 
 };
@@ -99,9 +94,7 @@ const resendAuthenticationCode = async (req, res) => {
         return res.redirect('/'); // Redirect to login if session data is not available
     }
 
-    const { firstname, lastname, address, city, email, username, password, dob } = userInfo;
-
-    let results = await getAllCity(); // Wait for the result return to use
+    const { country, firstname, lastname, unitnumber, streetnumber, city, Addressline1, Addressline2, Postalcode, email, username, password, dob, PhoneNumber } = userInfo;
     const code = generateCode(); // Generate the code
     req.session.authCode = code; // Store the code in the session
     console.log('Generated Code:', code); // Log for debugging or tracking
@@ -114,17 +107,18 @@ const resendAuthenticationCode = async (req, res) => {
 
     transporter.sendMail(mailOptions, (error, info) => {
         if (error) {
-            console.log('Error occurred: ', error);
-            return res.render('InvalidEmail.ejs', { listCitys: results, firstname, lastname, address, city, email, username, password, dob });
+            return console.log('Error occurred: ', error);
         }
         console.log('Email sent: ', info.response);
-        res.render('Authentication.ejs', { firstname, lastname, address, city, email, username, password, dob });
+        res.render('Authentication.ejs', {
+            country, firstname, lastname, unitnumber, streetnumber, city, Addressline1, Addressline2, Postalcode, email, username, password, dob, PhoneNumber
+        });
     });
 };
 
 
 const getRegisterWithFilledInformationPage = async (req, res) => {
-    let { listCitys, firstname, lastname, address, city, email, username, password, dob } = req.query;
+    let { country, listCitys, countries, firstname, lastname, unitnumber, streetnumber, city, Addressline1, Addressline2, Postalcode, email, username, password, dob } = req.query;
 
     if (typeof listCitys === 'string') {
         try {
@@ -134,8 +128,16 @@ const getRegisterWithFilledInformationPage = async (req, res) => {
             listCitys = []; // Default to an empty array if parsing fails
         }
     }
+    if (typeof countries === 'string') {
+        try {
+            countries = JSON.parse(countries); // Parse the string to an array
+        } catch (error) {
+            console.error('Error parsing countries:', error);
+            countries = []; // Default to an empty array if parsing fails
+        }
+    }
 
-    res.render('RegisterWithFilledInformation.ejs', { listCitys, firstname, lastname, address, city, email, username, password, dob });
+    res.render('RegisterWithFilledInformation.ejs', { country, listCitys, countries, firstname, lastname, unitnumber, streetnumber, city, Addressline1, Addressline2, Postalcode, email, username, password, dob });
 };
 const getForgetPasswordWithFilledInformationPage = async (req, res) => {
     let { email } = req.query;
@@ -143,16 +145,16 @@ const getForgetPasswordWithFilledInformationPage = async (req, res) => {
     res.render('ForgetPasswordWithFilledInformation.ejs', { email });
 };
 const postVerifyCode = async (req, res) => {
-    const { firstname, lastname, address, city, email, username, password, dob } = req.body;
+    const { country, listCitys, countries, firstname, lastname, unitnumber, streetnumber, city, Addressline1, Addressline2, Postalcode, email, username, password, dob, PhoneNumber } = req.body;
 
     console.log(req.body);
     const userCode = req.body.code; // Get the code entered by the user
     if (userCode === req.session.authCode) {
-        if (!firstname || !lastname || !address || !city || !email || !username || !password || !dob) {//forget password
+        if (!firstname || !lastname || !city || !email || !username || !password || !dob) {//forget password
             res.render('AuthenticationSuccessForgetPasswordPage.ejs', { email });
         }
         else {//register new user
-            await insertNewUser(lastname, firstname, address, city, email, username, password, dob);
+            await insertNewUser(country, listCitys, countries, firstname, lastname, unitnumber, streetnumber, city, Addressline1, Addressline2, Postalcode, email, username, password, dob, PhoneNumber);
             res.redirect('/AuthenticationSuccess')
         }
     } else {
