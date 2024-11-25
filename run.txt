@@ -1,0 +1,6 @@
+1. Allow Policy:
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+2. Activate environment: 
+env\Scripts\activate
+3. Run:
+uvicorn main:app --reload
