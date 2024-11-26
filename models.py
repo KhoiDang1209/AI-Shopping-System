@@ -7,12 +7,12 @@ class User(Base):
     __tablename__ = "user"
     user_id = Column(Integer, primary_key=True, index=True)
     address = Column(Text)
-    phone_number = Column(String(15))
+    phone_number = Column(String(10))
     password = Column(String(255), nullable=False)
     user_name = Column(String(100), nullable=False)
 
     addresses = relationship("UserAddress", back_populates="user")
-    payment_methods = relationship("UserPaymentMethod", back_populates="user")
+    user_payment_methods = relationship("UserPaymentMethod", back_populates="user")
     reviews = relationship("UserReview", back_populates="user")
     shopping_carts = relationship("ShoppingCart", back_populates="user")
     orders = relationship("ShopOrder", back_populates="user")
@@ -21,6 +21,8 @@ class User(Base):
 class Address(Base):
     __tablename__ = "address"
     address_id = Column(Integer, primary_key=True, index=True)
+    unit_number = Column(String(100))
+    street_number = Column(String(10))
     address_line1 = Column(String(255), nullable=False)
     address_line2 = Column(String(255))
     city = Column(String(100), nullable=False)
@@ -43,6 +45,7 @@ class UserAddress(Base):
 
 class UserPaymentMethod(Base):
     __tablename__ = "user_payment_method"
+    payment_method_id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("user.user_id"), primary_key=True)
     payment_type_id = Column(Integer, ForeignKey("payment_type.payment_type_id"), primary_key=True)
     provider = Column(String(50), nullable=False)
@@ -50,7 +53,8 @@ class UserPaymentMethod(Base):
     expiry_date = Column(Date, nullable=False)
     is_default = Column(Boolean, default=False)
 
-    user = relationship("User", back_populates="payment_methods")
+    user = relationship("User", back_populates="user_payment_method")
+    shop_order = relationship("ShopOrder")
     payment_type = relationship("PaymentType")
 
 
@@ -160,15 +164,15 @@ class OrderStatus(Base):
 class ShopOrder(Base):
     __tablename__ = "shop_order"
     order_id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("user.user_id"))
-    payment_method_id = Column(Integer, ForeignKey("user_payment_method.payment_type_id"))
-    shipping_method_id = Column(Integer, ForeignKey("shopping_method.shopping_method_id"))
+    user_id = Column(Integer, ForeignKey("user.user_id"), nullable=False)
+    payment_method_id = Column(Integer, ForeignKey("user_payment_method.payment_method_id"), nullable=False)
+    shipping_method_id = Column(Integer, ForeignKey("shopping_method.shopping_method_id"), nullable=False)
     shopping_retail = Column(DECIMAL(10, 2), nullable=False)
     order_date = Column(Date, nullable=False)
     order_status_id = Column(Integer, ForeignKey("order_status.order_status_id"))
 
     user = relationship("User", back_populates="orders")
-    payment_method = relationship("UserPaymentMethod")
+    user_payment_method = relationship("UserPaymentMethod", back_populates="shop_order")
     shipping_method = relationship("ShoppingMethod")
     order_status = relationship("OrderStatus", back_populates="orders")
     order_lines = relationship("OrderLine", back_populates="shop_order")
@@ -192,7 +196,7 @@ class PaymentType(Base):
     payment_type_id = Column(Integer, primary_key=True, index=True)
     payment_name = Column(String(50), nullable=False)
 
-    user_payment_methods = relationship("UserPaymentMethod", back_populates="payment_type")
+    user_payment_method = relationship("UserPaymentMethod", back_populates="payment_type")
 
 
 class ShoppingMethod(Base):
@@ -240,6 +244,5 @@ class Country(Base):
     __tablename__ = "country"
     country_id = Column(Integer, primary_key=True, index=True)
     country_name = Column(String(100), nullable=False)
-
-# Relationships for `Country` and Address back-population
-Country.addresses = relationship("Address", back_populates="country")
+    
+    addresses = relationship("Address", back_populates="country")
