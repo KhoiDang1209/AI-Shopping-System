@@ -10,7 +10,7 @@ from importlib.metadata import version
 from ipaddress import IPv4Address, IPv4Interface, IPv4Network, IPv6Address, IPv6Interface, IPv6Network
 from typing import TYPE_CHECKING, Any, ClassVar
 
-from pydantic_core import MultiHostHost, PydanticCustomError, core_schema
+from pydantic_core import MultiHostHost, PydanticCustomError, SchemaSerializer, core_schema
 from pydantic_core import MultiHostUrl as _CoreMultiHostUrl
 from pydantic_core import Url as _CoreUrl
 from typing_extensions import Annotated, Self, TypeAlias
@@ -224,6 +224,9 @@ class _BaseUrl:
     def __eq__(self, other: Any) -> bool:
         return self.__class__ is other.__class__ and self._url == other._url
 
+    def __hash__(self) -> int:
+        return hash(self._url)
+
     @classmethod
     def build(
         cls,
@@ -284,6 +287,8 @@ class _BaseUrl:
             schema=core_schema.url_schema(**cls._constraints.defined_constraints),
             serialization=core_schema.to_string_ser_schema(),
         )
+
+    __pydantic_serializer__ = SchemaSerializer(core_schema.any_schema(serialization=core_schema.to_string_ser_schema()))
 
 
 class _BaseMultiHostUrl:
@@ -368,6 +373,9 @@ class _BaseMultiHostUrl:
     def __eq__(self, other: Any) -> bool:
         return self.__class__ is other.__class__ and self._url == other._url
 
+    def __hash__(self) -> int:
+        return hash(self._url)
+
     @classmethod
     def build(
         cls,
@@ -434,6 +442,8 @@ class _BaseMultiHostUrl:
             schema=core_schema.multi_host_url_schema(**cls._constraints.defined_constraints),
             serialization=core_schema.to_string_ser_schema(),
         )
+
+    __pydantic_serializer__ = SchemaSerializer(core_schema.any_schema(serialization=core_schema.to_string_ser_schema()))
 
 
 @lru_cache

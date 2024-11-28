@@ -9,7 +9,7 @@ import types
 import typing
 import warnings
 from functools import lru_cache, partial
-from typing import Any, Callable
+from typing import TYPE_CHECKING, Any, Callable
 
 import typing_extensions
 from typing_extensions import TypeIs, deprecated, get_args, get_origin
@@ -23,6 +23,8 @@ else:
     from types import EllipsisType as EllipsisType
     from types import NoneType as NoneType
 
+if TYPE_CHECKING:
+    from pydantic import BaseModel
 
 # See https://typing-extensions.readthedocs.io/en/latest/#runtime-use-of-types:
 
@@ -449,17 +451,41 @@ def parent_frame_namespace(*, parent_depth: int = 2, force: bool = False) -> dic
     return frame.f_locals
 
 
-def get_cls_type_hints(
-    obj: type[Any], *, ns_resolver: NsResolver | None = None, lenient: bool = False
-) -> dict[str, Any]:
-    """Collect annotations from a class, including those from parent classes.
+def _type_convert(arg: Any) -> Any:
+    """Convert `None` to `NoneType` and strings to `ForwardRef` instances.
+
+    This is a backport of the private `typing._type_convert` function. When
+    evaluating a type, `ForwardRef._evaluate` ends up being called, and is
+    responsible for making this conversion. However, we still have to apply
+    it for the first argument passed to our type evaluation functions, similarly
+    to the `typing.get_type_hints` function.
+    """
+    if arg is None:
+        return NoneType
+    if isinstance(arg, str):
+        # Like `typing.get_type_hints`, assume the arg can be in any context,
+        # hence the proper `is_argument` and `is_class` args:
+        return _make_forward_ref(arg, is_argument=False, is_class=True)
+    return arg
+
+
+def get_model_type_hints(
+    obj: type[BaseModel],
+    *,
+    ns_resolver: NsResolver | None = None,
+) -> dict[str, tuple[Any, bool]]:
+    """Collect annotations from a Pydantic model class, including those from parent classes.
 
     Args:
-        obj: The class to inspect.
+        obj: The Pydantic model to inspect.
         ns_resolver: A namespace resolver instance to use. Defaults to an empty instance.
-        lenient: Whether to keep unresolvable annotations as is or re-raise the `NameError` exception. Default: re-raise.
+
+    Returns:
+        A dictionary mapping annotation names to a two-tuple: the first element is the evaluated
+        type or the original annotation if a `NameError` occurred, the second element is a boolean
+        indicating if whether the evaluation succeeded.
     """
-    hints = {}
+    hints: dict[str, Any] | dict[str, tuple[Any, bool]] = {}
     ns_resolver = ns_resolver or NsResolver()
 
     for base in reversed(obj.__mro__):
@@ -469,16 +495,75 @@ def get_cls_type_hints(
         with ns_resolver.push(base):
             globalns, localns = ns_resolver.types_namespace
             for name, value in ann.items():
-                hints[name] = eval_type(value, globalns, localns, lenient=lenient)
+                if name.startswith('_'):
+                    # For private attributes, we only need the annotation to detect the `ClassVar` special form.
+                    # For this reason, we still try to evaluate it, but we also catch any possible exception (on
+                    # top of the `NameError`s caught in `try_eval_type`) that could happen so that users are free
+                    # to use any kind of forward annotation for private fields (e.g. circular imports, new typing
+                    # syntax, etc).
+                    try:
+                        hints[name] = try_eval_type(value, globalns, localns)
+                    except Exception:
+                        hints[name] = (value, False)
+                else:
+                    hints[name] = try_eval_type(value, globalns, localns)
     return hints
+
+
+def get_cls_type_hints(
+    obj: type[Any],
+    *,
+    ns_resolver: NsResolver | None = None,
+) -> dict[str, Any]:
+    """Collect annotations from a class, including those from parent classes.
+
+    Args:
+        obj: The class to inspect.
+        ns_resolver: A namespace resolver instance to use. Defaults to an empty instance.
+    """
+    hints: dict[str, Any] | dict[str, tuple[Any, bool]] = {}
+    ns_resolver = ns_resolver or NsResolver()
+
+    for base in reversed(obj.__mro__):
+        ann: dict[str, Any] | None = base.__dict__.get('__annotations__')
+        if not ann or isinstance(ann, types.GetSetDescriptorType):
+            continue
+        with ns_resolver.push(base):
+            globalns, localns = ns_resolver.types_namespace
+            for name, value in ann.items():
+                hints[name] = eval_type(value, globalns, localns)
+    return hints
+
+
+def try_eval_type(
+    value: Any,
+    globalns: GlobalsNamespace | None = None,
+    localns: MappingNamespace | None = None,
+) -> tuple[Any, bool]:
+    """Try evaluating the annotation using the provided namespaces.
+
+    Args:
+        value: The value to evaluate. If `None`, it will be replaced by `type[None]`. If an instance
+            of `str`, it will be converted to a `ForwardRef`.
+        localns: The global namespace to use during annotation evaluation.
+        globalns: The local namespace to use during annotation evaluation.
+
+    Returns:
+        A two-tuple containing the possibly evaluated type and a boolean indicating
+            whether the evaluation succeeded or not.
+    """
+    value = _type_convert(value)
+
+    try:
+        return eval_type_backport(value, globalns, localns), True
+    except NameError:
+        return value, False
 
 
 def eval_type(
     value: Any,
     globalns: GlobalsNamespace | None = None,
     localns: MappingNamespace | None = None,
-    *,
-    lenient: bool = False,
 ) -> Any:
     """Evaluate the annotation using the provided namespaces.
 
@@ -487,24 +572,13 @@ def eval_type(
             of `str`, it will be converted to a `ForwardRef`.
         localns: The global namespace to use during annotation evaluation.
         globalns: The local namespace to use during annotation evaluation.
-        lenient: Whether to keep unresolvable annotations as is or re-raise the `NameError` exception. Default: re-raise.
     """
-    if value is None:
-        value = NoneType
-    elif isinstance(value, str):
-        value = _make_forward_ref(value, is_argument=False, is_class=True)
-
-    try:
-        return eval_type_backport(value, globalns, localns)
-    except NameError:
-        if not lenient:
-            raise
-        # the point of this function is to be tolerant to this case
-        return value
+    value = _type_convert(value)
+    return eval_type_backport(value, globalns, localns)
 
 
 @deprecated(
-    '`eval_type_lenient` is deprecated, use `eval_type` with `lenient=True` instead.',
+    '`eval_type_lenient` is deprecated, use `try_eval_type` instead.',
     category=None,
 )
 def eval_type_lenient(
@@ -512,7 +586,8 @@ def eval_type_lenient(
     globalns: GlobalsNamespace | None = None,
     localns: MappingNamespace | None = None,
 ) -> Any:
-    return eval_type(value, globalns, localns, lenient=True)
+    ev, _ = try_eval_type(value, globalns, localns)
+    return ev
 
 
 def eval_type_backport(

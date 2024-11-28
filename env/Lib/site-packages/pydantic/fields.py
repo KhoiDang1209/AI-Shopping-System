@@ -154,6 +154,7 @@ class FieldInfo(_repr.Representation):
 
     __slots__ = (
         'annotation',
+        'evaluated',
         'default',
         'default_factory',
         'alias',
@@ -207,6 +208,7 @@ class FieldInfo(_repr.Representation):
         self._attributes_set = {k: v for k, v in kwargs.items() if v is not _Unset}
         kwargs = {k: _DefaultValues.get(k) if v is _Unset else v for k, v in kwargs.items()}  # type: ignore
         self.annotation, annotation_metadata = self._extract_metadata(kwargs.get('annotation'))
+        self.evaluated = False
 
         default = kwargs.pop('default', PydanticUndefined)
         if default is Ellipsis:
@@ -654,7 +656,7 @@ class FieldInfo(_repr.Representation):
             pydantic._internal._generics.replace_types is used for replacing the typevars with
                 their concrete types.
         """
-        annotation = _typing_extra.eval_type(self.annotation, globalns, localns, lenient=True)
+        annotation, _ = _typing_extra.try_eval_type(self.annotation, globalns, localns)
         self.annotation = _generics.replace_types(annotation, typevars_map)
 
     def __repr_args__(self) -> ReprArgs:
@@ -662,9 +664,9 @@ class FieldInfo(_repr.Representation):
         yield 'required', self.is_required()
 
         for s in self.__slots__:
-            if s == '_attributes_set':
-                continue
-            if s == 'annotation':
+            # TODO: properly make use of the protocol (https://rich.readthedocs.io/en/stable/pretty.html#rich-repr-protocol)
+            # By yielding a three-tuple:
+            if s in ('_attributes_set', 'annotation', 'evaluated'):
                 continue
             elif s == 'metadata' and not self.metadata:
                 continue
@@ -732,7 +734,7 @@ _T = TypeVar('_T')
 # to understand the magic that happens at runtime with the following overloads:
 @overload  # type hint the return value as `Any` to avoid type checking regressions when using `...`.
 def Field(
-    default: _typing_extra.EllipsisType,
+    default: ellipsis,  # noqa: F821  # TODO: use `_typing_extra.EllipsisType` when we drop Py3.9
     *,
     alias: str | None = _Unset,
     alias_priority: int | None = _Unset,

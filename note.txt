@@ -1,15 +1,41 @@
-page:
-    nav bar:
+pages:
+    navigation bar (always display):
         home page
         search bar
         user profile
         cart
+        check out page
+
+    login page:
+        require user to enter email and password to login
+        if user dont have account user can change to register page
+
+    register page:
+        require user to enter user name, email, phone number, password
+        if user already have account (check duplicate email), user can change to login page
+  
+    user profile:
+        show user name, email, phone number
+        if user address is empty, require user to enter address
+        user address contain, address line, city, region
+
+    home page:
+        show recommend product, show different product categories
+
     products page:
-        items being shown after searched
-        select an item to view detail
-    item page:
-        show detail information of selected item
-        
+        products being shown after searched
+        select an product to view detail
+
+        product detail page:
+            show detail information of selected product
+            user can choose to add selected product to cart
+    
+    cart page:
+        show products user added to their cart
+        user can choose to checkout
+    
+        order page:
+            after checkout, user can provide payment detail and pick shipping method
 
 ai model:
     user rating
@@ -24,9 +50,7 @@ use case:
     add selected item to cart
     select item in cart to purchase
 
-
-
-sql:
+Đức Độ
 CREATE TABLE "country" (
   "country_id" INT,
   "country_name" VARCHAR(100),
@@ -286,4 +310,3 @@ CREATE TABLE "user_review" (
     FOREIGN KEY ("user_id")
       REFERENCES "site_user"("user_id")
 );
-
