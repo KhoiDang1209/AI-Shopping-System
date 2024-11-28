@@ -4,7 +4,7 @@ from database import engine, SessionLocal
 from sqlalchemy.orm import Session
 import models
 
-from models import User, Address, Product, ShopOrder
+from models import SiteUser, Address, Product, ShopOrder
 
 from schemas import (
     UserCreate,
@@ -31,7 +31,7 @@ def get_db():
 # User Endpoints
 @app.post("/users/", response_model=UserResponse)
 def create_user(user: UserCreate, db: Session = Depends(get_db)):
-    db_user = User(
+    db_user = SiteUser(
         user_name=user.user_name,
         address=user.address,
         phone_number=user.phone_number,
@@ -45,12 +45,12 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)):
 
 @app.get("/users/", response_model=List[UserResponse])
 def get_users(db: Session = Depends(get_db)):
-    return db.query(User).all()
+    return db.query(SiteUser).all()
 
 
 @app.get("/users/{user_id}", response_model=UserResponse)
 def get_user(user_id: int, db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.user_id == user_id).first()
+    user = db.query(SiteUser).filter(SiteUser.user_id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     return user

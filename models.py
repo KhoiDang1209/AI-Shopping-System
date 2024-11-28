@@ -35,25 +35,25 @@ class Address(Base):
 
 class UserAddress(Base):
     __tablename__ = "user_address"
-    user_id = Column(Integer, ForeignKey("user.user_id"), primary_key=True)
+    user_id = Column(Integer, ForeignKey("site_user.user_id"), primary_key=True)
     address_id = Column(Integer, ForeignKey("address.address_id"), primary_key=True)
     is_default = Column(Boolean, default=False)
 
-    user = relationship("User", back_populates="addresses")
+    user = relationship("SiteUser", back_populates="addresses")
     address = relationship("Address")
 
 
 class UserPaymentMethod(Base):
     __tablename__ = "user_payment_method"
     payment_method_id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey("site_user.user_id"), primary_key=True)
-    payment_type_id = Column(Integer, ForeignKey("payment_type.payment_type_id"), primary_key=True)
+    user_id = Column(Integer, ForeignKey("site_user.user_id"))
+    payment_type_id = Column(Integer, ForeignKey("payment_type.payment_type_id"))
     provider = Column(String(100), nullable=False)
     account_number = Column(String(50), nullable=False)
     expiry_date = Column(Date, nullable=False)
     is_default = Column(Boolean, default=False)
 
-    user = relationship("User", back_populates="payment_methods")
+    user = relationship("SiteUser", back_populates="payment_methods")
     payment_type = relationship("PaymentType")
 
 
@@ -65,7 +65,7 @@ class UserReview(Base):
     rating_value = Column(DECIMAL(2, 1), nullable=False)
     comment = Column(Text)
 
-    user = relationship("User", back_populates="reviews")
+    user = relationship("SiteUser", back_populates="reviews")
     order_line = relationship("OrderLine")
 
 
@@ -139,9 +139,9 @@ class ProductConfiguration(Base):
 class ShoppingCart(Base):
     __tablename__ = "shopping_cart"
     shopping_cart_id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("user.user_id"))
+    user_id = Column(Integer, ForeignKey("site_user.user_id"))
 
-    user = relationship("User", back_populates="shopping_carts")
+    user = relationship("SiteUser", back_populates="shopping_carts")
     items = relationship("ShoppingCartItem", back_populates="shopping_cart")
 
 
@@ -169,15 +169,15 @@ class ShopOrder(Base):
     order_id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("site_user.user_id"))
     payment_method_id = Column(Integer, ForeignKey("user_payment_method.payment_method_id"))
-    address_id = Columnn(Integer, ForeignKey("address.address_id"))
+    address_id = Column(Integer, ForeignKey("address.address_id"))
     shipping_method_id = Column(Integer, ForeignKey("shipping_method.shipping_method_id"))
     order_total = Column(DECIMAL(10, 2), nullable=False)
     order_date = Column(Date, nullable=False)
     order_status_id = Column(Integer, ForeignKey("order_status.order_status_id"))
 
-    user = relationship("User", back_populates="orders")
+    user = relationship("SiteUser", back_populates="orders")
     payment_method = relationship("UserPaymentMethod")
-    shipping_method = relationship("ShoppingMethod")
+    shipping_method = relationship("ShippingMethod", back_populates="shop_orders")
     order_status = relationship("OrderStatus", back_populates="orders")
     order_lines = relationship("OrderLine", back_populates="shop_order")
 
@@ -202,16 +202,6 @@ class PaymentType(Base):
 
     user_payment_methods = relationship("UserPaymentMethod", back_populates="payment_type")
 
-
-class ShoppingMethod(Base):
-    __tablename__ = "shopping_method"
-    shopping_method_id = Column(Integer, primary_key=True, index=True)
-    name = Column(String(100), nullable=False)
-    price = Column(DECIMAL(10, 2), nullable=False)
-
-    orders = relationship("ShopOrder", back_populates="shipping_method")
-
-
 # 5. Promotions and Categories
 class Promotion(Base):
     __tablename__ = "promotion"
@@ -227,22 +217,31 @@ class Promotion(Base):
 
 class PromotionCategory(Base):
     __tablename__ = "promotion_category"
-    category_id = Column(Integer, ForeignKey("product_category.category_id"))
-    promotion_id = Column(Integer, ForeignKey("promotion.promotion_id"))
+    
+    category_id = Column(Integer, ForeignKey("product_category.category_id"), primary_key=True)
+    promotion_id = Column(Integer, ForeignKey("promotion.promotion_id"), primary_key=True)
 
     category = relationship("ProductCategory")
     promotion = relationship("Promotion", back_populates="promotion_categories")
-
 
 class InterestingCategory(Base):
     __tablename__ = "interesting_category"
     interesting_category_id = Column(Integer, primary_key=True, index=True)
     category_id = Column(Integer, ForeignKey("product_category.category_id"))
-    user_id = Column(Integer, ForeignKey("user_address.user_id"))
+    # user_id = Column(Integer, ForeignKey("user_address.user_id")) #?????? Why need user address together with user id
+    user_id = Column(Integer, ForeignKey("site_user.user_id"))
+
 
     category = relationship("ProductCategory")
-    user = relationship("User")
+    user = relationship("SiteUser")
 
+class ShippingMethod(Base):
+    __tablename__ = "shipping_method"
+    shipping_method_id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(255), nullable=False)
+    price = Column(DECIMAL(10, 2), nullable=False)
+
+    shop_orders = relationship("ShopOrder", back_populates="shipping_method")
 # 6. Location Tables
 class Country(Base):
     __tablename__ = "country"
@@ -250,4 +249,4 @@ class Country(Base):
     country_name = Column(String(100), nullable=False)
 
 # Relationships for `Country` and Address back-population
-Country.addresses = relationship("Address", back_populates="country")
+    addresses = relationship("Address", back_populates="country")
