@@ -6,9 +6,9 @@ import models
 
 from models import User, Address, Product, ShopOrder
 
-from schemas import (
+# from schemas import (
 
-)
+# )
 
 app = FastAPI()
 models.Base.metadata.create_all(bind=engine)
