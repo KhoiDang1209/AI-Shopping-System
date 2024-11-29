@@ -1,8 +1,11 @@
 import os
 import random
+import re
 from dotenv import dotenv_values
 from fastapi import status, FastAPI, HTTPException, Depends
 from typing import List
+
+from pydantic import EmailStr, ValidationError
 from database import engine, SessionLocal
 from sqlalchemy.orm import Session
 import models
@@ -26,7 +29,8 @@ from schemas import (
     UserRegisterRequest,
     EmailContent,
     RegisterRequest,
-    EmailVadidate
+    EmailVadidate,
+    LoginRequire
 )
 dotenv_path = os.path.join(os.getcwd(), ".env")
 credentials = dotenv_values(dotenv_path)
@@ -248,6 +252,41 @@ async def postRegister(user: UserRegisterRequest, db: Session = Depends(get_db))
     db.commit()
     db.refresh(db_user)
     return db_user
+
+def is_email(value: str) -> bool:
+    # Check if value is a valid email using regex
+    email_regex = r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$'
+    return re.match(email_regex, value) is not None
+
+@app.post("/postLogin/")
+async def postLogin(user: LoginRequire, db: Session = Depends(get_db)):
+    # Determine if the input is an email or a username
+    if is_email(user.user_name_or_email):
+        existing_user = db.query(SiteUser).filter(SiteUser.email_address == user.user_name_or_email).first()
+    else:
+        existing_user = db.query(SiteUser).filter(SiteUser.user_name == user.user_name_or_email).first()
+
+    if not existing_user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="User not found"
+        )
+
+    # Check if the password is correct (assuming you have password hashing)
+    if existing_user.password != user.password:  # Replace with hashing check if needed
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid credentials"
+        )
+    
+    user_response = UserResponse(
+        user_name=existing_user.user_name,
+        email_address=existing_user.email_address,
+        phone_number=existing_user.phone_number,
+        password = existing_user.password
+    )
+
+    return {"message": "Login successful", "user": user_response}
 # @app.post("/login", response_model=UserResponse)
 # async def login_user(user: UserLoginRequest, db: Session = Depends(get_db)):
 #     # Get user from DB
