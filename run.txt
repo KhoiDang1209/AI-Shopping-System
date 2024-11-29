@@ -4,3 +4,14 @@ Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 env\Scripts\activate
 3. Run:
 uvicorn main:app --reload
+
+
+Open 2 terminal first one:
+The first one run below command:
+.\venv\Scripts\activate
+uvicorn main:app --reload
+The second one run below command:
+cd .\React\email-verification-app
+npm start
+
+
