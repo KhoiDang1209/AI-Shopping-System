@@ -1,6 +1,7 @@
-from pydantic import BaseModel
+import re
+from pydantic import BaseModel, EmailStr, Field, constr, field_validator, validator
 from typing import List, Optional
-
+from typing_extensions import Annotated
 
 # User Schemas
 class UserBase(BaseModel):
@@ -96,3 +97,70 @@ class ShopOrderResponse(ShopOrderBase):
 
     class Config:
         orm_mode = True
+
+
+#Main schema
+# 1. Login & Register schema
+class UserRegisterRequest(BaseModel):
+    user_name: str
+    email_address: EmailStr
+    phone_number:  str
+    password: str
+
+    # @field_validator('password')
+    # def password_complexity(cls, value):
+    #     if not re.search(r'[A-Z]', value):
+    #         raise ValueError("Password must contain at least one uppercase letter.")
+    #     if not re.search(r'[a-z]', value):
+    #         raise ValueError("Password must contain at least one lowercase letter.")
+    #     if not re.search(r'\d', value):
+    #         raise ValueError("Password must contain at least one number.")
+    #     if not re.search(r'[!@#$%^&*(),.?":{}|<>]', value):
+    #         raise ValueError("Password must contain at least one special character.")
+    #     return value
+
+    class Config:
+        orm_mode = True
+
+class UserLoginRequest(BaseModel):
+    email_address: EmailStr
+    password: str
+
+    class Config:
+        orm_mode = True
+
+class UserResponse(BaseModel): # for user response after login / register
+    user_name: str
+    email_address: EmailStr
+    phone_number: str
+    password: str
+    class Config:
+        orm_mode = True
+        
+
+
+# 2. User profile schema
+
+# 3. Product schema
+    # category schema
+    # variation schema
+    
+# 4. Cart schema
+
+# 5. Order schema
+
+# Schema for email input
+class EmailSchema(BaseModel):
+    email: List[EmailStr]
+
+class EmailContent(BaseModel):
+    message: str
+    subject: str
+
+class RegisterRequest(BaseModel):
+    user: UserRegisterRequest
+    content: EmailContent
+
+class EmailVadidate(BaseModel):
+    email: str
+    code: str
