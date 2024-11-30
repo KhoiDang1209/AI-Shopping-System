@@ -178,4 +178,10 @@ class OrderRequest(BaseModel):
     class Config:
         orm_mode = True
         
-# 6. Additional schema (for )
+# 6. Additional schema (for country)
+class CountryResponse(BaseModel):
+    country_id: int
+    country_name: str
+
+    class Config:
+        orm_mode = True
