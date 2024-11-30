@@ -9,7 +9,6 @@ import os
 
 load_dotenv()
 
-# Get MongoDB URI from environment variable
 MONGODB_URI = os.getenv("MONGODB_URI")
 client = MongoClient(MONGODB_URI)
 
@@ -60,7 +59,7 @@ class SearchRecommendation:
             'cosine_similarity': cosine_similarities
         })
         results_df = results_df.sort_values(by='cosine_similarity', ascending=False)
-        return results_df[['id', 'name']].head(top_n).to_dict(orient='records')
+        return results_df[['id']].head(top_n).to_dict(orient='records')
 
 
 
@@ -88,17 +87,17 @@ class RecommendTrendModel:
         total_similarity = 0.2 * gender_sim + 0.6 * age_sim + 0.2 * location_sim
         return total_similarity
 
-    def find_top5_similar_users(self, user_info):
+    def find_top_similar_users(self, user_info):
         similarities = []
         for _, other_user in self.user_data.iterrows():
             similarity = self.calculate_similarity(user_info, other_user)
             similarities.append((other_user['userID'], similarity))
         similarities.sort(key=lambda x: x[1], reverse=True)
-        return [user_list[0] for user_list in similarities[:5]]
+        return [user_list[0] for user_list in similarities[:20]]
 
-    def collaborative_filtering_recommendations(self, user_info, top_n=10):
-        top5_similar_users = self.find_top5_similar_users(user_info)
-        filtered_ratings_data = self.ratings_data[self.ratings_data['userid'].isin(top5_similar_users)]
+    def collaborative_filtering_recommendations(self, user_info, top_n=200):
+        top_similar_users = self.find_top_similar_users(user_info)
+        filtered_ratings_data = self.ratings_data[self.ratings_data['userid'].isin(top_similar_users)]
         user_item_matrix = filtered_ratings_data.pivot_table(
             index='userid',
             columns='productid',
@@ -107,7 +106,7 @@ class RecommendTrendModel:
         ).fillna(0)
         user_similarity = cosine_similarity(user_item_matrix)
         recommended_items = set()
-        for target_user_id in top5_similar_users:
+        for target_user_id in top_similar_users:
             try:
                 target_user_index = user_item_matrix.index.get_loc(target_user_id)
             except KeyError:
@@ -129,13 +128,13 @@ class RecommendTrendModel:
         right_on='id',
         how='inner')
         top_recommendations = recommended_items_with_names.sort_values(by='rating', ascending=False ).head(top_n)
-        return top_recommendations[['productid', 'name']].values.tolist()
+        return top_recommendations[['productid']].values.tolist()
 
     def most_trending_products(self, top_n=20):
         trending_products = self.product_data.sort_values(
             by=['ratings', 'no_of_ratings'], ascending=False
         ).head(top_n)
-        return trending_products[['id', 'name']].values.tolist()
+        return trending_products[['id']].values.tolist()
 
     def recommend(self, user_info, top_n=20):
         collaborative_recommendations = self.collaborative_filtering_recommendations(user_info, top_n=top_n)
@@ -168,17 +167,17 @@ class InterestRecommendationModel:
         total_similarity = 0.2 * gender_sim + 0.6 * age_sim + 0.2 * location_sim
         return total_similarity
 
-    def find_top5_similar_users(self, user_info):
+    def find_top_similar_users(self, user_info):
         similarities = []
         for i, other_user in self.user_data.iterrows():
             similarity = self.calculate_similarity(user_info, other_user)
             similarities.append((other_user['userID'], similarity))
         similarities.sort(key=lambda x: x[1], reverse=True)
-        return [user_list[0] for user_list in similarities[:5]]
+        return [user_list[0] for user_list in similarities[:20]]
 
-    def collaborative_filtering_recommendations(self, user_info, top_n=10):
-        top5_similar_users = self.find_top5_similar_users(user_info)
-        filtered_ratings_data = self.ratings_data[self.ratings_data['userid'].isin(top5_similar_users)]
+    def collaborative_filtering_recommendations(self, user_info, top_n=20):
+        top_similar_users = self.find_top_similar_users(user_info)
+        filtered_ratings_data = self.ratings_data[self.ratings_data['userid'].isin(top_similar_users)]
         user_item_matrix = filtered_ratings_data.pivot_table(
             index='userid',
             columns='productid',
@@ -187,7 +186,7 @@ class InterestRecommendationModel:
         ).fillna(0)
         user_similarity = cosine_similarity(user_item_matrix)
         recommended_items = set()
-        for target_user_id in top5_similar_users:
+        for target_user_id in top_similar_users:
             try:
                 target_user_index = user_item_matrix.index.get_loc(target_user_id)
             except KeyError:
@@ -209,24 +208,19 @@ class InterestRecommendationModel:
         right_on='id',
         how='inner')
         top_recommendations = recommended_items_with_names.sort_values(by='rating', ascending=False ).head(top_n)
-        return top_recommendations[['productid', 'name']].values.tolist()
+        return top_recommendations[['productid']].values.tolist()
 
     def highest_rated_products_by_interest(self, user_info, top_n=20):
-        # Ensure the 'interest' field is treated as a list
-        user_interest = list(map(int, user_info['interest']))  # Assuming the array contains integers
-        # Filter products based on the encoded main categories matching the user's interests
+        user_interest = list(map(int, user_info['interest']))
         filtered_products = self.product_data[self.product_data['main_category_encoded'].isin(user_interest)]
-        # Sort the filtered products by ratings and number of ratings
         top_products = filtered_products.sort_values(
             by=['ratings', 'no_of_ratings'], ascending=False
         ).head(top_n)
-        # Return the top products with id and name
-        return top_products[['id', 'name']].values.tolist()
+        return top_products[['id']].values.tolist()
 
     def recommend(self, user_info, top_n=20):
         collaborative_recommendations = self.collaborative_filtering_recommendations(user_info, top_n=top_n)
         interest_based_recommendations = self.highest_rated_products_by_interest(user_info, top_n=top_n)
-
         recommendations = collaborative_recommendations+interest_based_recommendations
         return recommendations
 
@@ -241,20 +235,16 @@ class AssociationRecommendationModel:
         self.rules = rules
 
     def get_top_associated_categories(self, item_ids, n=3):
-        """Get top associated categories for a list of item IDs."""
         top_associated_categories = set()
 
         for item_id in item_ids:
-            # Retrieve item information
             item_info = self.product[self.product['id'] == item_id]
             if item_info.empty:
                 print(f"Item with ID {item_id} not found in dataset.")
                 continue
 
             item_category = f"{item_info.iloc[0]['main_category']} - {item_info.iloc[0]['sub_category']}"
-
             relevant_rules = self.rules[self.rules['antecedents'].apply(lambda x: item_category in x)]
-
             if relevant_rules.empty:
                 continue
 
@@ -265,41 +255,34 @@ class AssociationRecommendationModel:
                         for category in category_set.split(", "):
                             if category != item_category:
                                 top_associated_categories.add(category)
-        # Return the top N categories as a list
         top_categories_list = list(top_associated_categories)[:n]
         return top_categories_list
 
 
     def get_top_rated_items(self, associated_categories, top_n=5):
-        """Get top-rated items from the associated categories."""
         top_items = []
         for category in associated_categories:
             try:
-                # Split the main and subcategories
                 main_category, sub_category = category.split(" - ")
             except ValueError:
                 print(f"Invalid category format: {category}")
                 continue
-            # Filter items within the given category
             category_items = self.product[
                 (self.product['main_category'] == main_category) &
                 (self.product['sub_category'] == sub_category)
             ]
-            # Get top items based on ratings
             top_rated_items = category_items.sort_values(by='ratings', ascending=False).head(top_n)
             top_items.extend(top_rated_items['id'].tolist())
         return top_items
 
-    def recommend(self, item_ids, associated_n=3, top_n=5):
-        # Get top associated categories for the input items
+    def recommend(self, item_ids, associated_n=5, top_n=5):
         top_associated_categories = self.get_top_associated_categories(item_ids, n=associated_n)
-        # Get highest-rated items from the associated categories
         top_rated_items = self.get_top_rated_items(top_associated_categories, top_n=top_n)
         return top_rated_items
 
 associate_model=AssociationRecommendationModel(product_df,association_df)
 class AssociationRecommendation(BaseModel):
-    item_ids: list[str]
+    ids: list[str]
 
 class ItemRecommendationModel:
     def __init__(self, product):
@@ -318,10 +301,8 @@ class ItemRecommendationModel:
         item_vector = self.tfidf_matrix[item_index]
         cosine_similarities = cosine_similarity(item_vector, self.tfidf_matrix).flatten()
         similar_indices = cosine_similarities.argsort()[-top_n-1:-1][::-1]
-        similar_items = self.product.iloc[similar_indices][['id','name',]]
-
+        similar_items = self.product.iloc[similar_indices][['id',]]
         similar_items_list = similar_items.to_dict(orient='records')
-
         return similar_items_list
 
 class ItemRecommendation(BaseModel):
@@ -335,42 +316,71 @@ class CollabRecommendationModel:
         self.product_data = product_data
         self.ratings_data = ratings_data
 
-    def collaborative_filtering_recommendations(self, target_user_id, top_n=10):
-        target_user_id = int(target_user_id)
+    @staticmethod
+    def calculate_similarity(user1, user2):
+        gender_sim = 1 if user1['gender'] == user2['gender'] else 0
+        age_sim = 1 - abs(user1['age'] - user2['age']) / 100
+        if user1['city'] == user2['city']:
+            location_sim = 1
+        elif user1['country'] == user2['country']:
+            location_sim = 0.5
+        else:
+            location_sim = 0
+        total_similarity = 0.2 * gender_sim + 0.6 * age_sim + 0.2 * location_sim
+        return total_similarity
 
-        user_item_matrix = self.ratings_data.pivot_table(
-            index='userid', columns='productid', values='rating', aggfunc='mean'
+    def find_top_similar_users(self, user_info):
+        similarities = []
+        for _, other_user in self.user_data.iterrows():
+            similarity = self.calculate_similarity(user_info, other_user)
+            similarities.append((other_user['userID'], similarity))
+        similarities.sort(key=lambda x: x[1], reverse=True)
+        return [user[0] for user in similarities[:50]]
+
+    def collaborative_filtering_recommendations(self, user_id, user_info, top_n=10):
+        top50_similar_users = self.find_top_similar_users(user_info)
+        filtered_ratings_data = self.ratings_data[self.ratings_data['userid'].isin(top50_similar_users)]
+        user_item_matrix = filtered_ratings_data.pivot_table(
+            index='userid',
+            columns='productid',
+            values='rating',
+            aggfunc='mean'
         ).fillna(0)
 
-        # Ensure target user exists
-        if target_user_id not in user_item_matrix.index:
-            raise ValueError(f"User ID {target_user_id} not found in the ratings data.")
+        user_similarity = cosine_similarity(user_item_matrix)
+        recommended_items = set()
+        for target_user_id in top50_similar_users:
+            try:
+                target_user_index = user_item_matrix.index.get_loc(target_user_id)
+            except KeyError:
+                continue
 
-        target_user_ratings = user_item_matrix.loc[target_user_id]
-        rated_items = target_user_ratings[target_user_ratings > 0].index
+            user_similarities = user_similarity[target_user_index]
+            similar_users_indices = user_similarities.argsort()[::-1][1:]
 
-        similar_users = user_item_matrix.loc[
-            (user_item_matrix > 0).any(axis=1) & (user_item_matrix.index != target_user_id)
-            ]
-        similar_users_similarity = cosine_similarity(
-            target_user_ratings.values.reshape(1, -1), similar_users.values
-        )[0]
+            for user_index in similar_users_indices:
+                rated_by_similar_user = user_item_matrix.iloc[user_index]
+                not_rated_by_target_user = (rated_by_similar_user > 0) & (user_item_matrix.iloc[target_user_index] == 0)
+                recommended_items.update(user_item_matrix.columns[not_rated_by_target_user][:top_n])
+                if len(recommended_items) >= top_n:
+                    break
+        recommended_items_details = self.ratings_data[
+            self.ratings_data['productid'].isin(recommended_items)
+        ][['productid', 'rating']].drop_duplicates()
+        recommended_items_with_names = recommended_items_details.merge(
+            self.product_data[['id', 'name']],
+            left_on='productid',
+            right_on='id',
+            how='inner'
+        )
+        top_recommendations = recommended_items_with_names.sort_values(
+            by='rating', ascending=False
+        ).head(top_n)
 
-        similar_users_indices = similar_users_similarity.argsort()[::-1]
-        recommended_items = []
+        return top_recommendations[['productid']].values.tolist()
 
-        for user_index in similar_users_indices[:top_n]:
-            similar_user_ratings = similar_users.iloc[user_index]
-            recommended_items.extend(similar_user_ratings[similar_user_ratings > 0].index)
-
-        recommended_items = [item for item in set(recommended_items) if item not in rated_items]
-        recommended_items_details = self.product_data[[
-            'id', 'name']][self.product_data['id'].isin(recommended_items)]
-
-        return recommended_items_details.head(top_n)
-
-    def recommend(self, user_id, top_n=20):
-        return self.collaborative_filtering_recommendations(user_id, top_n=top_n)
+    def recommend(self, user_id, user_info, top_n=30):
+        return self.collaborative_filtering_recommendations(user_id, user_info, top_n=top_n)
 
 collaborative_recommendation_model = CollabRecommendationModel(user_df,product_df,rating_df)
 
@@ -404,11 +414,8 @@ async def get_interest_recommendations(interest_recommendations: InterestRecomme
     user_id=str(user_id)
     user_record = user_collection.find_one({"userID": user_id})
     interest_record = interest_collection.find_one({"userID": user_id})
-
     if not user_record or not interest_record:
         return {"error": "User or interest information not found for the given userID"}
-
-    # Combine the user and interest data
     user_info = {
         "age": user_record["age"],
         "gender": user_record["gender"],
@@ -416,8 +423,6 @@ async def get_interest_recommendations(interest_recommendations: InterestRecomme
         "country": user_record["country"],
         "interest": interest_record["interests"]
     }
-
-    # Generate recommendations
     results = interest_recommendation_model.recommend(user_info)
     return {"results": results}
 
@@ -429,14 +434,23 @@ async def get_item_recommendation(item_recommendation: ItemRecommendation):
 
 @app.post("/association")
 async def get_association_recommendations(associate_instances: AssociationRecommendation):
-    item_ids = associate_instances.item_ids
-    results = associate_model.recommend(item_ids)
+    ids = associate_instances.ids
+    results = associate_model.recommend(ids)
     return {"results": results}
 
 @app.post("/collaborative")
 async def get_collaborative_recommendations(collab_recommendation: CollabRecommendation):
-    user_ids = collab_recommendation.id
-    results = collaborative_recommendation_model.recommend(user_ids)
+    user_id = collab_recommendation.id
+    user_record=user_collection.find_one({"userID": user_id})
+    if not user_record:
+        return {"error": "User or interest information not found for the given userID"}
+    user_info = {
+        "age": user_record["age"],
+        "gender": user_record["gender"],
+        "city": user_record["city"],
+        "country": user_record["country"],
+    }
+    results = collaborative_recommendation_model.recommend(user_id,user_info)
     return {"results": results}
 
 @app.get("/")
