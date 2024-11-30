@@ -72,20 +72,67 @@ async def login_user(user: UserLoginRequest, db: Session = Depends(get_db)):
     return db_user
 
 # 2. User profile api
+    # profile display
+    # profile update
     # If-else for checking user address status
         # if doesnt have -> create new
-        # if have -> update 
-
+        # if have -> update
+    # logout
+    
 # 3. Home page
+    # home page display
     # recommend product (do after have ai model)
     # categories (show different product categories)
 
-# 3.1. Product detail page
-    
-# 4. Cart page
-    # add a product to cart
+# 4 Search products page
+    # products display
+
+# 4.1. Product detail page
+    # product details display/{product_id}
+    # add to cart
         # if a product already in cart, add quantity
-    # view products in cart, calculate total price
     
-# 5. Order page
+# 5. Cart page
+    # cart display
+    # calculate total price
+    # remove item from cart
+    # cart checkout
     
+# 6. Order page
+    # checkout display (display items, total price, payment, shipping methods)
+    # order create (provide payment and shipping methods)
+    # order display/{order_id}
+    # order history
+    # payment
+    
+"""
+Summary of API Endpoints:
+User Authentication:
+    POST /login
+    POST /register
+    GET /check-email
+User Profile:
+    GET /profile
+    POST /profile/update
+    GET /user-address
+    POST /user-address
+    POST /logout
+Home Page:
+    GET /home
+    GET /categories
+    GET /recommended-products
+Product Pages:
+    GET /products
+    GET /products/{product_id}
+    POST /add-to-cart
+Cart:
+    GET /cart
+    POST /cart/checkout
+    POST /remove-from-cart
+Order:
+    GET /checkout
+    POST /order/create
+    GET /order/{order_id}
+    GET /order-history
+    POST /payment
+"""
