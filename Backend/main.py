@@ -17,7 +17,7 @@ from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from database import engine, SessionLocal
 from models import *
 from schemas import (
-    UserCreate, UserResponse, AddressCreate, AddressResponse, ProductCreate,
+    UserAddressRequest, UserCreate, UserResponse, AddressCreate, AddressResponse, ProductCreate,
     ProductResponse, ShopOrderCreate, ShopOrderResponse, UserRegisterRequest,
     EmailContent, RegisterRequest, EmailVadidate, LoginRequire, FPEmail,
     ChangePasswordInfor, UpdateRequire
@@ -303,7 +303,96 @@ def is_email(value: str) -> bool:
         # if doesnt have -> create new
         # if have -> update
     # logout
+@app.post("/UserAddressInfor/")
+async def UserAddressInfor(email: FPEmail, db: Session = Depends(get_db)):
+    # Get the user by email
+    user = db.query(SiteUser).filter(SiteUser.email_address == email.email).first()
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+
+    # Get the user addresses
+    user_addresses = db.query(UserAddress).filter(UserAddress.user_id == user.user_id).all()
+
+    # Fetch the address details by joining the Address table
+    addresses_info = []
+    for user_address in user_addresses:
+        address = db.query(Address).filter(Address.address_id == user_address.address_id).first()
+        if address:
+            addresses_info.append({
+                "unit_number": address.unit_number,
+                "street_number": address.street_number,
+                "address_line1": address.address_line1,
+                "address_line2": address.address_line2,
+                "city": address.city,
+                "region": address.region,
+                "postal_code": address.postal_code,
+                "country": address.country_id,  # Optionally, join to fetch country name if needed
+                "is_default": user_address.is_default
+            })
+
+    return {"addresses": addresses_info}  
+
+@app.post("/updateAddress/")
+async def update_address(user_request: UserAddressRequest, db: Session = Depends(get_db)):
+    # Get the user by email
+    user = db.query(SiteUser).filter(SiteUser.email_address == user_request.email).first()
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+
+    # Check if user already has addresses
+    user_addresses = db.query(UserAddress).filter(UserAddress.user_id == user.user_id).all()
+
+    if not user_addresses:
+        # If user has no address, create a new one and link it
+        new_address = Address(
+            unit_number=user_request.unit_number,
+            street_number=user_request.street_number,
+            address_line1=user_request.address_line1,
+            address_line2=user_request.address_line2,
+            city=user_request.city,
+            region=user_request.region,
+            postal_code=user_request.postal_code,
+            country_id=user_request.country_id,
+        )
+        db.add(new_address)
+        db.commit()  # Save the new address
+        db.refresh(new_address)
+
+        # Link the new address to the user in the UserAddress table
+        new_user_address = UserAddress(
+            user_id=user.user_id,
+            address_id=new_address.address_id,
+            is_default=True  # Set it as default if it's the first address
+        )
+        db.add(new_user_address)
+        db.commit()  # Save the user-address link
+        return {"message": "New address created and linked to user."}
     
+    else:
+        # If addresses exist, update the first one (or implement custom logic to choose the address)
+        address = db.query(Address).filter(Address.address_id == user_addresses[0].address_id).first()
+
+        if address:
+            address.unit_number = user_request.unit_number
+            address.street_number = user_request.street_number
+            address.address_line1 = user_request.address_line1
+            address.address_line2 = user_request.address_line2
+            address.city = user_request.city
+            address.region = user_request.region
+            address.postal_code = user_request.postal_code
+            address.country_id = user_request.country_id
+
+        db.commit()  # Save the updated address
+        return {"message": "Address updated successfully."}
+
 # 3. Home page
     # home page display
     # recommend product (do after have ai model)

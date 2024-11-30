@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 const Homepage = () => {
     const location = useLocation();
@@ -21,9 +20,26 @@ const Homepage = () => {
     const [activeTab, setActiveTab] = useState('Your Information');
     const navigate = useNavigate();
 
-    // Event handler to change the active tab
+    // Event handler to change the active tab and navigate
     const handleTabClick = (tabName) => {
         setActiveTab(tabName);
+        // Navigate to the corresponding tab page
+        switch (tabName) {
+            case 'Your Information':
+                navigate('/your-information', { state: { userData: { ...userInfo } } });
+                break;
+            case 'Cart':
+                navigate('/cart', { state: { userData: { ...userInfo } } });
+                break;
+            case 'Store':
+                navigate('/store', { state: { userData: { ...userInfo } } });
+                break;
+            case 'Your Address':
+                navigate('/your-address', { state: { userData: { ...userInfo } } });
+                break;
+            default:
+                break;
+        }
     };
 
     // Event handler for the Update button
@@ -68,6 +84,12 @@ const Homepage = () => {
                     onClick={() => handleTabClick('Store')}
                 >
                     Store
+                </div>
+                <div
+                    style={activeTab === 'Your Address' ? styles.activeTab : styles.tab}
+                    onClick={() => handleTabClick('Your Address')}
+                >
+                    Your Address
                 </div>
             </div>
 

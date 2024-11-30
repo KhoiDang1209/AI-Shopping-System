@@ -201,12 +201,15 @@ class UserProfileResponse(BaseModel):
     
     # user address (for user to add/update address)
 class UserAddressRequest(BaseModel):
+    email: EmailStr
+    unit_number: Optional[str] = None
+    street_number: Optional[str] = None
     address_line1: str
     address_line2: Optional[str] = None
     city: str
     region: Optional[str] = None
     postal_code: Optional[str] = None
-    country_id: int  # User must provide country if no address exists
+    country_id: int  # User must provide country
 
     class Config:
         orm_mode = True
@@ -375,3 +378,5 @@ class UpdateRequire(BaseModel):
     email: EmailStr
     phone: str
     address: str
+
+
