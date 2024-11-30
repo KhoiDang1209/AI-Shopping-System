@@ -1,18 +1,17 @@
 import React, { useState, useEffect } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
-import { useNavigate } from 'react-router-dom';  // Import useNavigate
 
-function VerifyEmail() {
+function FPVerifyEmail() {
     const location = useLocation();
-    const userData = location.state?.userData; // Access the userData passed via navigate
+    const { email } = location.state || {};  // Destructure email from location.state with fallback
 
     const [emailValidate, setEmailValidate] = useState({
-        email: userData?.email_address || '',  // Set email from userData
+        email: email || '',  // Set email from state or empty if undefined
         code: '',
     });
     const [message, setMessage] = useState('');
-    const navigate = useNavigate(); // Hook to handle navigation
+    const navigate = useNavigate();  // Hook to handle navigation
 
     // Handle changes in input fields
     const handleChange = (e) => {
@@ -30,11 +29,9 @@ function VerifyEmail() {
             console.log('Validate successful:', response.data);
             setMessage("Email verified successfully!");
 
-            // After email verification, proceed with sending all user data
-            const response1 = await axios.post('http://localhost:8000/postRegister', userData);  // Sending full user data
-            console.log('Registration successful:', response1.data);
-            setMessage("Redirecting to login...");
-            navigate('/');
+            // After email verification, navigate to ChangePassword and pass email state
+            navigate('/ChangePassword', { state: { email: emailValidate.email } });
+
         } catch (error) {
             setMessage(error.response?.data?.detail || "Verification failed.");
         }
@@ -47,10 +44,10 @@ function VerifyEmail() {
             <form onSubmit={handleSubmit}>
                 <input
                     type="text"
-                    name="code" // Added name="code" for correct binding
+                    name="code"  // Added name="code" for correct binding
                     placeholder="Verification Code"
                     value={emailValidate.code}
-                    onChange={handleChange} // Handle input change
+                    onChange={handleChange}  // Handle input change
                     required
                 />
                 <button type="submit">Verify</button>
@@ -60,4 +57,4 @@ function VerifyEmail() {
     );
 }
 
-export default VerifyEmail;
+export default FPVerifyEmail;

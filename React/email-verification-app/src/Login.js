@@ -46,7 +46,14 @@ const Login = () => {
             );
         }
     };
-
+    const handleRegister = async (e) => {
+        e.preventDefault();
+        navigate('/Register');
+    }
+    const handleFP = async (e) => {
+        e.preventDefault();
+        navigate('/ForgetPassword');
+    }
     return (
         <div style={styles.container}>
             <h2>Login</h2>
@@ -78,6 +85,16 @@ const Login = () => {
                 <button type="submit" style={styles.button}>
                     Login
                 </button>
+
+                <div style={styles.buttonGroup}>
+                    <button onClick={handleRegister} style={styles.button}>
+                        Register
+                    </button>
+                    <button onClick={handleFP} style={styles.button1}>
+                        Forget Password?
+                    </button>
+                </div>
+
             </form>
             {message && <p style={styles.message}>{message}</p>}
         </div>
@@ -113,19 +130,36 @@ const styles = {
         border: '1px solid #ccc',
         borderRadius: '4px',
     },
-    button: {
-        padding: '10px',
-        backgroundColor: '#007bff',
-        color: 'white',
-        border: 'none',
-        borderRadius: '4px',
-        cursor: 'pointer',
-        marginTop: '10px',
-    },
     message: {
         marginTop: '10px',
         fontSize: '14px',
         color: '#dc3545', // Red color for error messages
+    },
+    buttonRow: {
+        textAlign: 'center',
+    },
+    button: {
+        padding: '10px',
+        backgroundColor: '#007bff',
+        color: '#fff',
+        border: 'none',
+        borderRadius: '4px',
+        cursor: 'pointer',
+        marginBottom: '15px', // Adds space between login and group buttons
+    },
+    button1: {
+        padding: '10px',
+        backgroundColor: '#ff4757',
+        color: '#fff',
+        border: 'none',
+        borderRadius: '4px',
+        cursor: 'pointer',
+    },
+    buttonGroup: {
+        display: 'flex',
+        justifyContent: 'space-between',
+        marginTop: '15px', // Adds spacing from the "Login" button
+        gap: '10px', // Adds space between "Register" and "Forget Password?" buttons
     },
 };
 

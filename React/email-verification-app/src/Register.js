@@ -49,6 +49,11 @@ const RegisterForm = () => {
         }
     };
 
+    const handleLogin = async (e) => {
+        e.preventDefault();
+        navigate('/');
+    }
+
     return (
         <div style={styles.container}>
             <h2>Register</h2>
@@ -101,6 +106,11 @@ const RegisterForm = () => {
                     Register
                 </button>
                 {message && <div style={styles.message}>{message}</div>}
+                <div style={styles.buttonGroup}>
+                    <button onClick={handleLogin} style={styles.button}>
+                        Login
+                    </button>
+                </div>
             </form>
         </div>
     );
@@ -131,10 +141,17 @@ const styles = {
     button: {
         padding: '10px',
         backgroundColor: '#007bff',
-        color: 'white',
+        color: '#fff',
         border: 'none',
         borderRadius: '4px',
         cursor: 'pointer',
+        marginBottom: '15px', // Adds space between login and group buttons
+    },
+    buttonGroup: {
+        display: 'flex',
+        justifyContent: 'space-between',
+        marginTop: '15px', // Adds spacing from the "Login" button
+        gap: '10px', // Adds space between "Register" and "Forget Password?" buttons
     },
     message: {
         marginTop: '10px',

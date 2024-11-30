@@ -168,5 +168,13 @@ class RegisterRequest(BaseModel):
     content: EmailContent
 
 class EmailVadidate(BaseModel):
-    email: str
+    email: EmailStr
     code: str
+
+class FPEmail(BaseModel):
+    email: EmailStr
+
+class ChangePasswordInfor(BaseModel):
+    email: EmailStr
+    newPassword: str
+    confirmPassword: str

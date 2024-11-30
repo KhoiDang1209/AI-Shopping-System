@@ -30,7 +30,9 @@ from schemas import (
     EmailContent,
     RegisterRequest,
     EmailVadidate,
-    LoginRequire
+    LoginRequire,
+    FPEmail,
+    ChangePasswordInfor
 )
 dotenv_path = os.path.join(os.getcwd(), ".env")
 credentials = dotenv_values(dotenv_path)
@@ -208,14 +210,7 @@ async def register_user(user: UserResponse, db: Session = Depends(get_db)):
 
     fm = FastMail(conf)
     await fm.send_message(message)
-    hashed_password = hash_password(user.password)
-    # Store user in the database
-    new_user = SiteUser(
-        user_name=user.user_name,
-        email_address=user.email_address,
-        phone_number=user.phone_number,
-        password=hashed_password
-    )
+    
     return {"message": "Registration successful. Please check your email for verification."}
 
 
@@ -242,11 +237,13 @@ async def verify_email(emailValidate: EmailVadidate):
 
 @app.post("/postRegister/")
 async def postRegister(user: UserRegisterRequest, db: Session = Depends(get_db)):
+    hashed_password = hash_password(user.password)
+    # Store user in the database
     db_user = SiteUser(
         user_name=user.user_name,
         email_address=user.email_address,
         phone_number=user.phone_number,
-        password=user.password
+        password=hashed_password
     )
     db.add(db_user)
     db.commit()
@@ -257,6 +254,10 @@ def is_email(value: str) -> bool:
     # Check if value is a valid email using regex
     email_regex = r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$'
     return re.match(email_regex, value) is not None
+
+# Function to verify password
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    return pwd_context.verify(plain_password, hashed_password)
 
 @app.post("/postLogin/")
 async def postLogin(user: LoginRequire, db: Session = Depends(get_db)):
@@ -271,9 +272,8 @@ async def postLogin(user: LoginRequire, db: Session = Depends(get_db)):
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="User not found"
         )
-
-    # Check if the password is correct (assuming you have password hashing)
-    if existing_user.password != user.password:  # Replace with hashing check if needed
+    # Verify the password
+    if not verify_password(user.password, existing_user.password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid credentials"
@@ -287,6 +287,65 @@ async def postLogin(user: LoginRequire, db: Session = Depends(get_db)):
     )
 
     return {"message": "Login successful", "user": user_response}
+
+@app.post("/forgetpassword")
+async def forgetpassword(email: FPEmail, db: Session = Depends(get_db)):
+    # Check if the email already exists
+    existing_user = db.query(SiteUser).filter(SiteUser.email_address == email.email).first()
+    if not existing_user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Your Email Has Not Registered!!!"
+        )
+    # Generate and store verification code
+    verification_code = generate_verification_code()
+    verification_codes[email.email] = verification_code
+
+    # Email content with verification code
+    html = f"""
+    <p>Dear {existing_user.user_name},</p>
+    <p>This is a test email</p>
+    <p>Your verification code is: <strong>{verification_code}</strong></p>
+    <p>Thank you,</p>
+    <p>Ai Shopping system</p>
+    """
+
+    # Send email with verification code
+    message = MessageSchema(
+        subject="Hello",
+        recipients=[email.email],
+        body=html,
+        subtype=MessageType.html
+    )
+
+    fm = FastMail(conf)
+    await fm.send_message(message)
+    
+    return {"message": "Send email successful. Please check your email for verification."}
+
+@app.post("/postForgetPassword/")
+async def postForgetPassword(changeInfo: ChangePasswordInfor, db: Session = Depends(get_db)):
+    # Ensure newPassword and confirmPassword match (optional if already checked on frontend)
+    if changeInfo.newPassword != changeInfo.confirmPassword:
+        raise HTTPException(status_code=400, detail="Passwords do not match")
+
+    # Hash the new password
+    hashed_password = hash_password(changeInfo.newPassword)
+
+    # Query the user from the database by email
+    user = db.query(SiteUser).filter(SiteUser.email_address == changeInfo.email).first()
+
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    # Update the user's password
+    user.password = hashed_password
+
+    # Commit the changes to the database
+    db.commit()
+
+    return {"message": "Password changed successfully"}
+    
 # @app.post("/login", response_model=UserResponse)
 # async def login_user(user: UserLoginRequest, db: Session = Depends(get_db)):
 #     # Get user from DB
