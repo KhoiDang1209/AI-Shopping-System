@@ -1,9 +1,7 @@
 from pydantic import BaseModel, EmailStr, constr
-<<<<<<< Updated upstream
 from typing import List, Optional
 from datetime import date
 from decimal import Decimal
-=======
 # from typing import List, Optional
 # from datetime import date
 # from decimal import Decimal
@@ -11,7 +9,6 @@ import re
 from pydantic import BaseModel, EmailStr, Field, constr, field_validator, validator
 from typing import List, Optional, Union
 from typing_extensions import Annotated
->>>>>>> Stashed changes
 
 # 1. Login & Register schema
 # class UserRegisterRequest(BaseModel):
@@ -277,7 +274,6 @@ class CartItemResponse(BaseModel):
     price: Decimal
     total_price: Decimal
 
-<<<<<<< Updated upstream
     class Config:
         orm_mode = True
         
@@ -348,7 +344,6 @@ class CountryResponse(BaseModel):
 
     class Config:
         orm_mode = True
-=======
 # 5. Order schema
 
 # Schema for email input
@@ -380,4 +375,3 @@ class UpdateRequire(BaseModel):
     email: EmailStr
     phone: str
     address: str
->>>>>>> Stashed changes
