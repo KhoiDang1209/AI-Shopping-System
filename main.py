@@ -32,7 +32,8 @@ from schemas import (
     EmailVadidate,
     LoginRequire,
     FPEmail,
-    ChangePasswordInfor
+    ChangePasswordInfor,
+    UpdateRequire
 )
 dotenv_path = os.path.join(os.getcwd(), ".env")
 credentials = dotenv_values(dotenv_path)
@@ -345,7 +346,114 @@ async def postForgetPassword(changeInfo: ChangePasswordInfor, db: Session = Depe
     db.commit()
 
     return {"message": "Password changed successfully"}
-    
+
+@app.post("/Login")
+async def login(user: LoginRequire, db: Session = Depends(get_db)):
+    # Determine if the input is an email or a username
+    if is_email(user.user_name_or_email):
+        existing_user = db.query(SiteUser).filter(SiteUser.email_address == user.user_name_or_email).first()
+    else:
+        existing_user = db.query(SiteUser).filter(SiteUser.user_name == user.user_name_or_email).first()
+
+    if not existing_user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="User not found"
+        )
+    # Verify the password
+    if not verify_password(user.password, existing_user.password):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid credentials"
+        )
+    # Generate and store verification code
+    verification_code = generate_verification_code()
+    verification_codes[existing_user.email_address] = verification_code
+
+    # Email content with verification code
+    html = f"""
+    <p>Dear {existing_user.user_name},</p>
+    <p>This is a test email</p>
+    <p>Your verification code is: <strong>{verification_code}</strong></p>
+    <p>Thank you,</p>
+    <p>Ai Shopping system</p>
+    """
+
+    # Send email with verification code
+    message = MessageSchema(
+        subject="Hello",
+        recipients=[existing_user.email_address],
+        body=html,
+        subtype=MessageType.html
+    )
+
+    fm = FastMail(conf)
+    await fm.send_message(message)
+    user_response = UserResponse(
+        user_name=existing_user.user_name,
+        email_address=existing_user.email_address,
+        phone_number=existing_user.phone_number,
+        password = existing_user.password
+    )
+    return {"message": "Send email successful. Please check your email for verification.", "user": user_response}
+
+@app.post("/Update")
+async def Update(user: UpdateRequire, db: Session = Depends(get_db)):
+    verification_code = generate_verification_code()
+    verification_codes[user.email] = verification_code
+ # Email content with verification code
+    html = f"""
+    <p>Dear {user.name},</p>
+    <p>This is a test email</p>
+    <p>Your verification code is: <strong>{verification_code}</strong></p>
+    <p>Thank you,</p>
+    <p>Ai Shopping system</p>
+    """
+
+    # Send email with verification code
+    message = MessageSchema(
+        subject="Hello",
+        recipients=[user.email],
+        body=html,
+        subtype=MessageType.html
+    )
+
+    fm = FastMail(conf)
+    await fm.send_message(message)
+    return {"message": "Send email successful. Please check your email for verification.", "user": user}
+
+@app.post("/postUpdate")
+async def Update(changeInfo: UpdateRequire, db: Session = Depends(get_db)):
+# Query the user from the database by email
+    user = db.query(SiteUser).filter(SiteUser.email_address == changeInfo.email).first()
+
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    # Update the user's password
+    user.user_name = changeInfo.name
+    user.phone_number = changeInfo.phone
+
+
+    #Update address will be later
+
+
+
+
+
+
+    # Commit the changes to the database
+    db.commit()
+    user = db.query(SiteUser).filter(SiteUser.email_address == changeInfo.email).first()
+    updated_user = {
+        "name": user.user_name,
+        "email": user.email_address,
+        "phone": user.phone_number,
+        "address": "user.addresses"
+        # Add other fields if needed
+    }
+    return {"message": "Password changed successfully", "data": updated_user}
+
 # @app.post("/login", response_model=UserResponse)
 # async def login_user(user: UserLoginRequest, db: Session = Depends(get_db)):
 #     # Get user from DB

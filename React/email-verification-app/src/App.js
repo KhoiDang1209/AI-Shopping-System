@@ -7,6 +7,9 @@ import LoginPage from "./Login"
 import ForgetPassword from "./ForgetPassword"
 import ChangePassword from "./ChangePassword";
 import FPVerifyEmail from "./FPVerifyEmail";
+import LoginVerifyEmail from "./LoginVerifyEmail";
+import Update from "./Update";
+import UpdateVerifyEmail from "./UpdateVerifyEmail";
 
 function App() {
   return (
@@ -19,6 +22,9 @@ function App() {
         <Route path="/ForgetPassword" element={<ForgetPassword />} />
         <Route path="/FPverify" element={<FPVerifyEmail />} />
         <Route path="/ChangePassword" element={<ChangePassword />} />
+        <Route path="/LoginVerifyEmail" element={<LoginVerifyEmail />} />
+        <Route path="/Update" element={<Update />} />
+        <Route path="/UpdateVerifyEmail" element={<UpdateVerifyEmail />} />
 
       </Routes>
     </Router>

@@ -178,3 +178,9 @@ class ChangePasswordInfor(BaseModel):
     email: EmailStr
     newPassword: str
     confirmPassword: str
+
+class UpdateRequire(BaseModel):
+    name: str
+    email: EmailStr
+    phone: str
+    address: str

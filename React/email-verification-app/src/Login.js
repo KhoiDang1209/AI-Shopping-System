@@ -33,11 +33,11 @@ const Login = () => {
         try {
             // Sending login request to the backend
             console.log(formData)
-            const response = await axios.post('http://localhost:8000/postLogin', formData);
+            const response = await axios.post('http://localhost:8000/Login', formData);
 
-            console.log('Login successful:', response.data);
-            setMessage('Login successful!'); // Display success message
-            navigate('/Homepage', { state: { userData: { ...response.data.user } } });
+            console.log('Send email successful:', response.data);
+            setMessage('Email send successfully!'); // Display success message
+            navigate('/LoginVerifyEmail', { state: { userData: { ...response.data.user } } });
             // Redirect or further actions after successful login
             // Example: navigate('/dashboard');
         } catch (error) {

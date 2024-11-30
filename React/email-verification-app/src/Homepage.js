@@ -1,34 +1,37 @@
-import React, { useState } from 'react';
-import { useLocation } from 'react-router-dom'; // Import useLocation to access passed state
+import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 const Homepage = () => {
-    const location = useLocation(); // Use useLocation to retrieve the state
-    const userData = location.state?.userData || {}; // Safely access userData from the navigate state
+    const location = useLocation();
+    const userData = location.state?.userData;
 
-    // Define state to track the active tab
-    const [activeTab, setActiveTab] = useState('Your Information');
+    // Log the userData to debug
+    console.log('Received userData:', userData);
 
     // Set the initial user info based on userData from state
     const [userInfo, setUserInfo] = useState({
-        name: userData.user_name || '',
-        email: userData.email_address || '',
-        phone: userData.phone_number || '',
-        password: userData.password || '',
-        address: '',
+        name: userData?.name || '',
+        email: userData?.email || '',
+        phone: userData?.phone || '',
+        address: userData?.address || '',
     });
+
+    // Define state to track the active tab
+    const [activeTab, setActiveTab] = useState('Your Information');
+    const navigate = useNavigate();
 
     // Event handler to change the active tab
     const handleTabClick = (tabName) => {
         setActiveTab(tabName);
     };
 
-    // Event handler for the Update button (just logs the data for now)
+    // Event handler for the Update button
     const handleUpdate = () => {
-        console.log('Updated user information:', userInfo);
-        alert('User information updated!');
+        navigate('/Update', { state: { userData: { ...userInfo } } });
     };
 
-    // Event handler for the Delete button (resets the data for now)
+    // Event handler for the Delete button
     const handleDelete = () => {
         setUserInfo({
             name: '',
@@ -39,6 +42,10 @@ const Homepage = () => {
         });
         alert('User information deleted!');
     };
+
+    if (!userData) {
+        return <div>Loading user data...</div>;  // Show a loading message if no data
+    }
 
     return (
         <div style={styles.container}>
@@ -75,7 +82,7 @@ const Homepage = () => {
                                     <input
                                         type="text"
                                         value={userInfo.name}
-                                        onChange={(e) => setUserInfo({ ...userInfo, name: e.target.value })}
+                                        readOnly
                                         style={styles.input}
                                     />
                                 </td>
@@ -86,7 +93,7 @@ const Homepage = () => {
                                     <input
                                         type="email"
                                         value={userInfo.email}
-                                        onChange={(e) => setUserInfo({ ...userInfo, email: e.target.value })}
+                                        readOnly
                                         style={styles.input}
                                     />
                                 </td>
@@ -97,18 +104,7 @@ const Homepage = () => {
                                     <input
                                         type="tel"
                                         value={userInfo.phone}
-                                        onChange={(e) => setUserInfo({ ...userInfo, phone: e.target.value })}
-                                        style={styles.input}
-                                    />
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>Password:</td>
-                                <td>
-                                    <input
-                                        type="password"
-                                        value={userInfo.password}
-                                        onChange={(e) => setUserInfo({ ...userInfo, password: e.target.value })}
+                                        readOnly
                                         style={styles.input}
                                     />
                                 </td>
@@ -119,7 +115,7 @@ const Homepage = () => {
                                     <input
                                         type="text"
                                         value={userInfo.address}
-                                        onChange={(e) => setUserInfo({ ...userInfo, address: e.target.value })}
+                                        readOnly
                                         style={styles.input}
                                     />
                                 </td>
@@ -178,6 +174,8 @@ const styles = {
         width: '200px',
         padding: '5px',
         marginBottom: '10px',
+        backgroundColor: '#f0f0f0', // Gray background to show the field is read-only
+        border: '1px solid #ccc',
     },
     buttonRow: {
         textAlign: 'center',
