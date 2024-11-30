@@ -32,7 +32,7 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 @app.post("/register", response_model=UserResponse)
 async def register_user(user: UserRegisterRequest, db: Session = Depends(get_db)):
     # Check if the email already exists
-    existing_user = db.query(User).filter(User.email_address == user.email_address).first()
+    existing_user = db.query(SiteUser).filter(SiteUser.email_address == user.email_address).first()
     if existing_user:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -41,7 +41,7 @@ async def register_user(user: UserRegisterRequest, db: Session = Depends(get_db)
 
     # Create a new user
     hashed_password = hash_password(user.password)
-    new_user = User(
+    new_user = SiteUser(
         user_name=user.user_name,
         email_address=user.email_address,
         phone_number=user.phone_number,
@@ -61,7 +61,7 @@ async def register_user(user: UserRegisterRequest, db: Session = Depends(get_db)
 @app.post("/login", response_model=UserResponse)
 async def login_user(user: UserLoginRequest, db: Session = Depends(get_db)):
     # Get user from DB
-    db_user = db.query(User).filter(User.email_address == user.email_address).first()
+    db_user = db.query(SiteUser).filter(SiteUser.email_address == user.email_address).first()
     
     if not db_user or not verify_password(user.password, db_user.password):
         raise HTTPException(

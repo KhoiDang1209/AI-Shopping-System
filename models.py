@@ -8,7 +8,7 @@ class Country(Base):
     country_id = Column(Integer, primary_key=True)
     country_name = Column(String(100), nullable=False)
     
-    addresses = relationship("Address", back_populates="country")
+    addresses_country = relationship("Address", back_populates="country")
     
 class Address(Base):
     __tablename__ = "address"
@@ -22,12 +22,12 @@ class Address(Base):
     postal_code = Column(String(20))
     country_id = Column(Integer, ForeignKey("country.country_id"))
 
-    country = relationship("Country", back_populates="addresses")
+    country = relationship("Country", back_populates="addresses_country")
     user_addresses = relationship("UserAddress", back_populates="address")
 
 # 1. User-related Tables
-class User(Base):
-    __tablename__ = "user"
+class SiteUser(Base):
+    __tablename__ = "site_user"
     user_id = Column(Integer, primary_key=True)
     user_name = Column(String(100), nullable=False)
     email_address = Column(String(100), unique=True)
@@ -44,39 +44,39 @@ class User(Base):
 
 class UserAddress(Base):
     __tablename__ = "user_address"
-    user_id = Column(Integer, ForeignKey("user.user_id"), primary_key=True)
+    user_id = Column(Integer, ForeignKey("site_user.user_id"), primary_key=True)
     address_id = Column(Integer, ForeignKey("address.address_id"), primary_key=True)
     is_default = Column(Boolean, default=False)
 
-    user = relationship("User", back_populates="addresses")
-    address = relationship("Address", back_populates="user_address")
+    user = relationship("SiteUser", back_populates="addresses")
+    address = relationship("Address", back_populates="user_addresses")
 
 
 class UserPaymentMethod(Base):
     __tablename__ = "user_payment_method"
     payment_method_id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey("user.user_id"))
+    user_id = Column(Integer, ForeignKey("site_user.user_id"))
     payment_type_id = Column(Integer, ForeignKey("payment_type.payment_type_id"))
     provider = Column(String(50), nullable=False)
     account_number = Column(String(20), nullable=False)
     expiry_date = Column(Date, nullable=False)
     is_default = Column(Boolean, default=False)
 
-    user = relationship("User", back_populates="user_payment_method")
+    user = relationship("SiteUser", back_populates="user_payment_methods")
     shop_order = relationship("ShopOrder", back_populates="payment_method")
-    payment_type = relationship("PaymentType")
+    payment_type = relationship("PaymentType", back_populates="user_payment_methods")
 
 
 class UserReview(Base):
     __tablename__ = "user_review"
     user_review_id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey("user.user_id"))
+    user_id = Column(Integer, ForeignKey("site_user.user_id"))
     ordered_product_id = Column(Integer, ForeignKey("order_line.ordered_product_id"))
     rating_value = Column(DECIMAL(2, 1), nullable=False)
     comment = Column(Text)
 
-    user = relationship("User", back_populates="reviews")
-    order_line = relationship("OrderLine")
+    user = relationship("SiteUser", back_populates="reviews")
+    order_line = relationship("OrderLine", back_populates="reviews")
 
 
 # 2. Product-related Tables
@@ -100,6 +100,8 @@ class ProductCategory(Base):
 
     parent_category = relationship("ProductCategory", remote_side=[category_id])
     products = relationship("Product", back_populates="category")
+    variations = relationship("Variation", back_populates="category")
+    promotion_categories = relationship("PromotionCategory", back_populates="product_categories")
     
 
 class ProductItem(Base):
@@ -113,41 +115,44 @@ class ProductItem(Base):
 
     product = relationship("Product", back_populates="items")
     configurations = relationship("ProductConfiguration", back_populates="product_item")
+    order_line = relationship("OrderLine", back_populates="product_item")
     
 
 class ProductConfiguration(Base):
-    __tablename__ = 'product_configuration'
-    product_item_id = Column(Integer, ForeignKey('product_item.product_item_id'), primary_key=True)
-    variation_option_id = Column(Integer, ForeignKey('variation_option.variation_option_id'), primary_key=True)
+    __tablename__ = "product_configuration"
+    product_item_id = Column(Integer, ForeignKey("product_item.product_item_id"), primary_key=True)
+    variation_option_id = Column(Integer, ForeignKey("variation_option.variation_option_id"), primary_key=True)
 
-    variation_option = relationship('VariationOption', back_populates='product_configurations')
-    product_item = relationship('ProductItem', back_populates='configurations')
+    variation_option = relationship("VariationOption", back_populates="product_configurations")
+    product_item = relationship("ProductItem", back_populates="configurations")
 
 
 # 2.1. Variation Tables
 class Variation(Base):
-    __tablename__ = 'variation'
+    __tablename__ = "variation"
     variation_id = Column(Integer, primary_key=True)
-    category_id = Column(Integer, ForeignKey('product_category.category_id'))
+    category_id = Column(Integer, ForeignKey("product_category.category_id"))
     name = Column(String(100))
     size = Column(String(50))
     color = Column(String(50))
 
-    category = relationship('ProductCategory', back_populates='variations')
+    category = relationship("ProductCategory", back_populates="variations")
+    options = relationship("VariationOption", back_populates="variation")
 
 
 class VariationOption(Base):
-    __tablename__ = 'variation_option'
+    __tablename__ = "variation_option"
     variation_option_id = Column(Integer, primary_key=True)
-    variation_id = Column(Integer, ForeignKey('variation.variation_id'))
+    variation_id = Column(Integer, ForeignKey("variation.variation_id"))
     value = Column(String)
 
-    variation = relationship('Variation', back_populates='options')
+    variation = relationship("Variation", back_populates="options")
+    product_configurations = relationship("ProductConfiguration", back_populates="variation_option")
 
 
 # 2.2. Promotion Tables
 class Promotion(Base):
-    __tablename__ = 'promotion'
+    __tablename__ = "promotion"
     promotion_id = Column(Integer, primary_key=True)
     name = Column(String(100))
     description = Column(Text)
@@ -155,23 +160,25 @@ class Promotion(Base):
     start_date = Column(Date)
     end_date = Column(Date)
     
+    promotion_categories = relationship("PromotionCategory", back_populates="promotion")
+    
 
 class PromotionCategory(Base):
-    __tablename__ = 'promotion_category'
-    category_id = Column(Integer, ForeignKey('product_category.category_id'), primary_key=True)
-    promotion_id = Column(Integer, ForeignKey('promotion.promotion_id'), primary_key=True)
+    __tablename__ = "promotion_category"
+    category_id = Column(Integer, ForeignKey("product_category.category_id"), primary_key=True)
+    promotion_id = Column(Integer, ForeignKey("promotion.promotion_id"), primary_key=True)
 
-    category = relationship('ProductCategory', back_populates='promotions')
-    promotion = relationship('Promotion', back_populates='categories')
+    product_categories = relationship("ProductCategory", back_populates="promotion_categories")
+    promotion = relationship("Promotion", back_populates="promotion_categories")
 
 
 # 3. Shopping Cart-related Table
 class ShoppingCart(Base):
     __tablename__ = "shopping_cart"
     shopping_cart_id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey("user.user_id"))
+    user_id = Column(Integer, ForeignKey("site_user.user_id"))
 
-    user = relationship("User", back_populates="shopping_carts")
+    user = relationship("SiteUser", back_populates="shopping_carts")
     items = relationship("ShoppingCartItem", back_populates="shopping_cart")
     
     
@@ -198,17 +205,18 @@ class OrderStatus(Base):
 class ShopOrder(Base):
     __tablename__ = "shop_order"
     order_id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey("user.user_id"))
+    user_id = Column(Integer, ForeignKey("site_user.user_id"))
     order_date = Column(Date, nullable=False)
     order_total = Column(DECIMAL(10, 2))
     payment_method_id = Column(Integer, ForeignKey("user_payment_method.payment_method_id"))  # Correct foreign key
     shipping_method_id = Column(Integer, ForeignKey("shipping_method.shipping_method_id"))
     order_status_id = Column(Integer, ForeignKey("order_status.order_status_id"))
 
-    user = relationship("User", back_populates="orders")
+    user = relationship("SiteUser", back_populates="orders")
     payment_method = relationship("UserPaymentMethod", back_populates="shop_order")
     shipping_method = relationship("ShippingMethod")
     order_status = relationship("OrderStatus")
+    order_lines = relationship("OrderLine", back_populates="shop_order")
 
 class OrderLine(Base):
     __tablename__ = "order_line"
@@ -219,8 +227,8 @@ class OrderLine(Base):
     price = Column(DECIMAL(10, 2), nullable=False)
 
     shop_order = relationship("ShopOrder", back_populates="order_lines")
-    product_item = relationship("ProductItem")
-    reviews = relationship("UserReview", back_populates="oder_line")
+    product_item = relationship("ProductItem", back_populates="order_line")
+    reviews = relationship("UserReview", back_populates="order_line")
 
 
 # 4. Payment and Shipping Tables
@@ -229,7 +237,7 @@ class PaymentType(Base):
     payment_type_id = Column(Integer, primary_key=True)
     payment_name = Column(String(50), nullable=False)
 
-    user_payment_method = relationship("UserPaymentMethod", back_populates="payment_type")
+    user_payment_methods = relationship("UserPaymentMethod", back_populates="payment_type")
 
 
 class ShippingMethod(Base):
