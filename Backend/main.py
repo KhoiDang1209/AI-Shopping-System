@@ -295,3 +295,69 @@ async def postForgetPassword(changeInfo: ChangePasswordInfor, db: Session = Depe
 def is_email(value: str) -> bool:
     email_regex = r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$'
     return re.match(email_regex, value) is not None
+
+# 2. User profile api
+    # profile display
+    # profile update
+    # If-else for checking user address status
+        # if doesnt have -> create new
+        # if have -> update
+    # logout
+    
+# 3. Home page
+    # home page display
+    # recommend product (do after have ai model)
+    # categories (show different product categories)
+
+# 4 Search products page
+    # products display
+
+# 4.1. Product detail page
+    # product details display/{product_id}
+    # add to cart
+        # if a product already in cart, add quantity
+    
+# 5. Cart page
+    # cart display
+    # calculate total price
+    # remove item from cart
+    # cart checkout
+    
+# 6. Order page
+    # checkout display (display items, total price, payment, shipping methods)
+    # order create (provide payment and shipping methods)
+    # order display/{order_id}
+    # order history
+    # payment
+    
+"""
+Summary of API Endpoints:
+User Authentication:
+    POST /login
+    POST /register
+    GET /check-email
+User Profile:
+    GET /profile
+    POST /profile/update
+    GET /user-address
+    POST /user-address
+    POST /logout
+Home Page:
+    GET /home
+    GET /categories
+    GET /recommended-products
+Product Pages:
+    GET /products
+    GET /products/{product_id}
+    POST /add-to-cart
+Cart:
+    GET /cart
+    POST /cart/checkout
+    POST /remove-from-cart
+Order:
+    GET /checkout
+    POST /order/create
+    GET /order/{order_id}
+    GET /order-history
+    POST /payment
+"""
