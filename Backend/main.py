@@ -3,15 +3,17 @@ import random
 import re
 import models
 from dotenv import dotenv_values
-from fastapi import FastAPI, HTTPException, Depends, status
+from fastapi import FastAPI, HTTPException, Depends, status, Request, Form
 from typing import List
 from pydantic import EmailStr, ValidationError
 from sqlalchemy.orm import Session
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import IntegrityError, NoResultFound
 from passlib.context import CryptContext
 from fastapi_mail import ConnectionConfig, FastMail, MessageSchema, MessageType
 from starlette.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
+from insertDB import insert_countries
+from fastapi.responses import HTMLResponse
 
 # Local imports
 from database import engine, SessionLocal
@@ -392,6 +394,353 @@ async def update_address(user_request: UserAddressRequest, db: Session = Depends
 
         db.commit()  # Save the updated address
         return {"message": "Address updated successfully."}
+    
+# # Product Page
+# @app.get("/search-products", response_class=HTMLResponse)
+# async def search_products(query: str = '', db: Session = Depends(get_db)):
+#     # Query products based on the search term (if provided)
+#     products = db.query(Product).filter(Product.name.contains(query)).all()
+    
+#     # If no products are found
+#     if not products:
+#         return HTMLResponse(content="<h1>No products found.</h1>", status_code=404)
+    
+#     # Construct HTML content to display products
+#     html_content = "<h1>Search Results</h1>"
+#     html_content += "<ul>"
+    
+#     for product in products:
+#         html_content += f"""
+#         <li>
+#             <a href="/product-detail/{product.product_id}">
+#                 <h3>{product.name}</h3>
+#                 <p>{product.description}</p>
+#                 <p>Price: ${product.price}</p>
+#             </a>
+#         </li>
+#         """
+#     html_content += "</ul>"
+    
+#     return HTMLResponse(content=html_content)
+
+
+# 4. Search Products Page
+@app.get("/search", response_class=HTMLResponse)
+async def search_products(request: Request, query: str = "", db: Session = Depends(get_db)):
+    # Query the database to search for products
+    #products = db.query(Product).all()
+    products = db.query(Product).filter(Product.name.ilike(f"%{query}%")).all()
+
+    # HTML response with embedded product list
+    html_content = """
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Search Products</title>
+    </head>
+    <body>
+        <h1>Search for Products</h1>
+        <form action="/search" method="get">
+            <input type="text" name="query" value="{query}" placeholder="Search for products">
+            <button type="submit">Search</button>
+        </form>
+        
+        <h2>Results:</h2>
+        <ul>
+    """
+    if products:
+        for product in products:
+            html_content += f"""
+            <li>
+                <a href="/product/{product.id}">{product.name}</a> - ${product.price}
+            </li>
+            """
+    else:
+        html_content += "<li>No products found</li>"
+    
+    html_content += """
+        </ul>
+        <a href="/cart">View Cart</a>
+    </body>
+    </html>
+    """
+    
+    return HTMLResponse(content=html_content)
+
+# 4.1 Product Detail Page (View Product Details and Add to Cart)
+@app.get("/product/{product_id}", response_class=HTMLResponse)
+async def product_detail(request: Request, product_id: int, db: Session = Depends(get_db)):
+    # Query the database for the product details
+    product = db.query(ProductItem).filter(ProductItem .id == product_id).first()
+    
+    try:
+        product = db.query(Product).filter(Product.id == product_id).one()
+    except NoResultFound:
+        return HTMLResponse(content="<h1>Product not found</h1>", status_code=404)
+
+    # Check if product is already in cart
+    cart_item = db.query(ShoppingCartItem).filter(ShoppingCartItem.product_id == product_id).first()
+    
+    # HTML response with product details
+
+    html_content = f"""
+    <html>
+    <head><title>{product.name}</title></head>
+    <body>
+    <h1>{product.name}</h1>
+    <p>{product.description}</p>
+    <p><strong>Price:</strong> ${product.price}</p>
+    <p><strong>Stock:</strong> {product.stock}</p>
+    """
+
+    if cart_item:
+        html_content += f"""
+        <p>Already in Cart. Quantity: {cart_item.quantity}</p>
+        <form action="/update_cart/{cart_item.id}" method="POST">
+            <label for="quantity">Update Quantity:</label>
+            <input type="number" id="quantity" name="quantity" value="{cart_item.quantity}" min="1" max="{product.stock}" required>
+            <button type="submit">Update Cart</button>
+        </form>
+        """
+    else:
+        html_content += f"""
+        <form action="/add_to_cart/{product.id}" method="POST">
+            <label for="quantity">Quantity:</label>
+            <input type="number" id="quantity" name="quantity" value="1" min="1" max="{product.stock}" required>
+            <button type="submit">Add to Cart</button>
+        </form>
+        """
+
+    html_content += """
+    <br>
+    <a href="/search">Back to Search</a> | <a href="/cart">Go to Cart</a>
+    </body>
+    </html>
+    """
+    
+    return HTMLResponse(content=html_content)
+
+# Add product to cart or update quantity if already in cart
+@app.post("/add_to_cart/{product_id}", response_class=HTMLResponse)
+async def add_to_cart(request: Request, product_id: int, quantity: int = Form(...), db: Session = Depends(get_db)):
+    product = db.query(Product).filter(Product.id == product_id).first()
+
+    if not product or quantity < 1:
+        return HTMLResponse(content="<h1>Invalid product or quantity.</h1>", status_code=400)
+
+    cart_item = db.query(ShoppingCartItem).filter(ShoppingCartItem.product_id == product_id).first()
+
+    if cart_item:
+        cart_item.quantity += quantity
+    else:
+        new_cart_item = ShoppingCartItem(product_id=product_id, quantity=quantity)
+        db.add(new_cart_item)
+
+    db.commit()
+
+    return HTMLResponse(content=f"""
+    <html>
+    <body>
+        <h1>{product.name} added to cart successfully.</h1>
+        <a href="/cart">Go to Cart</a> | <a href="/search">Back to Search</a>
+    </body>
+    </html>
+    """)
+
+# Update cart item quantity
+@app.post("/update_cart/{cart_item_id}", response_class=HTMLResponse)
+async def update_cart(cart_item_id: int, quantity: int = Form(...), db: Session = Depends(get_db)):
+    cart_item = db.query(ShoppingCartItem).filter(ShoppingCartItem.id == cart_item_id).first()
+
+    if not cart_item or quantity < 1:
+        return HTMLResponse(content="<h1>Invalid quantity.</h1>", status_code=400)
+
+    cart_item.quantity = quantity
+    db.commit()
+
+    return HTMLResponse(content=f"""
+    <html>
+    <body>
+        <h1>Cart updated successfully.</h1>
+        <a href="/cart">Go to Cart</a> | <a href="/search">Back to Search</a>
+    </body>
+    </html>
+    """)
+
+
+# 5. Cart Page (Display Cart, Remove Item, Checkout)
+@app.get("/cart", response_class=HTMLResponse)
+async def cart_page(request: Request, db: Session = Depends(get_db)):
+    # Query the database for cart items (assuming `in_cart` is a boolean field)
+    # cart_items = db.query(Product).filter(Product.in_cart == True).all()
+    cart_items = db.query(ShoppingCartItem).all()
+    
+    if not cart_items:
+        return HTMLResponse(content="<h1>Your cart is empty.</h1>")
+
+    total_price = sum(item.product.price * item.quantity for item in cart_items)
+
+    # HTML response with cart items
+    
+    # html_content = f"""
+    # <!DOCTYPE html>
+    # <html lang="en">
+    # <head>
+    #     <meta charset="UTF-8">
+    #     <title>Shopping Cart</title>
+    # </head>
+    # <body>
+    #     <h1>Your Shopping Cart</h1>
+    #     <ul>
+    # """
+    # if cart_items:
+    #     for product in cart_items:
+    #         html_content += f"""
+    #         <li>
+    #             {product.name} - ${product.price}
+    #             <form action="/remove_from_cart/{product.id}" method="post" style="display:inline;">
+    #                 <button type="submit">Remove from Cart</button>
+    #             </form>
+    #         </li>
+    #         """
+    # else:
+    #     html_content += "<li>Your cart is empty.</li>"
+    
+    # html_content += """
+    #     </ul>
+    #     <br>
+    #     <a href="/search">Continue Shopping</a>
+    # </body>
+    # </html>
+    # """
+    
+    html_content = """
+    <html>
+    <head><title>Your Cart</title></head>
+    <body>
+    <h1>Your Cart</h1>
+    <ul>
+    """
+    for cart_item in cart_items:
+        html_content += f"""
+        <li>
+            {cart_item.product.name} - ${cart_item.product.price} x {cart_item.quantity} 
+            <form action="/remove_from_cart/{cart_item.id}" method="POST">
+                <button type="submit">Remove</button>
+            </form>
+        </li>
+        """
+    
+    html_content += f"""
+    </ul>
+    <p><strong>Total Price: ${total_price}</strong></p>
+    <a href="/checkout">Proceed to Checkout</a>
+    </body>
+    </html>
+    """
+    
+    return HTMLResponse(content=html_content)
+
+# # Route to add an item to the cart
+# @app.post("/add_to_cart/{product_id}")
+# async def add_to_cart(product_id: int, db: Session = Depends(get_db)):
+#     product = db.query(Product).filter(Product.id == product_id).first()
+#     if product:
+#         product.in_cart = True
+#         db.commit()
+#     return {"message": "Item added to cart"}
+
+# Route to remove an item from the cart
+# @app.post("/remove_from_cart/{product_id}")
+# async def remove_from_cart(product_id: int, db: Session = Depends(get_db)):
+#     product = db.query(Product).filter(Product.id == product_id).first()
+#     if product:
+#         product.in_cart = False
+#         db.commit()
+#     return {"message": "Item removed from cart"}
+
+# Remove item from cart
+@app.post("/remove_from_cart/{cart_item_id}", response_class=HTMLResponse)
+async def remove_from_cart(cart_item_id: int, db: Session = Depends(get_db)):
+    cart_item = db.query(ShoppingCartItem).filter(ShoppingCartItem.id == cart_item_id).first()
+
+    if cart_item:
+        db.delete(cart_item)
+        db.commit()
+
+    return HTMLResponse(content="<h1>Item removed from cart.</h1><a href='/cart'>Back to Cart</a>")
+
+
+# # 6. Checkout Page
+# @app.get("/checkout", response_class=HTMLResponse)
+# async def checkout_page(request: Request, db: Session = Depends(get_db)):
+#     cart_items = db.query(CartItem).all()
+    
+#     if not cart_items:
+#         return HTMLResponse(content="<h1>Your cart is empty. Please add some products to your cart.</h1>")
+    
+#     total_price = sum(item.product.price * item.quantity for item in cart_items)
+
+#     html_content = f"""
+#     <html>
+#     <head><title>Checkout</title></head>
+#     <body>
+#     <h1>Checkout</h1>
+#     <ul>
+#     """
+#     for cart_item in cart_items:
+#         html_content += f"""
+#         <li>{cart_item.product.name} - ${cart_item.product.price} x {cart_item.quantity}</li>
+#         """
+    
+#     html_content += f"""
+#     </ul>
+#     <p><strong>Total Price: ${total_price}</strong></p>
+    
+#     <h2>Shipping Details</h2>
+#     <form action="/place_order" method="POST">
+#         <label for="name">Full Name:</label><br>
+#         <input type="text" id="name" name="name" required><br><br>
+#         <label for="address">Shipping Address:</label><br>
+#         <textarea id="address" name="address" rows="4" required></textarea><br><br>
+#         <button type="submit">Place Order</button>
+#     </form>
+#     </body>
+#     </html>
+#     """
+#     return HTMLResponse(content=html_content)
+
+# # Place Order (Checkout Confirmation)
+# @app.post("/place_order", response_class=HTMLResponse)
+# async def place_order(request: Request, name: str, address: str, db: Session = Depends(get_db)):
+#     cart_items = db.query(CartItem).all()
+
+#     if not cart_items:
+#         return HTMLResponse(content="<h1>Your cart is empty. Cannot place an order.</h1>")
+    
+#     order = Order(customer_name=name, shipping_address=address)
+#     db.add(order)
+#     db.commit()
+#     db.refresh(order)
+
+#     for cart_item in cart_items:
+#         order_item = OrderItem(order_id=order.id, product_id=cart_item.product_id, quantity=cart_item.quantity, price=cart_item.product.price)
+#         db.add(order_item)
+    
+#     # Clear the cart
+#     db.query(CartItem).delete()
+#     db.commit()
+
+#     return HTMLResponse(content=f"""
+#     <html>
+#     <body>
+#         <h1>Thank You for Your Order, {name}!</h1>
+#         <p>Your order has been placed successfully.</p>
+#         <a href="/search">Continue Shopping</a>
+#     </body>
+#     </html>
+#     """)
+
 
 # 3. Home page
     # home page display
