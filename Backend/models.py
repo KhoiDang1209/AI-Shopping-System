@@ -1,10 +1,10 @@
-from sqlalchemy import (Column, Integer, String, ForeignKey, Boolean, Text, Date, DECIMAL)
+from sqlalchemy import (Column, Integer, String, ForeignKey, Boolean, Text, Date, DECIMAL, UniqueConstraint)
 from sqlalchemy.orm import relationship
 from database import Base
 
 # Location Tables
 class Country(Base):
-    __tablename__ = "country"
+    __tablename__ = "countries"
     country_id = Column(Integer, primary_key=True)
     country_name = Column(String(100), nullable=False)
     
@@ -14,13 +14,13 @@ class Address(Base):
     __tablename__ = "address"
     address_id = Column(Integer, primary_key=True)
     unit_number = Column(String(100))
-    street_number = Column(String(10))
+    street_number = Column(String(40))
     address_line1 = Column(String(255), nullable=False)
     address_line2 = Column(String(255))
     city = Column(String(100), nullable=False)
     region = Column(String(100))
     postal_code = Column(String(20))
-    country_id = Column(Integer, ForeignKey("country.country_id"))
+    country_id = Column(Integer, ForeignKey("countries.country_id"))
 
     country = relationship("Country", back_populates="addresses_country")
     user_addresses = relationship("UserAddress", back_populates="address")
@@ -246,3 +246,23 @@ class ShippingMethod(Base):
     price = Column(DECIMAL(10, 2), nullable=False)
 
     orders = relationship("ShopOrder", back_populates="shipping_method")
+
+class InterestingCategory(Base):
+    __tablename__ = "interesting_category"
+
+    interesting_category_id = Column(Integer, primary_key=True, autoincrement=True)
+    category_id = Column(Integer, ForeignKey("product_category.category_id", ondelete="CASCADE"))
+    user_id = Column(Integer, ForeignKey("site_user.user_id", ondelete="CASCADE"))
+
+    # Define the relationship with ProductCategory and SiteUser
+    category = relationship("ProductCategory", backref="interesting_categories")
+    user = relationship("SiteUser", backref="interesting_categories")
+
+    # Unique constraint to prevent duplicate category-user entries
+    __table_args__ = (
+        UniqueConstraint('category_id', 'user_id', name='unique_user_category'),
+    )
+
+    def __init__(self, category_id, user_id):
+        self.category_id = category_id
+        self.user_id = user_id

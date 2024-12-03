@@ -1,6 +1,8 @@
+from passlib.context import CryptContext
+import random
+from decimal import Decimal
 from database import SessionLocal
-from models import Country
-
+from models import Country, SiteUser, ProductCategory, Product, ProductItem
 # List of 195 countries in alphabetical order
 countries = [
     "Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Antigua and Barbuda", "Argentina", 
@@ -26,7 +28,24 @@ countries = [
     "Turkey", "Turkmenistan", "Tuvalu", "Uganda", "Ukraine", "United Arab Emirates", "United Kingdom", "United States", 
     "Uruguay", "Uzbekistan", "Vanuatu", "Vatican City", "Venezuela", "Vietnam", "Yemen", "Zambia", "Zimbabwe"
 ]
+# List of sample categories
+categories = [
+    "Electronics", "Home Appliances", "Books", "Fashion", "Toys", "Sports Equipment",
+    "Groceries", "Beauty Products", "Furniture", "Automotive"
+]
 
+# List of sample products with their descriptions and images (fake URLs for demonstration)
+products = [
+    {"name": "Smartphone", "description": "High-end smartphone with 128GB storage.", "image": "smartphone.jpg"},
+    {"name": "Laptop", "description": "Lightweight laptop with a 13-inch display.", "image": "laptop.jpg"},
+    {"name": "Air Conditioner", "description": "Energy-efficient air conditioner.", "image": "air_conditioner.jpg"},
+    {"name": "Sneakers", "description": "Comfortable and stylish sneakers.", "image": "sneakers.jpg"},
+    {"name": "Electric Kettle", "description": "1.5-liter electric kettle.", "image": "kettle.jpg"},
+]
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+def hash_password(password: str) -> str:
+    return pwd_context.hash(password)
 # Insert countries into the database
 def insert_countries():
     # Create a session
@@ -46,6 +65,63 @@ def insert_countries():
         print(f"An error occurred: {e}")
     finally:
         session.close()
+# Insert admin user, categories, products, and product items
+def insert_data():
+    session = SessionLocal()
+    
+    try:
+        # Insert admin user
+        passwordHash = hash_password("adminpassword123")
+        admin_user = SiteUser(
+            user_name="admin",
+            email_address="admin@example.com",
+            phone_number="1234567890",
+            password=passwordHash  # Ideally hashed
+        )
+        session.add(admin_user)
 
+        # Insert categories
+        category_objects = []
+        for category_name in categories:
+            category = ProductCategory(category_name=category_name)
+            session.add(category)
+            category_objects.append(category)
+
+        session.commit()  # Commit categories to get their IDs
+
+        # Insert products and product items
+        for product in products:
+            random_category = random.choice(category_objects)  # Assign a random category
+            new_product = Product(
+                product_name=product["name"],
+                description=product["description"],
+                product_image=product["image"],
+                category_id=random_category.category_id
+            )
+            session.add(new_product)
+            session.commit()  # Commit product to get its ID
+
+            # Insert a product item for this product
+            product_item = ProductItem(
+                product_id=new_product.product_id,
+                price=Decimal(random.uniform(10, 1000)).quantize(Decimal("0.01")),  # Random price between 10 and 1000
+                SKU=f"SKU-{random.randint(1000, 9999)}",
+                is_in_stock=True,
+                product_image=new_product.product_image
+            )
+            session.add(product_item)
+
+        # Commit all inserts
+        session.commit()
+        print("Admin user, categories, products, and product items inserted successfully.")
+
+    except Exception as e:
+        session.rollback()
+        print(f"An error occurred: {e}")
+    finally:
+        session.close()
+
+# Call the function to insert data
+insert_data() #auto trigger when import
 # Call the function to insert countries
 insert_countries()
