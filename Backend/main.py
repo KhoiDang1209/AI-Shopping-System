@@ -18,7 +18,6 @@ from sqlalchemy import func
 
 # Local imports
 from database import engine, SessionLocal
-import models
 from models import *
 from schemas import (
     UserAddressRequest, UserCreate, UserResponse, AddressCreate, AddressResponse, ProductCreate,
@@ -26,7 +25,6 @@ from schemas import (
     EmailContent, RegisterRequest, EmailVadidate, LoginRequire, FPEmail,
     ChangePasswordInfor, UpdateRequire, CategoryName, ListOfInterestingProduct
 )
-from schemas import *
 
 # Load environment variables
 dotenv_path = os.path.join(os.getcwd(), ".env")
@@ -149,7 +147,6 @@ async def postRegister(user: UserRegisterRequest, db: Session = Depends(get_db))
     db.commit()
     db.refresh(db_user)
     return db_user
-
 @app.post("/Login")
 async def login(user: LoginRequire, db: Session = Depends(get_db)):
     # Determine if the input is an email or a username
