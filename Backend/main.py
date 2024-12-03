@@ -19,12 +19,7 @@ from sqlalchemy import func
 # Local imports
 from database import engine, SessionLocal
 from models import *
-from schemas import (
-    UserAddressRequest, UserCreate, UserResponse, AddressCreate, AddressResponse, ProductCreate,
-    ProductResponse, ShopOrderCreate, ShopOrderResponse, UserRegisterRequest,
-    EmailContent, RegisterRequest, EmailVadidate, LoginRequire, FPEmail,
-    ChangePasswordInfor, UpdateRequire, CategoryName, ListOfInterestingProduct
-)
+from schemas import *
 
 # Load environment variables
 dotenv_path = os.path.join(os.getcwd(), ".env")
