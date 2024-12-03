@@ -50,6 +50,11 @@ use case:
     add selected item to cart
     select item in cart to purchase
 
+bỏ table country: fix schemas, apis có liên quan
+sửa table product: giống format file product.csv
+sửa table site_user: làm 1 cách nào đó match format user_data.csv
+thêm table rating
+
 Đức Độ
 CREATE TABLE "country" (
   "country_id" INT,
