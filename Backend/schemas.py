@@ -379,4 +379,15 @@ class UpdateRequire(BaseModel):
     phone: str
     address: str
 
+class CategoryName(BaseModel):
+    category_name: str
+
+    class Config:
+        orm_mode = True
+
+class ListOfInterestingProduct(BaseModel):
+    category_name: List[str]
+    email: EmailStr
+    class Config:
+        orm_mode = True
 

@@ -12,8 +12,9 @@ from passlib.context import CryptContext
 from fastapi_mail import ConnectionConfig, FastMail, MessageSchema, MessageType
 from starlette.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
-from insertDB import insert_countries
+
 from fastapi.responses import HTMLResponse
+from sqlalchemy import func
 
 # Local imports
 from database import engine, SessionLocal
@@ -22,7 +23,7 @@ from schemas import (
     UserAddressRequest, UserCreate, UserResponse, AddressCreate, AddressResponse, ProductCreate,
     ProductResponse, ShopOrderCreate, ShopOrderResponse, UserRegisterRequest,
     EmailContent, RegisterRequest, EmailVadidate, LoginRequire, FPEmail,
-    ChangePasswordInfor, UpdateRequire
+    ChangePasswordInfor, UpdateRequire, CategoryName, ListOfInterestingProduct
 )
 
 # Load environment variables
@@ -34,7 +35,8 @@ app = FastAPI()
 
 # Automatically create tables in the database
 models.Base.metadata.create_all(bind=engine)
-
+#Do not modify this as need to create table be for insert data
+from insertDB import insert_countries, insert_data
 # CORS Middleware
 origins = ["http://localhost:3000"]  # Replace with your frontend URL
 app.add_middleware(
@@ -93,6 +95,11 @@ async def root():
 # -------------------------------
 # User Authentication
 # -------------------------------
+#Login and register
+@app.post("/getUserInfoByEmail")
+async def getUserInfoByEmail(user: FPEmail, db: Session = Depends(get_db)):
+    existing_user = db.query(SiteUser).filter(SiteUser.email_address == user.email).first()
+    return {"name": existing_user.user_name, "email": existing_user.email_address, "phone": existing_user.phone_number, "password": existing_user.password, "user_id": existing_user.user_id}
 
 @app.post("/register")
 async def register_user(user: UserResponse, db: Session = Depends(get_db)):
@@ -219,8 +226,81 @@ async def postLogin(user: LoginRequire, db: Session = Depends(get_db)):
 
     return {"message": "Login successful", "user": user_response}
 
+
+@app.post("/preHomepage/")
+async def preHomepage(userEmail: FPEmail, db: Session = Depends(get_db)):
+    getUserID = db.query(SiteUser).filter(SiteUser.email_address == userEmail.email).first()
+    if not getUserID:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    checkIfFirstTimeLogin = db.query(InterestingCategory).filter(InterestingCategory.user_id == getUserID.user_id).first()
+    return {"data": bool(checkIfFirstTimeLogin)}
+
+
+@app.post("/getAllInterestingProductByUserEmail/")
+async def getAllInterestingProductByUserEmail(userEmail: FPEmail, db: Session = Depends(get_db)):
+    getUserID = db.query(SiteUser).filter(SiteUser.email_address == userEmail.email).first()
+    if not getUserID:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    interesting_categories = db.query(InterestingCategory).filter(InterestingCategory.user_id == getUserID.user_id).all()
+    if not interesting_categories:
+        return {"data": []}
+    
+    category_names = [db.query(ProductCategory.category_name).filter(ProductCategory.category_id == cat.category_id).scalar() for cat in interesting_categories]
+    return {"data": category_names}
+
+
+@app.post("/insertInterestingProduct/")
+async def insertInterestingProduct(list: ListOfInterestingProduct, db: Session = Depends(get_db)):
+    user_id = db.query(SiteUser).filter(SiteUser.email_address == list.email).first().user_id
+    if not user_id:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Insert the selected categories into the InterestingCategory table
+    for category_name in list.category_name:
+        category_id = db.query(ProductCategory).filter(ProductCategory.category_name == category_name).first().category_id
+        if not category_id:
+            raise HTTPException(status_code=404, detail=f"Category '{category_name}' not found")
+        
+        existing_entry = db.query(InterestingCategory).filter(
+            InterestingCategory.user_id == user_id,
+            InterestingCategory.category_id == category_id
+        ).first()
+        if not existing_entry:
+            interesting_category = InterestingCategory(user_id=user_id, category_id=category_id)
+            db.add(interesting_category)
+    db.commit()
+
+    return {"message": "Success! Categories added to the database."}
+
+
+@app.post("/insertInterestingProductWithMostChosenItem/")
+async def insertInterestingProductWithMostChosenItem(userEmail: FPEmail, db: Session = Depends(get_db)):
+    getUserID = db.query(SiteUser).filter(SiteUser.email_address == userEmail.email).first()
+    if not getUserID:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    top_categories = db.query(
+        ProductCategory.category_id,
+        func.count(InterestingCategory.category_id).label("category_count")
+    ).join(InterestingCategory, InterestingCategory.category_id == ProductCategory.category_id).group_by(ProductCategory.category_id).order_by(func.count(InterestingCategory.category_id).desc()).limit(3).all()
+
+    for category in top_categories:
+        existing_entry = db.query(InterestingCategory).filter(
+            InterestingCategory.user_id == getUserID.user_id,
+            InterestingCategory.category_id == category.category_id
+        ).first()
+        if not existing_entry:
+            interesting_category = InterestingCategory(user_id=getUserID.user_id, category_id=category.category_id)
+            db.add(interesting_category)
+    
+    db.commit()
+
+    return {"message": "Success! Auto-assigned top interesting categories."}
+
 # -------------------------------
-# User Profile
+# 2. User Profile 
 # -------------------------------
 
 @app.post("/Update")
@@ -332,13 +412,27 @@ async def UserAddressInfor(email: FPEmail, db: Session = Depends(get_db)):
                 "city": address.city,
                 "region": address.region,
                 "postal_code": address.postal_code,
-                "country": address.country_id,  # Optionally, join to fetch country name if needed
+                "country_id": address.country_id,  # Optionally, join to fetch country name if needed
                 "is_default": user_address.is_default
             })
 
     return {"addresses": addresses_info}  
 
 @app.post("/updateAddress/")
+async def updateAddress(user: UserAddressRequest, db: Session = Depends(get_db)):
+    # Generate verification code
+    verification_code = generate_verification_code()
+    verification_codes[user.email] = verification_code
+
+    # Send email with verification code
+    html = f"<p>Your verification code is: <strong>{verification_code}</strong></p>"
+    message = MessageSchema(subject="Verification Code", recipients=[user.email], body=html, subtype=MessageType.html)
+    fm = FastMail(conf)
+    await fm.send_message(message)
+
+    return {"message": "Please check your email for verification."}
+
+@app.post("/postupdateAddress/")
 async def update_address(user_request: UserAddressRequest, db: Session = Depends(get_db)):
     # Get the user by email
     user = db.query(SiteUser).filter(SiteUser.email_address == user_request.email).first()
@@ -376,7 +470,7 @@ async def update_address(user_request: UserAddressRequest, db: Session = Depends
         )
         db.add(new_user_address)
         db.commit()  # Save the user-address link
-        return {"message": "New address created and linked to user."}
+        return {"message": "New address created and linked to user.", "data": user_request}
     
     else:
         # If addresses exist, update the first one (or implement custom logic to choose the address)
@@ -395,6 +489,61 @@ async def update_address(user_request: UserAddressRequest, db: Session = Depends
         db.commit()  # Save the updated address
         return {"message": "Address updated successfully."}
     
+# 3. Home page (Store page)
+    # home page display
+    # recommend product (do after have ai model)
+    # categories (show different product categories)
+@app.post("/getAllProduct/")
+async def get_all_products(db: Session = Depends(get_db)):
+    all_products = db.query(Product).all()  # Returns a list of Product objects
+    return [
+        {
+            "product_id": product.product_id,
+            "category_id": product.category_id,
+            "product_name": product.product_name,
+            "description": product.description,
+            "product_image": product.product_image,
+        }
+        for product in all_products
+    ]
+
+
+# Get products by category name
+@app.post("/getProductbyCategory/")
+async def get_products_by_category(categoryNeed: CategoryName, db: Session = Depends(get_db)):
+    category = db.query(ProductCategory).filter(ProductCategory.category_name == categoryNeed.category_name).first()
+    if not category:
+        return {"error": "Category not found"}
+
+    products_by_category = db.query(Product).filter(Product.category_id == category.category_id).all()
+
+    if not products_by_category:
+        return {"error": "No products found for this category"}
+
+    return [
+        {
+            "product_id": product.product_id,
+            "category_id": product.category_id,
+            "product_name": product.product_name,
+            "description": product.description,
+            "product_image": product.product_image,
+        }
+        for product in products_by_category
+    ]
+
+
+# Get all categories
+@app.post("/getAllCategory/")
+async def get_all_categories(db: Session = Depends(get_db)):
+    all_categories = db.query(ProductCategory).all()  # Returns a list of ProductCategory objects
+    return [
+        {
+            "category_id": category.category_id,
+            "parent_category_id": category.parent_category_id,
+            "category_name": category.category_name,
+        }
+        for category in all_categories
+    ]
 # # Product Page
 # @app.get("/search-products", response_class=HTMLResponse)
 # async def search_products(query: str = '', db: Session = Depends(get_db)):
@@ -741,11 +890,6 @@ async def remove_from_cart(cart_item_id: int, db: Session = Depends(get_db)):
 #     </html>
 #     """)
 
-
-# 3. Home page
-    # home page display
-    # recommend product (do after have ai model)
-    # categories (show different product categories)
 
 # 4 Search products page
     # products display

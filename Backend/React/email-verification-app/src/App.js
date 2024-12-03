@@ -12,6 +12,8 @@ import Update from "./Update";
 import UpdateVerifyEmail from "./UpdateVerifyEmail";
 import YourAddressPage from "./YourAddressPage";
 import UpdateAddress from "./UpdateAddress";
+import Store from "./StorePage";
+import UpdateAddressVerifyEmail from "./UpdateAddressVerifyEmail";
 
 function App() {
   return (
@@ -29,9 +31,10 @@ function App() {
         <Route path="/UpdateVerifyEmail" element={<UpdateVerifyEmail />} />
         <Route path="/your-information" element={<HomePage />} />
         <Route path="/cart" element={<HomePage />} />
-        <Route path="/store" element={<HomePage />} />
+        <Route path="/store" element={<Store />} />
         <Route path="/your-address" element={<YourAddressPage />} />
         <Route path="/UpdateAddress" element={<UpdateAddress />} />
+        <Route path="/UpdateAddressVerifyEmail" element={<UpdateAddressVerifyEmail />} />
 
       </Routes>
     </Router>

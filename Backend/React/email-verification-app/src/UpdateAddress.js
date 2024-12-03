@@ -50,13 +50,14 @@ const UpdateAddress = () => {
             console.log(userData)
             // Ensure country_id is sent as an integer
             let updatedFormData = { ...formData, country_id: parseInt(formData.country_id, 10) };
-            updatedFormData = { ...updatedFormData, email: userData.email };
+            updatedFormData = { ...updatedFormData, userData };
 
             console.log('Submitting Form Data:', updatedFormData);
 
             const response = await axios.post('http://localhost:8000/updateAddress', updatedFormData);
-            console.log('Address update successful:', response.data);
-            setMessage('Address updated successfully!');
+            console.log('Send email successful:', response.data);
+            setMessage('Email has been sent successfully!');
+            navigate('/UpdateAddressVerifyEmail', { state: { userData: { ...updatedFormData } } });
         } catch (error) {
             console.error('Error updating address:', error);
             const errorDetail = error.response?.data?.detail || 'Failed to update address. Please try again.';
