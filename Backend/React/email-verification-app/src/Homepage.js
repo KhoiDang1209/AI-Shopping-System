@@ -11,6 +11,9 @@ const Homepage = () => {
         email: userData?.email || '',
         phone: userData?.phone || '',
         address: userData?.address || '',
+        age: userData?.age || '',
+        gender: userData?.gender || '',
+        city: userData?.city || '',
     });
 
     const [activeTab, setActiveTab] = useState('Your Information');
@@ -256,6 +259,39 @@ const Homepage = () => {
                                     <input
                                         type="text"
                                         value={userInfo.address}
+                                        readOnly
+                                        style={styles.input}
+                                    />
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Age:</td>
+                                <td>
+                                    <input
+                                        type="text"
+                                        value={userInfo.age}
+                                        readOnly
+                                        style={styles.input}
+                                    />
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Gender:</td>
+                                <td>
+                                    <input
+                                        type="text"
+                                        value={userInfo.gender}
+                                        readOnly
+                                        style={styles.input}
+                                    />
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>City:</td>
+                                <td>
+                                    <input
+                                        type="text"
+                                        value={userInfo.city}
                                         readOnly
                                         style={styles.input}
                                     />

@@ -12,10 +12,8 @@ const YourAddressPage = () => {
         street_number: '',
         address_line1: '',
         address_line2: '',
-        city: '',
         region: '',
         postal_code: '',
-        country_id: '',
     });
 
     const [activeTab, setActiveTab] = useState('Your Address');
@@ -78,7 +76,7 @@ const YourAddressPage = () => {
                 {activeTab === 'Your Address' && (
                     <form onSubmit={handleSubmit} style={styles.form}>
                         <h2>Your Address</h2>
-                        {['unit_number', 'street_number', 'address_line1', 'address_line2', 'city', 'region', 'postal_code', 'country_id'].map((field) => (
+                        {['unit_number', 'street_number', 'address_line1', 'address_line2', 'region', 'postal_code'].map((field) => (
                             <div style={styles.inputGroup} key={field}>
                                 <label>{field.replace('_', ' ').toUpperCase()}:</label>
                                 <input

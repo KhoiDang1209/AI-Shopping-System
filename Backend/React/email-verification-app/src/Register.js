@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';  // Import useNavigate
+import { useNavigate } from 'react-router-dom'; // Import useNavigate
 import axios from 'axios';
 
 const RegisterForm = () => {
@@ -7,7 +7,10 @@ const RegisterForm = () => {
         user_name: '',
         email_address: '',
         phone_number: '',
-        password: ''
+        password: '',
+        age: '',
+        gender: '',
+        city: ''
     });
     const [message, setMessage] = useState('');
     const navigate = useNavigate(); // Hook to handle navigation
@@ -21,19 +24,26 @@ const RegisterForm = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        // Basic validation
+
+        // Basic validation for username
         if (!/^\w{3,50}$/.test(formData.user_name)) {
             setMessage("Invalid username.");
             return;
         }
+
+        // Phone number validation
         if (!/^\d{10}$/.test(formData.phone_number)) {
             setMessage("Phone number must be 10 digits.");
             return;
         }
-        if (formData.password.length < 8) {
-            setMessage("Password must be at least 8 characters.");
+
+        // Password validation (at least 8 characters, one uppercase, one special character)
+        const passwordRegex = /^(?=.*[A-Z])(?=.*[!@#$%^&*(),.?":{}|<>])[A-Za-z\d!@#$%^&*(),.?":{}|<>]{8,}$/;
+        if (!passwordRegex.test(formData.password)) {
+            setMessage("Password must be at least 8 characters, include one uppercase letter and one special character.");
             return;
         }
+
         try {
             const response = await axios.post('http://localhost:8000/register', formData);
             console.log('Registration successful:', response.data);
@@ -52,7 +62,7 @@ const RegisterForm = () => {
     const handleLogin = async (e) => {
         e.preventDefault();
         navigate('/');
-    }
+    };
 
     return (
         <div style={styles.container}>
@@ -102,6 +112,43 @@ const RegisterForm = () => {
                         style={styles.input}
                     />
                 </label>
+                <label style={styles.label}>
+                    Age:
+                    <input
+                        type="text"
+                        name="age"
+                        value={formData.age}
+                        onChange={handleChange}
+                        required
+                        style={styles.input}
+                    />
+                </label>
+                <label style={styles.label}>
+                    Gender:
+                    <select
+                        name="gender"
+                        value={formData.gender}
+                        onChange={handleChange}
+                        required
+                        style={styles.input}
+                    >
+                        <option value="">Choose Gender</option>
+                        <option value="male">Male</option>
+                        <option value="female">Female</option>
+                        <option value="other">Other</option>
+                    </select>
+                </label>
+                <label style={styles.label}>
+                    City:
+                    <input
+                        type="text"
+                        name="city"
+                        value={formData.city}
+                        onChange={handleChange}
+                        required
+                        style={styles.input}
+                    />
+                </label>
                 <button type="submit" style={styles.button}>
                     Register
                 </button>
@@ -145,13 +192,13 @@ const styles = {
         border: 'none',
         borderRadius: '4px',
         cursor: 'pointer',
-        marginBottom: '15px', // Adds space between login and group buttons
+        marginBottom: '15px',
     },
     buttonGroup: {
         display: 'flex',
         justifyContent: 'space-between',
-        marginTop: '15px', // Adds spacing from the "Login" button
-        gap: '10px', // Adds space between "Register" and "Forget Password?" buttons
+        marginTop: '15px',
+        gap: '10px',
     },
     message: {
         marginTop: '10px',

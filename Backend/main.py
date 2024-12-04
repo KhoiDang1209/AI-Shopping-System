@@ -31,7 +31,7 @@ app = FastAPI()
 # Automatically create tables in the database
 models.Base.metadata.create_all(bind=engine)
 #Do not modify this as need to create table be for insert data
-from insertDB import insert_countries, insert_data
+from insertDB import insert_data
 # CORS Middleware
 origins = ["http://localhost:3000"]  # Replace with your frontend URL
 app.add_middleware(
@@ -131,36 +131,74 @@ async def verify_email(emailValidate: EmailVadidate):
 
 @app.post("/postRegister/")
 async def postRegister(user: UserRegisterRequest, db: Session = Depends(get_db)):
+    # Check if user already exists
+    existing_user = db.query(SiteUser).filter(SiteUser.email_address == user.email_address).first()
+    if existing_user:
+        raise HTTPException(status_code=400, detail="User with this email already exists.")
+
+    # Hash the password
     hashed_password = hash_password(user.password)
+    
+    # Create the SiteUser instance
     db_user = SiteUser(
         user_name=user.user_name,
         email_address=user.email_address,
         phone_number=user.phone_number,
         password=hashed_password
     )
+    
+    # Add and commit SiteUser to get the user_id
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
-    return db_user
-@app.post("/Login")
+
+    # Create the UserPersonalInfo instance with the correct user_id
+    db_user_personal_info = UserPersonalInfo(
+        age=user.age,
+        gender=user.gender,
+        city=user.city,
+        user_id=db_user.user_id  # Use the user_id from the newly created user
+    )
+    
+    # Add and commit UserPersonalInfo
+    db.add(db_user_personal_info)
+    db.commit()
+    db.refresh(db_user_personal_info)
+
+    # Return a response with both user and personal info
+    return {
+        "user": {
+            "user_id": db_user.user_id,
+            "user_name": db_user.user_name,
+            "email_address": db_user.email_address
+        },
+        "personal_info": {
+            "age": db_user_personal_info.age,
+            "gender": db_user_personal_info.gender,
+            "city": db_user_personal_info.city
+        }
+    }
+@app.post("/login")
 async def login(user: LoginRequire, db: Session = Depends(get_db)):
     # Determine if the input is an email or a username
     if is_email(user.user_name_or_email):
         existing_user = db.query(SiteUser).filter(SiteUser.email_address == user.user_name_or_email).first()
     else:
         existing_user = db.query(SiteUser).filter(SiteUser.user_name == user.user_name_or_email).first()
-
     if not existing_user:
+        print("User not found in query:", user.user_name_or_email)
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="User not found"
         )
+
     # Verify the password
     if not verify_password(user.password, existing_user.password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid credentials"
         )
+
     # Generate and store verification code
     verification_code = generate_verification_code()
     verification_codes[existing_user.email_address] = verification_code
@@ -168,15 +206,14 @@ async def login(user: LoginRequire, db: Session = Depends(get_db)):
     # Email content with verification code
     html = f"""
     <p>Dear {existing_user.user_name},</p>
-    <p>This is a test email</p>
     <p>Your verification code is: <strong>{verification_code}</strong></p>
     <p>Thank you,</p>
-    <p>Ai Shopping system</p>
+    <p>AI Shopping System</p>
     """
 
     # Send email with verification code
     message = MessageSchema(
-        subject="Hello",
+        subject="Verification Code",
         recipients=[existing_user.email_address],
         body=html,
         subtype=MessageType.html
@@ -184,13 +221,31 @@ async def login(user: LoginRequire, db: Session = Depends(get_db)):
 
     fm = FastMail(conf)
     await fm.send_message(message)
+
+    # Retrieve user personal information
+    get_personal_user_info = db.query(UserPersonalInfo).filter(UserPersonalInfo.user_id == existing_user.user_id).first()
+
+    if not get_personal_user_info:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User personal information not found."
+        )
+
+    # Create user response
     user_response = UserResponse(
         user_name=existing_user.user_name,
         email_address=existing_user.email_address,
         phone_number=existing_user.phone_number,
-        password = existing_user.password
+        password=existing_user.password,
+        age=get_personal_user_info.age,
+        gender=get_personal_user_info.gender,
+        city=get_personal_user_info.city
     )
-    return {"message": "Send email successful. Please check your email for verification.", "user": user_response}
+
+    return {
+        "message": "Email sent successfully. Please check your email for verification.",
+        "user": user_response
+    }
 
 @app.post("/postLogin/")
 async def postLogin(user: LoginRequire, db: Session = Depends(get_db)):
@@ -201,6 +256,7 @@ async def postLogin(user: LoginRequire, db: Session = Depends(get_db)):
         existing_user = db.query(SiteUser).filter(SiteUser.user_name == user.user_name_or_email).first()
 
     if not existing_user:
+        print("User not found in query:", user.user_name_or_email)
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="User not found"
@@ -315,15 +371,19 @@ async def Update(user: UpdateRequire, db: Session = Depends(get_db)):
 @app.post("/postUpdate")
 async def postUpdate(changeInfo: UpdateRequire, db: Session = Depends(get_db)):
     user = db.query(SiteUser).filter(SiteUser.email_address == changeInfo.email).first()
+    userPersonalInfo = db.query(UserPersonalInfo).filter(UserPersonalInfo.user_id == user.user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
     # Update user information
     user.user_name = changeInfo.name
     user.phone_number = changeInfo.phone
+    userPersonalInfo.age = changeInfo.age
+    userPersonalInfo.gender = changeInfo.gender
+    userPersonalInfo.city = changeInfo.city
     db.commit()
 
-    return {"message": "User information updated successfully", "data": {"name": user.user_name, "email": user.email_address, "phone": user.phone_number}}
+    return {"message": "User information updated successfully", "data": {"name": user.user_name, "email": user.email_address, "phone": user.phone_number, "age": userPersonalInfo.age, "gender": userPersonalInfo.gender, "city": userPersonalInfo.city}}
 
 # -------------------------------
 # Forgot Password
@@ -369,9 +429,9 @@ async def postForgetPassword(changeInfo: ChangePasswordInfor, db: Session = Depe
 # Utility Functions
 # -------------------------------
 
-def is_email(value: str) -> bool:
-    email_regex = r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$'
-    return re.match(email_regex, value) is not None
+def is_email(input_str):
+    email_regex = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+    return re.match(email_regex, input_str) is not None
 
 # 2. User profile api
     # profile display
@@ -404,10 +464,8 @@ async def UserAddressInfor(email: FPEmail, db: Session = Depends(get_db)):
                 "street_number": address.street_number,
                 "address_line1": address.address_line1,
                 "address_line2": address.address_line2,
-                "city": address.city,
                 "region": address.region,
                 "postal_code": address.postal_code,
-                "country_id": address.country_id,  # Optionally, join to fetch country name if needed
                 "is_default": user_address.is_default
             })
 
@@ -448,10 +506,8 @@ async def update_address(user_request: UserAddressRequest, db: Session = Depends
             street_number=user_request.street_number,
             address_line1=user_request.address_line1,
             address_line2=user_request.address_line2,
-            city=user_request.city,
             region=user_request.region,
             postal_code=user_request.postal_code,
-            country_id=user_request.country_id,
         )
         db.add(new_address)
         db.commit()  # Save the new address
@@ -494,10 +550,18 @@ async def get_all_products(db: Session = Depends(get_db)):
     return [
         {
             "product_id": product.product_id,
-            "category_id": product.category_id,
             "product_name": product.product_name,
-            "description": product.description,
+            "main_category": product.main_category,
+            "main_category_encoded": product.main_category_encoded,
+            "sub_category": product.sub_category,
+            "sub_category_encoded": product.sub_category_encoded,
             "product_image": product.product_image,
+            "product_link": product.product_link,
+            "average_rating": product.average_rating,
+            "no_of_ratings": product.no_of_ratings,
+            "discount_price_usd": product.discount_price_usd,
+            "actual_price_usd": product.actual_price_usd,
+            "category_id": product.category_id
         }
         for product in all_products
     ]
@@ -518,10 +582,18 @@ async def get_products_by_category(categoryNeed: CategoryName, db: Session = Dep
     return [
         {
             "product_id": product.product_id,
-            "category_id": product.category_id,
             "product_name": product.product_name,
-            "description": product.description,
+            "main_category": product.main_category,
+            "main_category_encoded": product.main_category_encoded,
+            "sub_category": product.sub_category,
+            "sub_category_encoded": product.sub_category_encoded,
             "product_image": product.product_image,
+            "product_link": product.product_link,
+            "average_rating": product.average_rating,
+            "no_of_ratings": product.no_of_ratings,
+            "discount_price_usd": product.discount_price_usd,
+            "actual_price_usd": product.actual_price_usd,
+            "category_id": product.category_id
         }
         for product in products_by_category
     ]

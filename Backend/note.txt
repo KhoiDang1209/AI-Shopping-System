@@ -50,10 +50,10 @@ use case:
     add selected item to cart
     select item in cart to purchase
 
-bỏ table country: fix schemas, apis có liên quan
-sửa table product: giống format file product.csv
-sửa table site_user: làm 1 cách nào đó match format user_data.csv
-thêm table rating
+bỏ table country: fix schemas, apis có liên quan OK
+sửa table product: giống format file product.csv  OK
+sửa table site_user: làm 1 cách nào đó match format user_data.csv except country OK
+thêm table rating OK
 
 Đức Độ
 CREATE TABLE "country" (

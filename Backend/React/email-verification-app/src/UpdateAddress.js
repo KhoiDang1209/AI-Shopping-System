@@ -14,7 +14,6 @@ const UpdateAddress = () => {
         city: userData.city || '',
         region: userData.region || '',
         postal_code: userData.postal_code || '',
-        country_id: userData.country_id || '',  // Make sure it's an integer when submitting
     });
 
     const [message, setMessage] = useState('');
@@ -39,8 +38,7 @@ const UpdateAddress = () => {
             !formData.address_line1 ||
             !formData.city ||
             !formData.region ||
-            !formData.postal_code ||
-            !formData.country_id
+            !formData.postal_code
         ) {
             setMessage('Please fill in all required fields.');
             return;
@@ -49,8 +47,7 @@ const UpdateAddress = () => {
         try {
             console.log(userData)
             // Ensure country_id is sent as an integer
-            let updatedFormData = { ...formData, country_id: parseInt(formData.country_id, 10) };
-            updatedFormData = { ...updatedFormData, userData };
+            let updatedFormData = { ...formData, userData };
 
             console.log('Submitting Form Data:', updatedFormData);
 
@@ -113,17 +110,6 @@ const UpdateAddress = () => {
                     />
                 </label>
                 <label style={styles.label}>
-                    City:
-                    <input
-                        type="text"
-                        name="city"
-                        value={formData.city}
-                        onChange={handleChange}
-                        required
-                        style={styles.input}
-                    />
-                </label>
-                <label style={styles.label}>
                     Region:
                     <input
                         type="text"
@@ -140,17 +126,6 @@ const UpdateAddress = () => {
                         type="text"
                         name="postal_code"
                         value={formData.postal_code}
-                        onChange={handleChange}
-                        required
-                        style={styles.input}
-                    />
-                </label>
-                <label style={styles.label}>
-                    Country ID:
-                    <input
-                        type="number"
-                        name="country_id"
-                        value={formData.country_id}
                         onChange={handleChange}
                         required
                         style={styles.input}

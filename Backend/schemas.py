@@ -149,7 +149,9 @@ class UserRegisterRequest(BaseModel):
     email_address: EmailStr
     phone_number:  str
     password: str
-
+    age: str
+    gender: str
+    city: str
     # @field_validator('password')
     # def password_complexity(cls, value):
     #     if not re.search(r'[A-Z]', value):
@@ -177,6 +179,9 @@ class UserResponse(BaseModel): # for user response after login / register
     email_address: EmailStr
     phone_number: str
     password: str
+    age: str
+    gender: str
+    city: str
     class Config:
         orm_mode = True
 
@@ -206,10 +211,8 @@ class UserAddressRequest(BaseModel):
     street_number: Optional[str] = None
     address_line1: str
     address_line2: Optional[str] = None
-    city: str
     region: Optional[str] = None
     postal_code: Optional[str] = None
-    country_id: int  # User must provide country
 
     class Config:
         orm_mode = True
@@ -378,7 +381,9 @@ class UpdateRequire(BaseModel):
     email: EmailStr
     phone: str
     address: str
-
+    age: str
+    gender: str
+    city: str
 class CategoryName(BaseModel):
     category_name: str
 

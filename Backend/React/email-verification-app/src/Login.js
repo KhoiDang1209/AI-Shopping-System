@@ -33,7 +33,7 @@ const Login = () => {
         try {
             // Sending login request to the backend
             console.log(formData)
-            const response = await axios.post('http://localhost:8000/Login', formData);
+            const response = await axios.post('http://localhost:8000/login', formData);
 
             console.log('Send email successful:', response.data);
             setMessage('Email send successfully!'); // Display success message

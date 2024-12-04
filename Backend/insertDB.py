@@ -2,39 +2,15 @@ from passlib.context import CryptContext
 import random
 from decimal import Decimal
 from database import SessionLocal
-from models import Country, SiteUser, ProductCategory, Product, ProductItem
-# List of 195 countries in alphabetical order
-countries = [
-    "Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Antigua and Barbuda", "Argentina", 
-    "Armenia", "Australia", "Austria", "Azerbaijan", "Bahamas", "Bahrain", "Bangladesh", "Barbados", 
-    "Belarus", "Belgium", "Belize", "Benin", "Bhutan", "Bolivia", "Bosnia and Herzegovina", "Botswana", 
-    "Brazil", "Brunei", "Bulgaria", "Burkina Faso", "Burundi", "Cabo Verde", "Cambodia", "Cameroon", 
-    "Canada", "Central African Republic", "Chad", "Chile", "China", "Colombia", "Comoros", "Congo (Congo-Brazzaville)", 
-    "Congo (Democratic Republic)", "Costa Rica", "Croatia", "Cuba", "Cyprus", "Czech Republic", "Denmark", "Djibouti", 
-    "Dominica", "Dominican Republic", "Ecuador", "Egypt", "El Salvador", "Equatorial Guinea", "Eritrea", "Estonia", 
-    "Eswatini", "Ethiopia", "Fiji", "Finland", "France", "Gabon", "Gambia", "Georgia", "Germany", "Ghana", "Greece", 
-    "Grenada", "Guatemala", "Guinea", "Guinea-Bissau", "Guyana", "Haiti", "Honduras", "Hungary", "Iceland", "India", 
-    "Indonesia", "Iran", "Iraq", "Ireland", "Israel", "Italy", "Jamaica", "Japan", "Jordan", "Kazakhstan", "Kenya", 
-    "Kiribati", "Korea, North", "Korea, South", "Kuwait", "Kyrgyzstan", "Laos", "Latvia", "Lebanon", "Lesotho", "Liberia", 
-    "Libya", "Liechtenstein", "Lithuania", "Luxembourg", "Madagascar", "Malawi", "Malaysia", "Maldives", "Mali", 
-    "Malta", "Marshall Islands", "Mauritania", "Mauritius", "Mexico", "Micronesia", "Moldova", "Monaco", "Mongolia", 
-    "Montenegro", "Morocco", "Mozambique", "Myanmar (Burma)", "Namibia", "Nauru", "Nepal", "Netherlands", "New Zealand", 
-    "Nicaragua", "Niger", "Nigeria", "North Macedonia", "Norway", "Oman", "Pakistan", "Palau", "Panama", "Papua New Guinea", 
-    "Paraguay", "Peru", "Philippines", "Poland", "Portugal", "Qatar", "Romania", "Russia", "Rwanda", "Saint Kitts and Nevis", 
-    "Saint Lucia", "Saint Vincent and the Grenadines", "Samoa", "San Marino", "Sao Tome and Principe", "Saudi Arabia", 
-    "Senegal", "Serbia", "Seychelles", "Sierra Leone", "Singapore", "Slovakia", "Slovenia", "Solomon Islands", "Somalia", 
-    "South Africa", "South Sudan", "Spain", "Sri Lanka", "Sudan", "Suriname", "Sweden", "Switzerland", "Syria", 
-    "Taiwan", "Tajikistan", "Tanzania", "Thailand", "Timor-Leste", "Togo", "Tonga", "Trinidad and Tobago", "Tunisia", 
-    "Turkey", "Turkmenistan", "Tuvalu", "Uganda", "Ukraine", "United Arab Emirates", "United Kingdom", "United States", 
-    "Uruguay", "Uzbekistan", "Vanuatu", "Vatican City", "Venezuela", "Vietnam", "Yemen", "Zambia", "Zimbabwe"
-]
-# List of sample categories
+from models import SiteUser, ProductCategory, Product, ProductItem
+
+# Sample categories
 categories = [
     "Electronics", "Home Appliances", "Books", "Fashion", "Toys", "Sports Equipment",
     "Groceries", "Beauty Products", "Furniture", "Automotive"
 ]
 
-# List of sample products with their descriptions and images (fake URLs for demonstration)
+# Sample products with their descriptions and images
 products = [
     {"name": "Smartphone", "description": "High-end smartphone with 128GB storage.", "image": "smartphone.jpg"},
     {"name": "Laptop", "description": "Lightweight laptop with a 13-inch display.", "image": "laptop.jpg"},
@@ -42,41 +18,23 @@ products = [
     {"name": "Sneakers", "description": "Comfortable and stylish sneakers.", "image": "sneakers.jpg"},
     {"name": "Electric Kettle", "description": "1.5-liter electric kettle.", "image": "kettle.jpg"},
 ]
+
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 def hash_password(password: str) -> str:
     return pwd_context.hash(password)
-# Insert countries into the database
-def insert_countries():
-    # Create a session
-    session = SessionLocal()
-    
-    # Insert each country
-    try:
-        for index, country_name in enumerate(countries, start=1):
-            country = Country(country_id=index, country_name=country_name)
-            session.add(country)
-        
-        # Commit the transaction
-        session.commit()
-        print("Countries inserted successfully.")
-    except Exception as e:
-        session.rollback()
-        print(f"An error occurred: {e}")
-    finally:
-        session.close()
-# Insert admin user, categories, products, and product items
+
 def insert_data():
-    session = SessionLocal()
-    
+    session = SessionLocal()  # Assuming SessionLocal is already defined
+
     try:
         # Insert admin user
-        passwordHash = hash_password("adminpassword123")
+        password_hash = hash_password("adminpassword123")
         admin_user = SiteUser(
             user_name="admin",
             email_address="admin@example.com",
             phone_number="1234567890",
-            password=passwordHash  # Ideally hashed
+            password=password_hash
         )
         session.add(admin_user)
 
@@ -94,34 +52,42 @@ def insert_data():
             random_category = random.choice(category_objects)  # Assign a random category
             new_product = Product(
                 product_name=product["name"],
-                description=product["description"],
+                main_category=random_category.category_name,
+                main_category_encoded=product["name"].lower().replace(" ", "_"),
+                sub_category=random_category.category_name,  # You can adjust this as needed
+                sub_category_encoded=product["name"].lower().replace(" ", "_"),
                 product_image=product["image"],
+                product_link=f"/products/{product['name'].lower().replace(' ', '_')}",
+                average_rating=random.uniform(1, 5),  # Random rating between 1 and 5
+                no_of_ratings=random.randint(1, 100),  # Random number of ratings
+                discount_price_usd=Decimal(random.uniform(10, 500)).quantize(Decimal("0.01")),
+                actual_price_usd=Decimal(random.uniform(10, 1000)).quantize(Decimal("0.01")),
                 category_id=random_category.category_id
             )
-            session.add(new_product)
-            session.commit()  # Commit product to get its ID
-
-            # Insert a product item for this product
+            session.add(new_product)  # Add the product to session
+            # Insert product item for this product
             product_item = ProductItem(
-                product_id=new_product.product_id,
-                price=Decimal(random.uniform(10, 1000)).quantize(Decimal("0.01")),  # Random price between 10 and 1000
-                SKU=f"SKU-{random.randint(1000, 9999)}",
+                product_id=new_product.product_id,  # Foreign key to Product
+                SKU=f"SKU-{random.randint(1000, 9999)}",  # Random SKU
+                price=Decimal(random.uniform(10, 1000)).quantize(Decimal("0.01")),
                 is_in_stock=True,
                 product_image=new_product.product_image
             )
-            session.add(product_item)
+            session.add(product_item)  # Add product item to session
+        # Check for newly added objects
+        print("New objects in the session:", session.new)
 
-        # Commit all inserts
-        session.commit()
+        # Check for modified objects
+        print("Modified objects in the session:", session.dirty)
+        session.commit()  # Commit all the changes at once
+
         print("Admin user, categories, products, and product items inserted successfully.")
 
     except Exception as e:
-        session.rollback()
+        session.rollback()  # Rollback on error
         print(f"An error occurred: {e}")
     finally:
         session.close()
 
 # Call the function to insert data
-insert_data() #auto trigger when import
-# Call the function to insert countries
-insert_countries()
+insert_data()

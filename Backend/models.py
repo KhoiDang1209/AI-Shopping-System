@@ -1,14 +1,8 @@
-from sqlalchemy import (Column, Integer, String, ForeignKey, Boolean, Text, Date, DECIMAL, UniqueConstraint)
+from sqlalchemy import (Column, Integer, String, ForeignKey, Boolean, Text, Date, DECIMAL, UniqueConstraint, Float)
 from sqlalchemy.orm import relationship
 from database import Base
 
 # Location Tables
-class Country(Base):
-    __tablename__ = "countries"
-    country_id = Column(Integer, primary_key=True)
-    country_name = Column(String(100), nullable=False)
-    
-    addresses_country = relationship("Address", back_populates="country")
     
 class Address(Base):
     __tablename__ = "address"
@@ -17,28 +11,57 @@ class Address(Base):
     street_number = Column(String(40))
     address_line1 = Column(String(255), nullable=False)
     address_line2 = Column(String(255))
-    city = Column(String(100), nullable=False)
     region = Column(String(100))
     postal_code = Column(String(20))
-    country_id = Column(Integer, ForeignKey("countries.country_id"))
 
-    country = relationship("Country", back_populates="addresses_country")
     user_addresses = relationship("UserAddress", back_populates="address")
 
 # 1. User-related Tables
 class SiteUser(Base):
     __tablename__ = "site_user"
+    
+    # User attributes
     user_id = Column(Integer, primary_key=True)
     user_name = Column(String(100), nullable=False)
     email_address = Column(String(100), unique=True)
     phone_number = Column(String(10))
     password = Column(String(255), nullable=False)
+    
+    # One-to-One Relationship (explicitly specifying foreign_keys)
+    personal_info = relationship(
+        "UserPersonalInfo",
+        back_populates="user",
+        uselist=False,
+        foreign_keys="UserPersonalInfo.user_id"
+    )
 
+    # Other Relationships
     addresses = relationship("UserAddress", back_populates="user")
     user_payment_methods = relationship("UserPaymentMethod", back_populates="user")
-    reviews = relationship("UserReview", back_populates="user")
+    reviews = relationship("UserReview", back_populates="user")  
+    ratings = relationship("ProductRating", back_populates="user")  # Back reference for user ratings
     shopping_carts = relationship("ShoppingCart", back_populates="user")
     orders = relationship("ShopOrder", back_populates="user")
+
+
+class UserPersonalInfo(Base):
+    __tablename__ = "user_personal_info"
+    
+    # Personal Info attributes
+    user_personal_info_id = Column(Integer, primary_key=True)
+    age = Column(String(10), nullable=False)
+    gender = Column(String(20))
+    city = Column(String(100), nullable=False)
+    
+    # Foreign Key
+    user_id = Column(Integer, ForeignKey("site_user.user_id"))
+    
+    # One-to-One Relationship (explicitly specifying foreign_keys)
+    user = relationship(
+        "SiteUser",
+        back_populates="personal_info",
+        foreign_keys=[user_id]
+    )
 
 
 class UserAddress(Base):
@@ -79,42 +102,73 @@ class UserReview(Base):
 
 
 # 2. Product-related Tables
+
 class Product(Base):
     __tablename__ = "product"
+    
+    # Product attributes
     product_id = Column(Integer, primary_key=True)
-    category_id = Column(Integer, ForeignKey("product_category.category_id"))
     product_name = Column(String(100), nullable=False)
-    description = Column(Text)
-    product_image = Column(String(255))
+    main_category = Column(String(100), nullable=False)
+    main_category_encoded = Column(String(100), nullable=False)
+    sub_category = Column(String(100), nullable=False)
+    sub_category_encoded = Column(String(100), nullable=False)
+    product_image = Column(String(255), nullable=False)
+    product_link = Column(String(255), nullable=False)
+    average_rating = Column(Float, default=0.0)  # Renamed from 'ratings'
+    no_of_ratings = Column(Integer, default=0)
+    discount_price_usd = Column(DECIMAL(10, 2), nullable=True)
+    actual_price_usd = Column(DECIMAL(10, 2), nullable=True)
 
+    # Relationships
+    category_id = Column(Integer, ForeignKey("product_category.category_id"))
     category = relationship("ProductCategory", back_populates="products")
     items = relationship("ProductItem", back_populates="product")
+    ratings = relationship("ProductRating", back_populates="product")  # This should store related ProductRatings
+class ProductRating(Base):
+    __tablename__ = "product_rating"
+    
+    # Rating attributes
+    rating_id = Column(Integer, primary_key=True)  # Unique ID for each rating
+    user_id = Column(Integer, ForeignKey("site_user.user_id"), nullable=False)  # Reference to the SiteUser table
+    product_id = Column(Integer, ForeignKey("product.product_id"), nullable=False)  # Reference to the Product table
+    rating = Column(Float, nullable=False)  # Rating value (e.g., between 1 and 5)
 
+    # Relationships
+    user = relationship("SiteUser", back_populates="ratings")  # User who rated the product
+    product = relationship("Product", back_populates="ratings")  # Product being rated
 
 class ProductCategory(Base):
     __tablename__ = "product_category"
+    
+    # Category attributes
     category_id = Column(Integer, primary_key=True)
     parent_category_id = Column(Integer, ForeignKey("product_category.category_id"))
     category_name = Column(String(100), nullable=False)
 
+    # Relationships
     parent_category = relationship("ProductCategory", remote_side=[category_id])
     products = relationship("Product", back_populates="category")
     variations = relationship("Variation", back_populates="category")
     promotion_categories = relationship("PromotionCategory", back_populates="product_categories")
-    
+
 
 class ProductItem(Base):
     __tablename__ = "product_item"
+
+    # Product Item attributes
     product_item_id = Column(Integer, primary_key=True)
     product_id = Column(Integer, ForeignKey("product.product_id"))
-    price = Column(DECIMAL(10, 2), nullable=False)
     SKU = Column(String(50), nullable=False)
+    price = Column(DECIMAL(10, 2), nullable=False)
     is_in_stock = Column(Boolean, default=True)
-    product_image = Column(String(255))
+    product_image = Column(String(255), nullable=False)
 
+    # Relationships
     product = relationship("Product", back_populates="items")
     configurations = relationship("ProductConfiguration", back_populates="product_item")
     order_line = relationship("OrderLine", back_populates="product_item")
+
     
 
 class ProductConfiguration(Base):

@@ -13,6 +13,9 @@ const Update = () => {
         email: userData.email || '',
         phone: userData.phone || '',
         address: userData.address || '',
+        age: userData?.age || '',
+        gender: userData?.gender || '',
+        city: userData?.city || '',
     });
     const [message, setMessage] = useState('');
     const navigate = useNavigate();  // Hook to handle navigation
@@ -92,6 +95,36 @@ const Update = () => {
                         type="text"
                         name="address"
                         value={formData.address}
+                        onChange={handleChange}
+                        style={styles.input}
+                    />
+                </label>
+                <label style={styles.label}>
+                    Age:
+                    <input
+                        type="text"
+                        name="age"
+                        value={formData.age}
+                        onChange={handleChange}
+                        style={styles.input}
+                    />
+                </label>
+                <label style={styles.label}>
+                    Gender:
+                    <input
+                        type="text"
+                        name="gender"
+                        value={formData.gender}
+                        onChange={handleChange}
+                        style={styles.input}
+                    />
+                </label>
+                <label style={styles.label}>
+                    City:
+                    <input
+                        type="text"
+                        name="city"
+                        value={formData.city}
                         onChange={handleChange}
                         style={styles.input}
                     />

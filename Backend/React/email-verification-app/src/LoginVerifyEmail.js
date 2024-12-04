@@ -14,6 +14,9 @@ function LoginVerifyEmail() {
         password: userData.password || '',
         address: '',
         code: '',
+        age: userData.age,
+        gender: userData.gender,
+        city: userData.city
     });
 
     const [message, setMessage] = useState('');
