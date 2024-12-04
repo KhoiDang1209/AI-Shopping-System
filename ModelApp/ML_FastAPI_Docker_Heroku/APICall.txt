@@ -1,0 +1,19 @@
+url=https://recommend-api-458172285932.asia-east1.run.app/
+POST request
+/search for search query
+data={"query": "string"}
+
+/trend for recommend collaborative+trend if user are new and has no interest
+data={"id": "string"} id is user_id
+
+/interest for recommend collaborative+interest if user are new and has interest
+data={"id": "string"} id is user_id
+
+/item for recommend similar item of a given item
+data={"id": "string"} id is productid
+
+/association for recommend associated product when user open a cart with a list of product in that cart
+data={"ids": ["string"]} ids is a list of productid
+
+/collaborative for recommend collaborative of a user that has rated products
+data={"id": "string"} id is user_id

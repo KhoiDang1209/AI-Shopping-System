@@ -18,6 +18,5 @@ env\Scripts\activate
 uvicorn main:app --reload
 The second one run below command:
 
-
-cd Backend\React\email-verification-app
+cd frontend
 npm start

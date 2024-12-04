@@ -1,0 +1,104 @@
+/* trang mặt hàng */
+/* không gian chứa mặt hàng */
+.items__space {
+    height: 100vh;
+    /* nhớ sửa lại màu khi xong */
+    background-color: white;
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+
+.items__container {
+    min-width: 1000px;
+    max-width: 1500px;
+    margin: auto;
+    background-color: white; 
+}
+
+.items__box {
+    display: grid;
+    grid-template-columns: repeat(10, 1fr);
+    gap: 0.25rem;
+}
+
+.items__box__left {
+    grid-column: span 3;
+    background-color: white;
+    padding: 2rem; 
+    border-radius: 0.25rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-right: 1px solid gray;
+    border-left: 1px solid gray;
+}
+
+.item__box__left__image {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+.items__box__middle {
+    grid-column: span 5;
+    background-color: white;
+    padding: 1rem;
+    border-radius: 0.25rem;
+    border-right: 1px solid gray;
+    border-left: 1px solid gray;
+}
+
+.items__box__middle__up {
+    border-bottom: 1px solid #d1d5db;
+    margin-bottom: 0.75rem;
+}
+
+.items__box__right {
+    grid-column: span 2;
+    background-color: white; 
+    padding: 1rem;
+    border-radius: 0.25rem;
+    border-left: 1px solid gray;
+    border-right: 1px solid gray;
+}
+
+.items__box__middle__down {
+    font-size: 1rem; 
+    margin-top: 0.75rem;
+}
+
+/* right box */
+.items__box__right__currency {
+    font-size: 1.25rem; 
+    font-weight: 600;
+    padding-bottom: 5px;
+}
+
+.items__box__right__text {
+    font-size: 0.875rem;
+    font-weight: 600;
+    padding-bottom: 5px;
+    color: #007185;
+}
+
+.items__box__right__stock {
+    font-size: 0.875rem;
+    font-weight: 600;
+    padding-bottom: 5px;
+    color: #297600;
+}
+
+.items__box__right__button {
+    background-color: #facc15;
+    width: 100%;
+    padding: 0.75rem;
+    font-size: 0.75rem;
+    border-radius: 0.25rem;
+    margin-top: 0.25rem;
+    cursor: pointer;
+}
+
+.items__box__right__button:hover {
+    background-color: #fbbf24;
+    cursor: pointer;
+}
