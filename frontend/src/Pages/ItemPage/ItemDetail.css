@@ -1,0 +1,26 @@
+.items__detail {
+    margin-bottom: 0.25rem;
+}
+
+.items__detail__text {
+    padding-bottom: 4px;
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+.items__detail__text--normal {
+    padding-bottom: 4px;
+    font-size: 1rem;
+    font-weight: 400;
+}
+
+.items__detail__brand {
+    color: blue;
+    cursor: pointer;
+}
+
+.items__detail__brand:hover {
+    color: blue;
+    text-decoration: underline;
+    cursor: pointer;
+}

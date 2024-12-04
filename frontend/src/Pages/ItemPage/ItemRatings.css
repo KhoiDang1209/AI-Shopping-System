@@ -1,0 +1,23 @@
+.items__rating {
+    display: flex;
+    align-items: center;
+}
+
+.items__rating__start {
+    stroke: #F1B61F;
+    fill: #F1B61F;
+    height: 20px;
+    color: #F1B61F;
+}
+
+.items__rating__start--notfull {
+    stroke: #F1B61F;
+    height: 20px;
+    color: #F1B61F;
+}
+
+.items__rating__text {
+    margin-top: 0.25rem;
+    margin-left: 0.75rem;
+    color: #3b82f6;
+}
