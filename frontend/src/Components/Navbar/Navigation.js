@@ -279,12 +279,14 @@ const NavBar = () => {
                             <motion.div ref={ref} initial={{x:-500, opacity:0}} animate={{x:0, opacity:1}} transition={{duration:0.5}} className="sidebar__box">
 
                                 {/* signin */}
-                                <div className="sidebar__signin">
-                                    <AccountCircleIcon/>
-                                    <h3 className="sidebar__signin__text">
-                                        Hello, User
-                                    </h3>
-                                </div>
+                                <Link to="/User">
+                                    <div className="sidebar__signin">
+                                        <AccountCircleIcon/>
+                                        <h3 className="sidebar__signin__text">
+                                            Hello, User
+                                        </h3>
+                                    </div>
+                                </Link>
                                 
                                 <div className="sidebar__wrap">
                                     {/* block 1 */}
