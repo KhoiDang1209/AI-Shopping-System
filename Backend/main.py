@@ -20,6 +20,7 @@ from sqlalchemy import func
 from database import engine, SessionLocal
 from models import *
 from schemas import *
+import requests
 
 # Load environment variables
 dotenv_path = os.path.join(os.getcwd(), ".env")
@@ -32,7 +33,7 @@ app = FastAPI()
 
 models.Base.metadata.create_all(bind=engine)
 #Do not modify this as need to create table be for insert data
-# from insert_data import *
+# # from insert_data import *
 
 # @app.on_event("startup")
 # async def startup_event():
@@ -606,25 +607,43 @@ async def get_all_categories(db: Session = Depends(get_db)):
 # 4. Search Products Page
 # ------------------------------
 
+# done
 @app.get("/products/search")
 async def search_products(query: str = "", db: Session = Depends(get_db)):
     """Search products by name or category."""
+    url="https://recommend-api-458172285932.asia-east1.run.app/search"
+    
+    data = {
+        "query": query
+    }
+
+    response = requests.post(url, json=data)
+    product_ids = response.json()['results']
+
+    # Print the response from the server
+    print(response.json())
+    
     products = db.query(Product).filter(
-        Product.product_name.ilike(f"%{query}%")
+        Product.product_id.in_(product_ids)
     ).all()
 
     if not products:
         return JSONResponse(status_code=404, content={"message": "No products found."})
-
+    
     return [
         {
             "product_id": product.product_id,
             "product_name": product.product_name,
             "main_category": product.main_category,
+            "main_category_encoded": product.main_category_encoded,
             "sub_category": product.sub_category,
-            "discount_price": product.discount_price_usd,
-            "actual_price": product.actual_price_usd,
-            "image": product.product_image,
+            "sub_category_encoded": product.sub_category_encoded,
+            "product_image": product.product_image,
+            "product_link": product.product_link,
+            "average_rating": product.average_rating,
+            "no_of_ratings": product.no_of_ratings,
+            "discount_price_usd": product.discount_price_usd,
+            "actual_price_usd": product.actual_price_usd,
         }
         for product in products
     ]

@@ -1,8 +1,8 @@
 import requests
 
-url = "https://recommend-api-458172285932.us-central1.run.app/search"
+url = "https://recommend-api-458172285932.asia-east1.run.app/search"
 data = {
-    "query": "lingerie"
+    "query": "laptop"
 }
 
 response = requests.post(url, json=data)
