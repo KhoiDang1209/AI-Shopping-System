@@ -12,6 +12,7 @@ import SignUpVerify from './Pages/SignUpPage/signUpVerify';
 import ForgetPassword from './Pages/ForgetPassword/ForgetPassword';
 import FPVerify from './Pages/ForgetPassword/FPVerify';
 import ChangePassword from './Pages/ForgetPassword/ChangePassword';
+import LoginVerify from './Pages/SignIn/LoginVerify';
 function App() {
   return (
     <div className="App">
@@ -28,6 +29,7 @@ function App() {
         <Route path='/ForgetPassword' element={<ForgetPassword />} />
         <Route path='/FPVerify' element={<FPVerify />} />
         <Route path='/ChangePassword' element={<ChangePassword />} />
+        <Route path='/LoginVerifyEmail' element={<LoginVerify />} />
       </Routes>
     </div>
   );

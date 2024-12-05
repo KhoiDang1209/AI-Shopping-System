@@ -186,7 +186,7 @@ class UserResponse(BaseModel): # for user response after login / register
         orm_mode = True
 
 class LoginRequire(BaseModel):
-    user_name_or_email: Union[str, EmailStr]  # Accepts either a string (username) or an Email
+    phone_number_or_email: Union[str, EmailStr]  # Accepts either a string (username) or an Email
     password: str
 
     class Config:

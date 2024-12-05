@@ -181,12 +181,12 @@ async def postRegister(user: UserRegisterRequest, db: Session = Depends(get_db))
 @app.post("/login")
 async def login(user: LoginRequire, db: Session = Depends(get_db)):
     # Determine if the input is an email or a username
-    if is_email(user.user_name_or_email):
-        existing_user = db.query(SiteUser).filter(SiteUser.email_address == user.user_name_or_email).first()
+    if is_email(user.phone_number_or_email):
+        existing_user = db.query(SiteUser).filter(SiteUser.email_address == user.phone_number_or_email).first()
     else:
-        existing_user = db.query(SiteUser).filter(SiteUser.user_name == user.user_name_or_email).first()
+        existing_user = db.query(SiteUser).filter(SiteUser.phone_number == user.phone_number_or_email).first()
     if not existing_user:
-        print("User not found in query:", user.user_name_or_email)
+        print("User not found in query:", user.phone_number_or_email)
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="User not found"
@@ -194,6 +194,8 @@ async def login(user: LoginRequire, db: Session = Depends(get_db)):
 
     # Verify the password
     if not verify_password(user.password, existing_user.password):
+        hash_password1 = hash_password(user.password)
+        print("User not found in query:", hash_password1)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid credentials"
@@ -250,13 +252,13 @@ async def login(user: LoginRequire, db: Session = Depends(get_db)):
 @app.post("/postLogin/")
 async def postLogin(user: LoginRequire, db: Session = Depends(get_db)):
     # Determine if the input is an email or a username
-    if is_email(user.user_name_or_email):
-        existing_user = db.query(SiteUser).filter(SiteUser.email_address == user.user_name_or_email).first()
+    if is_email(user.phone_number_or_email):
+        existing_user = db.query(SiteUser).filter(SiteUser.email_address == user.phone_number_or_email).first()
     else:
-        existing_user = db.query(SiteUser).filter(SiteUser.user_name == user.user_name_or_email).first()
+        existing_user = db.query(SiteUser).filter(SiteUser.phone_number == user.phone_number_or_email).first()
 
     if not existing_user:
-        print("User not found in query:", user.user_name_or_email)
+        print("User not found in query:", user.phone_number_or_email)
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="User not found"

@@ -24,7 +24,7 @@ class SiteUser(Base):
     user_id = Column(Integer, primary_key=True)
     user_name = Column(String(100), nullable=False)
     email_address = Column(String(100), unique=True)
-    phone_number = Column(String(10))
+    phone_number = Column(String(10), unique=True)
     password = Column(String(255), nullable=False)
     
     # One-to-One Relationship (explicitly specifying foreign_keys)

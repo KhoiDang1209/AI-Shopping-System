@@ -2,54 +2,51 @@ import React, { useState } from "react";
 import "./SignIn.css";
 import amazon_logo from "../../Assets/amazon_logo_black.png";
 import { Link } from 'react-router-dom';
+import axios from 'axios'; // Import Axios for making API requests
+import { useNavigate } from 'react-router-dom';  // Import useNavigate
 
-const SignIp = () => {
+const SignIn = () => {
+
+  const [message, setMessage] = useState(''); // To display success or error messages
+  const navigate = useNavigate();
+
   const [formData, setFormData] = useState({
-    email: "",
-    password: "",
+    phone_number_or_email: '', // Can be either username or email
+    password: '',
   });
 
-  const [error, setError] = useState({
-    email: "",
-    password: "",
-  });
-
-  const handleInputChange = (e) => {
-    const { id, value } = e.target;
+  const handleChange = (e) => {
+    console.log('Field:', e.target.name, 'Value:', e.target.value);
     setFormData({
       ...formData,
-      [id]: value,
-    });
-    setError({
-      ...error,
-      [id]: "",
+      [e.target.name]: e.target.value,
     });
   };
 
-  const handleSubmit = (e) => {
+  // Event handler for form submission
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    let isValid = true;
-    let newError = {
-      email: "",
-      password: "",
-    };
 
-    if (formData.email.trim() === "") {
-      newError.email = "Please enter your email.";
-      isValid = false;
-    }
-    if (formData.password.trim() === "") {
-      newError.password = "Please enter your password.";
-      isValid = false;
-    } else if (formData.password.length < 6) {
-      newError.password = "Password must be at least 6 characters long.";
-      isValid = false;
+    // Basic validation
+    if (!formData.phone_number_or_email || !formData.password) {
+      setMessage('Please enter both username/email and password.');
+      return;
     }
 
-    setError(newError);
+    try {
+      // Sending login request to the backend
+      console.log(formData);
+      const response = await axios.post('http://localhost:8000/login', formData);
 
-    if (isValid) {
-      console.log("Form submitted", formData);
+      console.log('Login successful:', response.data);
+      setMessage('Login successful!'); // Display success message
+      navigate('/LoginVerifyEmail', { state: { userData: { ...response.data.user } } });
+      // Redirect or further actions after successful login
+      // Example: navigate('/dashboard');
+    } catch (error) {
+      setMessage(
+        error.response?.data?.detail || 'Login failed. Please check your credentials.'
+      );
     }
   };
 
@@ -61,35 +58,31 @@ const SignIp = () => {
       <div className="signin-box">
         <h1>Sign In</h1>
         <form onSubmit={handleSubmit}>
-
-          <label htmlFor="email">Mobile number or email</label>
+          <label htmlFor="phone_number_or_email">Phone number or email</label>
           <input
-            type="email"
-            id="email"
-            value={formData.email}
+            type="text"
+            id="phone_number_or_email"
+            name="phone_number_or_email"
+            value={formData.phone_number_or_email}
             placeholder="Enter your email or mobile number"
             required
-            onChange={handleInputChange}
+            onChange={handleChange}
           />
-          {error.email && <p className="error-message">{error.email}</p>}
 
           <label htmlFor="password">Password</label>
           <input
             type="password"
             id="password"
+            name="password"
             value={formData.password}
-            placeholder="At least 6 characters"
+            placeholder="Password must be at least 8 characters, include one uppercase letter and one special character"
             required
-            onChange={handleInputChange}
+            onChange={handleChange}
           />
-          {error.password && <p className="error-message">{error.password}</p>}
-
-          <Link to="/">
-            <button type="submit" className="signin-button">
-              Continue
-            </button>
-          </Link>
-
+          <button type="submit" className="signin-button">
+            Sign In
+          </button>
+          {message && <p className="message">{message}</p>}
           <p className="agreement-text">
             By creating an account, you agree to Amazon's{" "}
             <a href="#">Conditions of Use</a> and{" "}
@@ -103,9 +96,8 @@ const SignIp = () => {
             Sign Up
           </a>
         </p>
-
       </div>
-      
+
       <footer>
         <div className="footer-links">
           <a href="#">Conditions of Use</a>
@@ -118,4 +110,4 @@ const SignIp = () => {
   );
 };
 
-export default SignIp;
+export default SignIn;
