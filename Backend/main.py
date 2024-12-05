@@ -32,14 +32,14 @@ app = FastAPI()
 
 models.Base.metadata.create_all(bind=engine)
 #Do not modify this as need to create table be for insert data
-from insert_data import *
+# from insert_data import *
 
-@app.on_event("startup")
-async def startup_event():
-    print("Running data insertion task on startup...")
-    # insert_product_data()
-    # insert_user_data()
-    insert_product_rating_data()
+# @app.on_event("startup")
+# async def startup_event():
+#     print("Running data insertion task on startup...")
+#     insert_product_data()
+#     insert_user_data()
+#     insert_product_rating_data()
 
 # CORS Middleware
 origins = ["http://localhost:3000"]  # Replace with your frontend URL
