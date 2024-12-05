@@ -14,6 +14,10 @@ import YourAddressPage from "./YourAddressPage";
 import UpdateAddress from "./UpdateAddress";
 import Store from "./StorePage";
 import UpdateAddressVerifyEmail from "./UpdateAddressVerifyEmail";
+import Cart from "./CartPage";
+import SearchProducts from "./search";
+import ProductDetail from "./Product";
+
 
 function App() {
   return (
@@ -35,7 +39,8 @@ function App() {
         <Route path="/your-address" element={<YourAddressPage />} />
         <Route path="/UpdateAddress" element={<UpdateAddress />} />
         <Route path="/UpdateAddressVerifyEmail" element={<UpdateAddressVerifyEmail />} />
-
+        <Route path="/search" element={<SearchProducts />} />
+        <Route path="/product/:productId" element={<ProductDetail />} />
       </Routes>
     </Router>
   );
