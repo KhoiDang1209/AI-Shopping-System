@@ -1,14 +1,9 @@
-from pydantic import BaseModel, EmailStr, constr
-from typing import List, Optional
+from pydantic import BaseModel, EmailStr, Field, constr, field_validator, validator
 from datetime import date
 from decimal import Decimal
-# from typing import List, Optional
-# from datetime import date
-# from decimal import Decimal
-import re
-from pydantic import BaseModel, EmailStr, Field, constr, field_validator, validator
 from typing import List, Optional, Union
 from typing_extensions import Annotated
+import re
 
 # 1. Login & Register schema
 # class UserRegisterRequest(BaseModel):
@@ -179,7 +174,7 @@ class UserResponse(BaseModel): # for user response after login / register
     email_address: EmailStr
     phone_number: str
     password: str
-    age: str
+    age: int
     gender: str
     city: str
     class Config:

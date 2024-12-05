@@ -29,9 +29,18 @@ credentials = dotenv_values(dotenv_path)
 app = FastAPI()
 
 # Automatically create tables in the database
+
 models.Base.metadata.create_all(bind=engine)
 #Do not modify this as need to create table be for insert data
-from insertDB import insert_data
+# from insert_data import *
+
+# @app.on_event("startup")
+# async def startup_event():
+#     print("Running data insertion task on startup...")
+#     insert_product_data()
+#     insert_user_data()
+#     insert_product_rating_data()
+
 # CORS Middleware
 origins = ["http://localhost:3000"]  # Replace with your frontend URL
 app.add_middleware(
@@ -142,9 +151,13 @@ async def postRegister(user: UserRegisterRequest, db: Session = Depends(get_db))
     # Create the SiteUser instance
     db_user = SiteUser(
         user_name=user.user_name,
+        age = user.age,
+        gender = user.gender,
         email_address=user.email_address,
         phone_number=user.phone_number,
+        city = user.city,
         password=hashed_password
+
     )
     
     # Add and commit SiteUser to get the user_id
@@ -152,30 +165,16 @@ async def postRegister(user: UserRegisterRequest, db: Session = Depends(get_db))
     db.commit()
     db.refresh(db_user)
 
-    # Create the UserPersonalInfo instance with the correct user_id
-    db_user_personal_info = UserPersonalInfo(
-        age=user.age,
-        gender=user.gender,
-        city=user.city,
-        user_id=db_user.user_id  # Use the user_id from the newly created user
-    )
-    
-    # Add and commit UserPersonalInfo
-    db.add(db_user_personal_info)
-    db.commit()
-    db.refresh(db_user_personal_info)
-
     # Return a response with both user and personal info
     return {
         "user": {
             "user_id": db_user.user_id,
             "user_name": db_user.user_name,
-            "email_address": db_user.email_address
-        },
-        "personal_info": {
-            "age": db_user_personal_info.age,
-            "gender": db_user_personal_info.gender,
-            "city": db_user_personal_info.city
+            "age": db_user.age,
+            "gender": db_user.gender,
+            "email_address": db_user.email_address,
+            "city": db_user.city,
+            "password": db_user.password,
         }
     }
 @app.post("/login")
@@ -224,24 +223,15 @@ async def login(user: LoginRequire, db: Session = Depends(get_db)):
     fm = FastMail(conf)
     await fm.send_message(message)
 
-    # Retrieve user personal information
-    get_personal_user_info = db.query(UserPersonalInfo).filter(UserPersonalInfo.user_id == existing_user.user_id).first()
-
-    if not get_personal_user_info:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User personal information not found."
-        )
-
     # Create user response
     user_response = UserResponse(
         user_name=existing_user.user_name,
         email_address=existing_user.email_address,
         phone_number=existing_user.phone_number,
         password=existing_user.password,
-        age=get_personal_user_info.age,
-        gender=get_personal_user_info.gender,
-        city=get_personal_user_info.city
+        age=existing_user.age,
+        gender=existing_user.gender,
+        city=existing_user.city
     )
 
     return {
@@ -373,19 +363,18 @@ async def Update(user: UpdateRequire, db: Session = Depends(get_db)):
 @app.post("/postUpdate")
 async def postUpdate(changeInfo: UpdateRequire, db: Session = Depends(get_db)):
     user = db.query(SiteUser).filter(SiteUser.email_address == changeInfo.email).first()
-    userPersonalInfo = db.query(UserPersonalInfo).filter(UserPersonalInfo.user_id == user.user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
     # Update user information
     user.user_name = changeInfo.name
     user.phone_number = changeInfo.phone
-    userPersonalInfo.age = changeInfo.age
-    userPersonalInfo.gender = changeInfo.gender
-    userPersonalInfo.city = changeInfo.city
+    user.age = changeInfo.age
+    user.gender = changeInfo.gender
+    user.city = changeInfo.city
     db.commit()
 
-    return {"message": "User information updated successfully", "data": {"name": user.user_name, "email": user.email_address, "phone": user.phone_number, "age": userPersonalInfo.age, "gender": userPersonalInfo.gender, "city": userPersonalInfo.city}}
+    return {"message": "User information updated successfully", "data": {"name": user.user_name, "email": user.email_address, "phone": user.phone_number, "age": user.age, "gender": user.gender, "city": user.city}}
 
 # -------------------------------
 # Forgot Password
@@ -534,10 +523,8 @@ async def update_address(user_request: UserAddressRequest, db: Session = Depends
             address.street_number = user_request.street_number
             address.address_line1 = user_request.address_line1
             address.address_line2 = user_request.address_line2
-            address.city = user_request.city
             address.region = user_request.region
             address.postal_code = user_request.postal_code
-            address.country_id = user_request.country_id
 
         db.commit()  # Save the updated address
         return {"message": "Address updated successfully."}

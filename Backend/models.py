@@ -23,17 +23,13 @@ class SiteUser(Base):
     # User attributes
     user_id = Column(Integer, primary_key=True)
     user_name = Column(String(100), nullable=False)
+    age = Column(Integer)
+    gender = Column(String(10))
     email_address = Column(String(100), unique=True)
     phone_number = Column(String(10), unique=True)
+    city = Column(String(100))
     password = Column(String(255), nullable=False)
     
-    # One-to-One Relationship (explicitly specifying foreign_keys)
-    personal_info = relationship(
-        "UserPersonalInfo",
-        back_populates="user",
-        uselist=False,
-        foreign_keys="UserPersonalInfo.user_id"
-    )
 
     # Other Relationships
     addresses = relationship("UserAddress", back_populates="user")
@@ -42,27 +38,6 @@ class SiteUser(Base):
     ratings = relationship("ProductRating", back_populates="user")  # Back reference for user ratings
     shopping_carts = relationship("ShoppingCart", back_populates="user")
     orders = relationship("ShopOrder", back_populates="user")
-
-
-class UserPersonalInfo(Base):
-    __tablename__ = "user_personal_info"
-    
-    # Personal Info attributes
-    user_personal_info_id = Column(Integer, primary_key=True)
-    age = Column(String(10), nullable=False)
-    gender = Column(String(20))
-    city = Column(String(100), nullable=False)
-    
-    # Foreign Key
-    user_id = Column(Integer, ForeignKey("site_user.user_id"))
-    
-    # One-to-One Relationship (explicitly specifying foreign_keys)
-    user = relationship(
-        "SiteUser",
-        back_populates="personal_info",
-        foreign_keys=[user_id]
-    )
-
 
 class UserAddress(Base):
     __tablename__ = "user_address"
@@ -107,14 +82,14 @@ class Product(Base):
     __tablename__ = "product"
     
     # Product attributes
-    product_id = Column(Integer, primary_key=True)
-    product_name = Column(String(100), nullable=False)
-    main_category = Column(String(100), nullable=False)
+    product_id = Column(String(100), primary_key=True, nullable=False)
+    product_name = Column(String(255), nullable=False)
+    main_category = Column(String(255), nullable=False)
     main_category_encoded = Column(String(100), nullable=False)
-    sub_category = Column(String(100), nullable=False)
+    sub_category = Column(String(255), nullable=False)
     sub_category_encoded = Column(String(100), nullable=False)
-    product_image = Column(String(255), nullable=False)
-    product_link = Column(String(255), nullable=False)
+    product_image = Column(String(255), nullable=True)
+    product_link = Column(String(255), nullable=True)
     average_rating = Column(Float, default=0.0)  # Renamed from 'ratings'
     no_of_ratings = Column(Integer, default=0)
     discount_price_usd = Column(DECIMAL(10, 2), nullable=True)
@@ -125,13 +100,14 @@ class Product(Base):
     category = relationship("ProductCategory", back_populates="products")
     items = relationship("ProductItem", back_populates="product")
     ratings = relationship("ProductRating", back_populates="product")  # This should store related ProductRatings
+    
 class ProductRating(Base):
     __tablename__ = "product_rating"
     
     # Rating attributes
     rating_id = Column(Integer, primary_key=True)  # Unique ID for each rating
     user_id = Column(Integer, ForeignKey("site_user.user_id"), nullable=False)  # Reference to the SiteUser table
-    product_id = Column(Integer, ForeignKey("product.product_id"), nullable=False)  # Reference to the Product table
+    product_id = Column(String(100), ForeignKey('product.product_id'), nullable=False)  # Reference to the Product table
     rating = Column(Float, nullable=False)  # Rating value (e.g., between 1 and 5)
 
     # Relationships
@@ -158,7 +134,7 @@ class ProductItem(Base):
 
     # Product Item attributes
     product_item_id = Column(Integer, primary_key=True)
-    product_id = Column(Integer, ForeignKey("product.product_id"))
+    product_id = Column(String(100), ForeignKey("product.product_id"))
     SKU = Column(String(50), nullable=False)
     price = Column(DECIMAL(10, 2), nullable=False)
     is_in_stock = Column(Boolean, default=True)
