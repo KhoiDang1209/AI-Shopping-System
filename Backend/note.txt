@@ -53,7 +53,8 @@ use case:
 bỏ table country: fix schemas, apis có liên quan OK
 sửa table product: giống format file product.csv  OK
 sửa table site_user: làm 1 cách nào đó match format user_data.csv except country OK
-thêm table rating OK
+thêm table rating 
+ALTER USER postgres WITH PASSWORD 'bin04102004';
 
 Đức Độ
 CREATE TABLE "country" (

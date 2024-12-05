@@ -29,9 +29,16 @@ credentials = dotenv_values(dotenv_path)
 app = FastAPI()
 
 # Automatically create tables in the database
+
 models.Base.metadata.create_all(bind=engine)
 #Do not modify this as need to create table be for insert data
-from insertDB import insert_data
+from insert_data import insert_data_from_csv
+
+@app.on_event("startup")
+async def startup_event():
+    print("Running data insertion task on startup...")
+    insert_data_from_csv()
+
 # CORS Middleware
 origins = ["http://localhost:3000"]  # Replace with your frontend URL
 app.add_middleware(
@@ -532,10 +539,8 @@ async def update_address(user_request: UserAddressRequest, db: Session = Depends
             address.street_number = user_request.street_number
             address.address_line1 = user_request.address_line1
             address.address_line2 = user_request.address_line2
-            address.city = user_request.city
             address.region = user_request.region
             address.postal_code = user_request.postal_code
-            address.country_id = user_request.country_id
 
         db.commit()  # Save the updated address
         return {"message": "Address updated successfully."}

@@ -107,14 +107,14 @@ class Product(Base):
     __tablename__ = "product"
     
     # Product attributes
-    product_id = Column(Integer, primary_key=True)
-    product_name = Column(String(100), nullable=False)
-    main_category = Column(String(100), nullable=False)
+    product_id = Column(String(100), primary_key=True, nullable=False)
+    product_name = Column(String(255), nullable=False)
+    main_category = Column(String(255), nullable=False)
     main_category_encoded = Column(String(100), nullable=False)
-    sub_category = Column(String(100), nullable=False)
+    sub_category = Column(String(255), nullable=False)
     sub_category_encoded = Column(String(100), nullable=False)
-    product_image = Column(String(255), nullable=False)
-    product_link = Column(String(255), nullable=False)
+    product_image = Column(String(255), nullable=True)
+    product_link = Column(String(255), nullable=True)
     average_rating = Column(Float, default=0.0)  # Renamed from 'ratings'
     no_of_ratings = Column(Integer, default=0)
     discount_price_usd = Column(DECIMAL(10, 2), nullable=True)
@@ -125,13 +125,14 @@ class Product(Base):
     category = relationship("ProductCategory", back_populates="products")
     items = relationship("ProductItem", back_populates="product")
     ratings = relationship("ProductRating", back_populates="product")  # This should store related ProductRatings
+    
 class ProductRating(Base):
     __tablename__ = "product_rating"
     
     # Rating attributes
     rating_id = Column(Integer, primary_key=True)  # Unique ID for each rating
     user_id = Column(Integer, ForeignKey("site_user.user_id"), nullable=False)  # Reference to the SiteUser table
-    product_id = Column(Integer, ForeignKey("product.product_id"), nullable=False)  # Reference to the Product table
+    product_id = Column(String(100), ForeignKey('product.product_id'), nullable=False)  # Reference to the Product table
     rating = Column(Float, nullable=False)  # Rating value (e.g., between 1 and 5)
 
     # Relationships
@@ -158,7 +159,7 @@ class ProductItem(Base):
 
     # Product Item attributes
     product_item_id = Column(Integer, primary_key=True)
-    product_id = Column(Integer, ForeignKey("product.product_id"))
+    product_id = Column(String(100), ForeignKey("product.product_id"))
     SKU = Column(String(50), nullable=False)
     price = Column(DECIMAL(10, 2), nullable=False)
     is_in_stock = Column(Boolean, default=True)
