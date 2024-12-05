@@ -1,12 +1,24 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import "./HomePage.css";
 import ChevronRightOutlinedIcon from "@mui/icons-material/ChevronRightOutlined";
 import ChevronLeftOutlinedIcon from "@mui/icons-material/ChevronLeftOutlined";
 import NavBar from "../../Components/Navbar/Navigation";
 import HomepageFooter from "../../Pages/HomePage/HomepageFooter";
 import { Link } from 'react-router-dom';
-
+import { useLocation, useNavigate } from 'react-router-dom';
 const HomePage = () => {
+  const location = useLocation();
+  const userData = location.state?.userData;
+
+  const [userInfo, setUserInfo] = useState({
+    name: userData?.name || '',
+    email: userData?.email || '',
+    phone: userData?.phone || '',
+    address: userData?.address || '',
+    age: userData?.age || '',
+    gender: userData?.gender || '',
+    city: userData?.city || '',
+  });
   const [startSlider, setStartSlider] = useState(0);
   const imgItemRef = useRef(null);
 
@@ -91,9 +103,9 @@ const HomePage = () => {
             <ChevronRightOutlinedIcon />
           </button>
         </div>
-        
+
       </div>
-        
+
       {/* bắt đầu làm */}
       {/* các card */}
       <div className="item__box">
@@ -103,33 +115,33 @@ const HomePage = () => {
             Score Black Friday Week deals
             <div className="item__box__card__image">
 
-                <div className="item__box__card__block">
-                  <img className="item__box__card__block__image" src="https://images-na.ssl-images-amazon.com/images/G/01/DiscoTec/2024/BFCM/GW/Quad_Cards/BFCM_2024_772_BFW_CM_DQC_AmazonBasics_3D_1x_v3._SY116_CB541717183_.jpg" alt="image01" />
-                  <div className="item__box__card__block__text">
-                    Amazon Basics and more
-                  </div>
+              <div className="item__box__card__block">
+                <img className="item__box__card__block__image" src="https://images-na.ssl-images-amazon.com/images/G/01/DiscoTec/2024/BFCM/GW/Quad_Cards/BFCM_2024_772_BFW_CM_DQC_AmazonBasics_3D_1x_v3._SY116_CB541717183_.jpg" alt="image01" />
+                <div className="item__box__card__block__text">
+                  Amazon Basics and more
                 </div>
-                  
-                <div className="item__box__card__block">
-                  <img className="item__box__card__block__image" src="https://images-na.ssl-images-amazon.com/images/G/01/DiscoTec/2024/BFCM/GW/Quad_Cards/BFCM_2024_768_BFW_CM_DQC_HomeImprovement_2D_1x_v3._SY116_CB541717183_.jpg" alt="image02" />
-                  <div className="item__box__card__block__text">
-                    Home Improvement
-                  </div>
-                </div>
+              </div>
 
-                <div className="item__box__card__block">
-                  <img className="item__box__card__block__image" src="https://images-na.ssl-images-amazon.com/images/G/01/DiscoTec/2024/BFCM/GW/Quad_Cards/BFCM_2024_770_BFW_CM_DQC_Phone_Accessories_3B_1x_v3._SY116_CB541717183_.jpg" alt="image03" />
-                  <div className="item__box__card__block__text">
-                    Cell phones & accessories
-                  </div>
+              <div className="item__box__card__block">
+                <img className="item__box__card__block__image" src="https://images-na.ssl-images-amazon.com/images/G/01/DiscoTec/2024/BFCM/GW/Quad_Cards/BFCM_2024_768_BFW_CM_DQC_HomeImprovement_2D_1x_v3._SY116_CB541717183_.jpg" alt="image02" />
+                <div className="item__box__card__block__text">
+                  Home Improvement
                 </div>
+              </div>
 
-                <div className="item__box__card__block">
-                  <img className="item__box__card__block__image" src="https://images-na.ssl-images-amazon.com/images/G/01/DiscoTec/2024/BFCM/GW/Quad_Cards/BFCM_2024_769_BFW_CM_DQC_Furniture_3A_1x_v3._SY116_CB541717183_.jpg" alt="image04" />
-                  <div className="item__box__card__block__text">
-                    Furniture
-                  </div>
+              <div className="item__box__card__block">
+                <img className="item__box__card__block__image" src="https://images-na.ssl-images-amazon.com/images/G/01/DiscoTec/2024/BFCM/GW/Quad_Cards/BFCM_2024_770_BFW_CM_DQC_Phone_Accessories_3B_1x_v3._SY116_CB541717183_.jpg" alt="image03" />
+                <div className="item__box__card__block__text">
+                  Cell phones & accessories
                 </div>
+              </div>
+
+              <div className="item__box__card__block">
+                <img className="item__box__card__block__image" src="https://images-na.ssl-images-amazon.com/images/G/01/DiscoTec/2024/BFCM/GW/Quad_Cards/BFCM_2024_769_BFW_CM_DQC_Furniture_3A_1x_v3._SY116_CB541717183_.jpg" alt="image04" />
+                <div className="item__box__card__block__text">
+                  Furniture
+                </div>
+              </div>
             </div>
 
             <div className="item__box__card__block__seeMore">
@@ -137,7 +149,7 @@ const HomePage = () => {
                 See more
               </Link>
             </div>
-          </div> 
+          </div>
         </div>
 
         {/* card 02 */}
@@ -146,41 +158,41 @@ const HomePage = () => {
             Refresh your space
             <div className="item__box__card__image">
 
-                <div className="item__box__card__block">
-                  <img className="item__box__card__block__image" src="https://images-na.ssl-images-amazon.com/images/G/01/launchpad/2023/Gateway/January/DesktopQuadCat_186x116_LP-HP_B08MYX5Q2W_01.23._SY116_CB619238939_.jpg" alt="image01" />
-                  <div className="item__box__card__block__text">
-                    Dining
-                  </div>
+              <div className="item__box__card__block">
+                <img className="item__box__card__block__image" src="https://images-na.ssl-images-amazon.com/images/G/01/launchpad/2023/Gateway/January/DesktopQuadCat_186x116_LP-HP_B08MYX5Q2W_01.23._SY116_CB619238939_.jpg" alt="image01" />
+                <div className="item__box__card__block__text">
+                  Dining
                 </div>
-                  
-                <div className="item__box__card__block">
-                  <img className="item__box__card__block__image" src="https://images-na.ssl-images-amazon.com/images/G/01/launchpad/2023/Gateway/January/DesktopQuadCat_186x116_home_B08RCCP3HV_01.23._SY116_CB619238939_.jpgg" alt="image02" />
-                  <div className="item__box__card__block__text">
-                    Home
-                  </div>
-                </div>
+              </div>
 
-                <div className="item__box__card__block">
-                  <img className="item__box__card__block__image" src="https://images-na.ssl-images-amazon.com/images/G/01/launchpad/2023/Gateway/January/DesktopQuadCat_186x116_kitchen_B0126LMDFK_01.23._SY116_CB619238939_.jpg" alt="image03" />
-                  <div className="item__box__card__block__text">
-                    Kitchen
-                  </div>
+              <div className="item__box__card__block">
+                <img className="item__box__card__block__image" src="https://images-na.ssl-images-amazon.com/images/G/01/launchpad/2023/Gateway/January/DesktopQuadCat_186x116_home_B08RCCP3HV_01.23._SY116_CB619238939_.jpgg" alt="image02" />
+                <div className="item__box__card__block__text">
+                  Home
                 </div>
+              </div>
 
-                <div className="item__box__card__block">
-                  <img className="item__box__card__block__image" src="https://images-na.ssl-images-amazon.com/images/G/01/launchpad/2023/Gateway/January/DesktopQuadCat_186x116_health-beauty_B07662GN57_01.23._SY116_CB619238939_.jpg" alt="image04" />
-                  <div className="item__box__card__block__text">
-                    Health and Beauty
-                  </div>
+              <div className="item__box__card__block">
+                <img className="item__box__card__block__image" src="https://images-na.ssl-images-amazon.com/images/G/01/launchpad/2023/Gateway/January/DesktopQuadCat_186x116_kitchen_B0126LMDFK_01.23._SY116_CB619238939_.jpg" alt="image03" />
+                <div className="item__box__card__block__text">
+                  Kitchen
                 </div>
+              </div>
+
+              <div className="item__box__card__block">
+                <img className="item__box__card__block__image" src="https://images-na.ssl-images-amazon.com/images/G/01/launchpad/2023/Gateway/January/DesktopQuadCat_186x116_health-beauty_B07662GN57_01.23._SY116_CB619238939_.jpg" alt="image04" />
+                <div className="item__box__card__block__text">
+                  Health and Beauty
+                </div>
+              </div>
             </div>
-            
+
             <div className="item__box__card__block__seeMore--1row">
               <Link to="/Product" className="seeMore--1row">
                 See more
               </Link>
             </div>
-          </div> 
+          </div>
         </div>
 
         {/* card 03 */}
@@ -189,9 +201,9 @@ const HomePage = () => {
             Toys under $25
             <div className="item__box__card__image">
 
-                <div className="item__box__card__block__only">
-                  <img className="item__box__card__block__image__only" src="https://images-na.ssl-images-amazon.com/images/G/01/AmazonExports/Events/2023/EBF23/Fuji_Desktop_Single_image_EBF_1x_v3._SY304_CB573698005_.jpgg" alt="image01" />
-                </div>
+              <div className="item__box__card__block__only">
+                <img className="item__box__card__block__image__only" src="https://images-na.ssl-images-amazon.com/images/G/01/AmazonExports/Events/2023/EBF23/Fuji_Desktop_Single_image_EBF_1x_v3._SY304_CB573698005_.jpgg" alt="image01" />
+              </div>
             </div>
 
             <div className="item__box__card__block__seeMore__only">
@@ -199,7 +211,7 @@ const HomePage = () => {
                 See more
               </Link>
             </div>
-          </div> 
+          </div>
         </div>
 
         {/* card 04 */}
@@ -208,9 +220,9 @@ const HomePage = () => {
             Shop Black Friday deals
             <div className="item__box__card__image">
 
-                <div className="item__box__card__block__only">
-                  <img className="item__box__card__block__image__only" src="https://images-na.ssl-images-amazon.com/images/G/01/AmazonExports/Events/2024/BlackFriday24/Fuji_Black_Friday_Dashboard_card_1X_EN._SY304_CB542042483_.jpg" alt="image01" />
-                </div>
+              <div className="item__box__card__block__only">
+                <img className="item__box__card__block__image__only" src="https://images-na.ssl-images-amazon.com/images/G/01/AmazonExports/Events/2024/BlackFriday24/Fuji_Black_Friday_Dashboard_card_1X_EN._SY304_CB542042483_.jpg" alt="image01" />
+              </div>
             </div>
 
             <div className="item__box__card__block__seeMore__only">
@@ -218,7 +230,7 @@ const HomePage = () => {
                 Shop Black Friday deals
               </Link>
             </div>
-          </div> 
+          </div>
         </div>
 
         {/* card 05 */}
@@ -227,33 +239,33 @@ const HomePage = () => {
             Must-see Black Friday Week deals
             <div className="item__box__card__image">
 
-                <div className="item__box__card__block">
-                  <img className="item__box__card__block__image" src="https://images-na.ssl-images-amazon.com/images/G/01/DiscoTec/2024/BFCM/GW/Quad_Cards/BFCM_2024_761_BFW_CM_DQC_Home_1A_1x_v3._SY116_CB541717183_.jpg" alt="image01" />
-                  <div className="item__box__card__block__text">
-                    Home
-                  </div>
+              <div className="item__box__card__block">
+                <img className="item__box__card__block__image" src="https://images-na.ssl-images-amazon.com/images/G/01/DiscoTec/2024/BFCM/GW/Quad_Cards/BFCM_2024_761_BFW_CM_DQC_Home_1A_1x_v3._SY116_CB541717183_.jpg" alt="image01" />
+                <div className="item__box__card__block__text">
+                  Home
                 </div>
-                  
-                <div className="item__box__card__block">
-                  <img className="item__box__card__block__image" src="https://images-na.ssl-images-amazon.com/images/G/01/DiscoTec/2024/BFCM/GW/Quad_Cards/BFCM_2024_767_BFW_CM_DQC_Sports_Outdoors_2C_1x_v3._SY116_CB541717183_.jpg" alt="image02" />
-                  <div className="item__box__card__block__text">
-                    Sports & Outdoors
-                  </div>
-                </div>
+              </div>
 
-                <div className="item__box__card__block">
-                  <img className="item__box__card__block__image" src="https://images-na.ssl-images-amazon.com/images/G/01/DiscoTec/2024/BFCM/GW/Quad_Cards/BFCM_2024_764_BFW_CM_DQC_Beauty_1D_1x_v3._SY116_CB541717183_.jpg" alt="image03" />
-                  <div className="item__box__card__block__text">
-                    Beauty
-                  </div>
+              <div className="item__box__card__block">
+                <img className="item__box__card__block__image" src="https://images-na.ssl-images-amazon.com/images/G/01/DiscoTec/2024/BFCM/GW/Quad_Cards/BFCM_2024_767_BFW_CM_DQC_Sports_Outdoors_2C_1x_v3._SY116_CB541717183_.jpg" alt="image02" />
+                <div className="item__box__card__block__text">
+                  Sports & Outdoors
                 </div>
+              </div>
 
-                <div className="item__box__card__block">
-                  <img className="item__box__card__block__image" src="https://images-na.ssl-images-amazon.com/images/G/01/DiscoTec/2024/BFCM/GW/Quad_Cards/BFCM_2024_766_BFW_CM_DQC_Headphones_2B_1x_v3._SY116_CB541717183_.jpgg" alt="image04" />
-                  <div className="item__box__card__block__text">
-                    Headphones
-                  </div>
+              <div className="item__box__card__block">
+                <img className="item__box__card__block__image" src="https://images-na.ssl-images-amazon.com/images/G/01/DiscoTec/2024/BFCM/GW/Quad_Cards/BFCM_2024_764_BFW_CM_DQC_Beauty_1D_1x_v3._SY116_CB541717183_.jpg" alt="image03" />
+                <div className="item__box__card__block__text">
+                  Beauty
                 </div>
+              </div>
+
+              <div className="item__box__card__block">
+                <img className="item__box__card__block__image" src="https://images-na.ssl-images-amazon.com/images/G/01/DiscoTec/2024/BFCM/GW/Quad_Cards/BFCM_2024_766_BFW_CM_DQC_Headphones_2B_1x_v3._SY116_CB541717183_.jpgg" alt="image04" />
+                <div className="item__box__card__block__text">
+                  Headphones
+                </div>
+              </div>
             </div>
 
             <div className="item__box__card__block__seeMore">
@@ -261,7 +273,7 @@ const HomePage = () => {
                 Shop all deals
               </Link>
             </div>
-          </div> 
+          </div>
         </div>
 
         {/* card 06 */}
@@ -270,33 +282,33 @@ const HomePage = () => {
             Black Friday Week deals are here
             <div className="item__box__card__image">
 
-                <div className="item__box__card__block">
-                  <img className="item__box__card__block__image" src="https://images-na.ssl-images-amazon.com/images/G/01/DiscoTec/2024/BFCM/GW/Quad_Cards/BFCM_2024_763_BFW_CM_DQC_ComputerVideoGames_1C_1x_v3._SY116_CB541717183_.jpg" alt="image01" />
-                  <div className="item__box__card__block__text">
-                    Tech & gaming
-                  </div>
+              <div className="item__box__card__block">
+                <img className="item__box__card__block__image" src="https://images-na.ssl-images-amazon.com/images/G/01/DiscoTec/2024/BFCM/GW/Quad_Cards/BFCM_2024_763_BFW_CM_DQC_ComputerVideoGames_1C_1x_v3._SY116_CB541717183_.jpg" alt="image01" />
+                <div className="item__box__card__block__text">
+                  Tech & gaming
                 </div>
-                  
-                <div className="item__box__card__block">
-                  <img className="item__box__card__block__image" src="https://images-na.ssl-images-amazon.com/images/G/01/DiscoTec/2024/BFCM/GW/Quad_Cards/BFCM_2024_771_BFW_CM_DQC_Deals_Toys_Games_3C_1x_v3._SY116_CB541717183_.jpg" alt="image02" />
-                  <div className="item__box__card__block__text">
-                    Toys & games
-                  </div>
-                </div>
+              </div>
 
-                <div className="item__box__card__block">
-                  <img className="item__box__card__block__image" src="https://images-na.ssl-images-amazon.com/images/G/01/DiscoTec/2024/BFCM/GW/Quad_Cards/BFCM_2024_765_BFW_CM_DQC_Kitchen_2A_1x_v3._SY116_CB541717183_.jpg" alt="image03" />
-                  <div className="item__box__card__block__text">
-                    Kitchen
-                  </div>
+              <div className="item__box__card__block">
+                <img className="item__box__card__block__image" src="https://images-na.ssl-images-amazon.com/images/G/01/DiscoTec/2024/BFCM/GW/Quad_Cards/BFCM_2024_771_BFW_CM_DQC_Deals_Toys_Games_3C_1x_v3._SY116_CB541717183_.jpg" alt="image02" />
+                <div className="item__box__card__block__text">
+                  Toys & games
                 </div>
+              </div>
 
-                <div className="item__box__card__block">
-                  <img className="item__box__card__block__image" src="https://images-na.ssl-images-amazon.com/images/G/01/DiscoTec/2024/BFCM/GW/Quad_Cards/BFCM_2024_762_BFW_CM_DQC_Fashion_1B_1x_v3._SY116_CB541717183_.jpg" alt="image04" />
-                  <div className="item__box__card__block__text">
-                    Fashion
-                  </div>
+              <div className="item__box__card__block">
+                <img className="item__box__card__block__image" src="https://images-na.ssl-images-amazon.com/images/G/01/DiscoTec/2024/BFCM/GW/Quad_Cards/BFCM_2024_765_BFW_CM_DQC_Kitchen_2A_1x_v3._SY116_CB541717183_.jpg" alt="image03" />
+                <div className="item__box__card__block__text">
+                  Kitchen
                 </div>
+              </div>
+
+              <div className="item__box__card__block">
+                <img className="item__box__card__block__image" src="https://images-na.ssl-images-amazon.com/images/G/01/DiscoTec/2024/BFCM/GW/Quad_Cards/BFCM_2024_762_BFW_CM_DQC_Fashion_1B_1x_v3._SY116_CB541717183_.jpg" alt="image04" />
+                <div className="item__box__card__block__text">
+                  Fashion
+                </div>
+              </div>
             </div>
 
             <div className="item__box__card__block__seeMore">
@@ -304,7 +316,7 @@ const HomePage = () => {
                 See more
               </Link>
             </div>
-          </div> 
+          </div>
         </div>
 
         {/* card 07 */}
@@ -313,9 +325,9 @@ const HomePage = () => {
             Get your game on
             <div className="item__box__card__image">
 
-                <div className="item__box__card__block__only">
-                  <img className="item__box__card__block__image__only" src="https://images-na.ssl-images-amazon.com/images/G/01/AmazonExports/Events/2024/Stores-Gaming/FinalGraphics/Fuji_Gaming_store_Dashboard_card_1x_EN._SY304_CB564799420_.jpg" alt="image01" />
-                </div>
+              <div className="item__box__card__block__only">
+                <img className="item__box__card__block__image__only" src="https://images-na.ssl-images-amazon.com/images/G/01/AmazonExports/Events/2024/Stores-Gaming/FinalGraphics/Fuji_Gaming_store_Dashboard_card_1x_EN._SY304_CB564799420_.jpg" alt="image01" />
+              </div>
             </div>
 
             <div className="item__box__card__block__seeMore__only">
@@ -323,7 +335,7 @@ const HomePage = () => {
                 Shop gaming
               </Link>
             </div>
-          </div> 
+          </div>
         </div>
 
         {/* card 08 */}
@@ -332,33 +344,33 @@ const HomePage = () => {
             Easy updates for elevated spaces
             <div className="item__box__card__image">
 
-                <div className="item__box__card__block">
-                  <img className="item__box__card__block__image" src="https://images-na.ssl-images-amazon.com/images/G/01/img18/home/2023/Q2/Homepage/2023Q2_GW_EE_LaundryLuxe_D_Quad_186x116._SY116_CB594237035_.jpg" alt="image01" />
-                  <div className="item__box__card__block__text">
-                    Baskets & hampers
-                  </div>
+              <div className="item__box__card__block">
+                <img className="item__box__card__block__image" src="https://images-na.ssl-images-amazon.com/images/G/01/img18/home/2023/Q2/Homepage/2023Q2_GW_EE_LaundryLuxe_D_Quad_186x116._SY116_CB594237035_.jpg" alt="image01" />
+                <div className="item__box__card__block__text">
+                  Baskets & hampers
                 </div>
-                  
-                <div className="item__box__card__block">
-                  <img className="item__box__card__block__image" src="https://images-na.ssl-images-amazon.com/images/G/01/img18/home/2023/Q2/Homepage/2023Q2_GW_EE_Kitchen_D_Quad_186x116._SY116_CB594237035_.jpg" alt="image02" />
-                  <div className="item__box__card__block__text">
-                    Hardwares
-                  </div>
-                </div>
+              </div>
 
-                <div className="item__box__card__block">
-                  <img className="item__box__card__block__image" src="https://images-na.ssl-images-amazon.com/images/G/01/img18/home/2023/Q2/Homepage/2023Q2_GW_EE_AccentFurniture_D_Quad_186x116._SY116_CB594237035_.jpg" alt="image03" />
-                  <div className="item__box__card__block__text">
-                    Accent furniture
-                  </div>
+              <div className="item__box__card__block">
+                <img className="item__box__card__block__image" src="https://images-na.ssl-images-amazon.com/images/G/01/img18/home/2023/Q2/Homepage/2023Q2_GW_EE_Kitchen_D_Quad_186x116._SY116_CB594237035_.jpg" alt="image02" />
+                <div className="item__box__card__block__text">
+                  Hardwares
                 </div>
+              </div>
 
-                <div className="item__box__card__block">
-                  <img className="item__box__card__block__image" src="https://images-na.ssl-images-amazon.com/images/G/01/img18/home/2023/Q2/Homepage/2023Q2_GW_EE_Hallway_D_Quad_186x116._SY116_CB594237035_.jpg" alt="image04" />
-                  <div className="item__box__card__block__text">
-                    Wallpaper & paint
-                  </div>
+              <div className="item__box__card__block">
+                <img className="item__box__card__block__image" src="https://images-na.ssl-images-amazon.com/images/G/01/img18/home/2023/Q2/Homepage/2023Q2_GW_EE_AccentFurniture_D_Quad_186x116._SY116_CB594237035_.jpg" alt="image03" />
+                <div className="item__box__card__block__text">
+                  Accent furniture
                 </div>
+              </div>
+
+              <div className="item__box__card__block">
+                <img className="item__box__card__block__image" src="https://images-na.ssl-images-amazon.com/images/G/01/img18/home/2023/Q2/Homepage/2023Q2_GW_EE_Hallway_D_Quad_186x116._SY116_CB594237035_.jpg" alt="image04" />
+                <div className="item__box__card__block__text">
+                  Wallpaper & paint
+                </div>
+              </div>
             </div>
 
             <div className="item__box__card__block__seeMore">
@@ -366,10 +378,10 @@ const HomePage = () => {
                 See more
               </Link>
             </div>
-          </div> 
+          </div>
         </div>
       </div>
-      
+
       {/* card trượt */}
       <div className="card__slider">
         <div className="card__slider--long">
@@ -574,33 +586,33 @@ const HomePage = () => {
             Most-loved travel essentials
             <div className="item__box__card__image">
 
-                <div className="item__box__card__block">
-                  <img className="item__box__card__block__image" src="https://images-na.ssl-images-amazon.com/images/G/01/AmazonExports/Events/2024/BAU2024Aug/Backpack_1x._SY116_CB566100767_.jpg" alt="image01" />
-                  <div className="item__box__card__block__text">
-                    Backpacks
-                  </div>
+              <div className="item__box__card__block">
+                <img className="item__box__card__block__image" src="https://images-na.ssl-images-amazon.com/images/G/01/AmazonExports/Events/2024/BAU2024Aug/Backpack_1x._SY116_CB566100767_.jpg" alt="image01" />
+                <div className="item__box__card__block__text">
+                  Backpacks
                 </div>
-                  
-                <div className="item__box__card__block">
-                  <img className="item__box__card__block__image" src="https://images-na.ssl-images-amazon.com/images/G/01/AmazonExports/Events/2024/BAU2024Aug/TravelBag_1x._SY116_CB566100767_.jpg" alt="image02" />
-                  <div className="item__box__card__block__text">
-                    Suitcases
-                  </div>
-                </div>
+              </div>
 
-                <div className="item__box__card__block">
-                  <img className="item__box__card__block__image" src="https://images-na.ssl-images-amazon.com/images/G/01/AmazonExports/Events/2024/BAU2024Aug/Accessories_1x._SY116_CB566100767_.jpg" alt="image03" />
-                  <div className="item__box__card__block__text">
-                    Accessories
-                  </div>
+              <div className="item__box__card__block">
+                <img className="item__box__card__block__image" src="https://images-na.ssl-images-amazon.com/images/G/01/AmazonExports/Events/2024/BAU2024Aug/TravelBag_1x._SY116_CB566100767_.jpg" alt="image02" />
+                <div className="item__box__card__block__text">
+                  Suitcases
                 </div>
+              </div>
 
-                <div className="item__box__card__block">
-                  <img className="item__box__card__block__image" src="https://images-na.ssl-images-amazon.com/images/G/01/AmazonExports/Events/2024/BAU2024Aug/Handbags_1x._SY116_CB566100767_.jpg" alt="image04" />
-                  <div className="item__box__card__block__text">
-                    Handbags
-                  </div>
+              <div className="item__box__card__block">
+                <img className="item__box__card__block__image" src="https://images-na.ssl-images-amazon.com/images/G/01/AmazonExports/Events/2024/BAU2024Aug/Accessories_1x._SY116_CB566100767_.jpg" alt="image03" />
+                <div className="item__box__card__block__text">
+                  Accessories
                 </div>
+              </div>
+
+              <div className="item__box__card__block">
+                <img className="item__box__card__block__image" src="https://images-na.ssl-images-amazon.com/images/G/01/AmazonExports/Events/2024/BAU2024Aug/Handbags_1x._SY116_CB566100767_.jpg" alt="image04" />
+                <div className="item__box__card__block__text">
+                  Handbags
+                </div>
+              </div>
             </div>
 
             <div className="item__box__card__block__seeMore--1row">
@@ -608,7 +620,7 @@ const HomePage = () => {
                 See more
               </Link>
             </div>
-          </div> 
+          </div>
         </div>
 
         {/* card 02 */}
@@ -617,33 +629,33 @@ const HomePage = () => {
             Fantastic Finds for Home
             <div className="item__box__card__image">
 
-                <div className="item__box__card__block">
-                  <img className="item__box__card__block__image" src="https://images-na.ssl-images-amazon.com/images/G/01/AmazonExports/Events/2024/DskBTFQuadCards/Fuji_BTF_Quad_Cards_1x_Kitchen._SY116_CB558654384_.jpg" alt="image01" />
-                  <div className="item__box__card__block__text">
-                    Kitchen
-                  </div>
+              <div className="item__box__card__block">
+                <img className="item__box__card__block__image" src="https://images-na.ssl-images-amazon.com/images/G/01/AmazonExports/Events/2024/DskBTFQuadCards/Fuji_BTF_Quad_Cards_1x_Kitchen._SY116_CB558654384_.jpg" alt="image01" />
+                <div className="item__box__card__block__text">
+                  Kitchen
                 </div>
-                  
-                <div className="item__box__card__block">
-                  <img className="item__box__card__block__image" src="https://images-na.ssl-images-amazon.com/images/G/01/AmazonExports/Events/2024/DskBTFQuadCards/Fuji_BTF_Quad_Cards_1x_Home_decor._SY116_CB558654384_.jpg" alt="image02" />
-                  <div className="item__box__card__block__text">
-                    Home Decor
-                  </div>
-                </div>
+              </div>
 
-                <div className="item__box__card__block">
-                  <img className="item__box__card__block__image" src="https://images-na.ssl-images-amazon.com/images/G/01/AmazonExports/Events/2024/DskBTFQuadCards/Fuji_BTF_Quad_Cards_1x_Dining._SY116_CB558654384_.jpg" alt="image03" />
-                  <div className="item__box__card__block__text">
-                    Dining
-                  </div>
+              <div className="item__box__card__block">
+                <img className="item__box__card__block__image" src="https://images-na.ssl-images-amazon.com/images/G/01/AmazonExports/Events/2024/DskBTFQuadCards/Fuji_BTF_Quad_Cards_1x_Home_decor._SY116_CB558654384_.jpg" alt="image02" />
+                <div className="item__box__card__block__text">
+                  Home Decor
                 </div>
+              </div>
 
-                <div className="item__box__card__block">
-                  <img className="item__box__card__block__image" src="https://images-na.ssl-images-amazon.com/images/G/01/AmazonExports/Events/2024/DskBTFQuadCards/Fuji_BTF_Quad_Cards_1x_Smart_home._SY116_CB558654384_.jpg" alt="image04" />
-                  <div className="item__box__card__block__text">
-                    Smart Home
-                  </div>
+              <div className="item__box__card__block">
+                <img className="item__box__card__block__image" src="https://images-na.ssl-images-amazon.com/images/G/01/AmazonExports/Events/2024/DskBTFQuadCards/Fuji_BTF_Quad_Cards_1x_Dining._SY116_CB558654384_.jpg" alt="image03" />
+                <div className="item__box__card__block__text">
+                  Dining
                 </div>
+              </div>
+
+              <div className="item__box__card__block">
+                <img className="item__box__card__block__image" src="https://images-na.ssl-images-amazon.com/images/G/01/AmazonExports/Events/2024/DskBTFQuadCards/Fuji_BTF_Quad_Cards_1x_Smart_home._SY116_CB558654384_.jpg" alt="image04" />
+                <div className="item__box__card__block__text">
+                  Smart Home
+                </div>
+              </div>
             </div>
 
             <div className="item__box__card__block__seeMore--1row">
@@ -651,7 +663,7 @@ const HomePage = () => {
                 See more
               </Link>
             </div>
-          </div> 
+          </div>
         </div>
 
         {/* card 03 */}
@@ -660,33 +672,33 @@ const HomePage = () => {
             Gaming merchandise
             <div className="item__box__card__image">
 
-                <div className="item__box__card__block">
-                  <img className="item__box__card__block__image" src="https://images-na.ssl-images-amazon.com/images/G/01/AmazonExports/Fuji/2021/June/Fuji_Quad_Apparel_1x._SY116_CB667159060_.jpg" alt="image01" />
-                  <div className="item__box__card__block__text">
-                    Apprarel
-                  </div>
+              <div className="item__box__card__block">
+                <img className="item__box__card__block__image" src="https://images-na.ssl-images-amazon.com/images/G/01/AmazonExports/Fuji/2021/June/Fuji_Quad_Apparel_1x._SY116_CB667159060_.jpg" alt="image01" />
+                <div className="item__box__card__block__text">
+                  Apprarel
                 </div>
-                  
-                <div className="item__box__card__block">
-                  <img className="item__box__card__block__image" src="https://images-na.ssl-images-amazon.com/images/G/01/AmazonExports/Fuji/2021/June/Fuji_Quad_Hat_1x._SY116_CB667159060_.jpg" alt="image02" />
-                  <div className="item__box__card__block__text">
-                    Hats
-                  </div>
-                </div>
+              </div>
 
-                <div className="item__box__card__block">
-                  <img className="item__box__card__block__image" src="https://images-na.ssl-images-amazon.com/images/G/01/AmazonExports/Fuji/2021/June/Fuji_Quad_Figure_1x._SY116_CB667159060_.jpg" alt="image03" />
-                  <div className="item__box__card__block__text">
-                    Action figures
-                  </div>
+              <div className="item__box__card__block">
+                <img className="item__box__card__block__image" src="https://images-na.ssl-images-amazon.com/images/G/01/AmazonExports/Fuji/2021/June/Fuji_Quad_Hat_1x._SY116_CB667159060_.jpg" alt="image02" />
+                <div className="item__box__card__block__text">
+                  Hats
                 </div>
+              </div>
 
-                <div className="item__box__card__block">
-                  <img className="item__box__card__block__image" src="https://images-na.ssl-images-amazon.com/images/G/01/AmazonExports/Fuji/2021/June/Fuji_Quad_Mug_1x._SY116_CB667159063_.jpg" alt="image04" />
-                  <div className="item__box__card__block__text">
-                    Mugs
-                  </div>
+              <div className="item__box__card__block">
+                <img className="item__box__card__block__image" src="https://images-na.ssl-images-amazon.com/images/G/01/AmazonExports/Fuji/2021/June/Fuji_Quad_Figure_1x._SY116_CB667159060_.jpg" alt="image03" />
+                <div className="item__box__card__block__text">
+                  Action figures
                 </div>
+              </div>
+
+              <div className="item__box__card__block">
+                <img className="item__box__card__block__image" src="https://images-na.ssl-images-amazon.com/images/G/01/AmazonExports/Fuji/2021/June/Fuji_Quad_Mug_1x._SY116_CB667159063_.jpg" alt="image04" />
+                <div className="item__box__card__block__text">
+                  Mugs
+                </div>
+              </div>
             </div>
 
             <div className="item__box__card__block__seeMore--1row">
@@ -694,42 +706,42 @@ const HomePage = () => {
                 See more
               </Link>
             </div>
-          </div> 
+          </div>
         </div>
-        
+
         {/* card 04 */}
         <div className="item__box__card">
           <div className="item__box__card__title">
             Most-loved watches
             <div className="item__box__card__image">
 
-                <div className="item__box__card__block">
-                  <img className="item__box__card__block__image" src="https://images-na.ssl-images-amazon.com/images/G/01/AmazonExports/Events/2024/BAU2024Aug/WomenWatches_1x._SY116_CB564394432_.jpg" alt="image01" />
-                  <div className="item__box__card__block__text">
-                    Women
-                  </div>
+              <div className="item__box__card__block">
+                <img className="item__box__card__block__image" src="https://images-na.ssl-images-amazon.com/images/G/01/AmazonExports/Events/2024/BAU2024Aug/WomenWatches_1x._SY116_CB564394432_.jpg" alt="image01" />
+                <div className="item__box__card__block__text">
+                  Women
                 </div>
-                  
-                <div className="item__box__card__block">
-                  <img className="item__box__card__block__image" src="https://images-na.ssl-images-amazon.com/images/G/01/AmazonExports/Events/2024/BAU2024Aug/MenWatches_1x._SY116_CB564394432_.jpg" alt="image02" />
-                  <div className="item__box__card__block__text">
-                    Men
-                  </div>
-                </div>
+              </div>
 
-                <div className="item__box__card__block">
-                  <img className="item__box__card__block__image" src="https://images-na.ssl-images-amazon.com/images/G/01/AmazonExports/Events/2024/BAU2024Aug/GirlWatches_1x._SY116_CB564394432_.jpgg" alt="image03" />
-                  <div className="item__box__card__block__text">
-                    Girls
-                  </div>
+              <div className="item__box__card__block">
+                <img className="item__box__card__block__image" src="https://images-na.ssl-images-amazon.com/images/G/01/AmazonExports/Events/2024/BAU2024Aug/MenWatches_1x._SY116_CB564394432_.jpg" alt="image02" />
+                <div className="item__box__card__block__text">
+                  Men
                 </div>
+              </div>
 
-                <div className="item__box__card__block">
-                  <img className="item__box__card__block__image" src="https://images-na.ssl-images-amazon.com/images/G/01/AmazonExports/Events/2024/BAU2024Aug/BoyWatches_1x._SY116_CB564394432_.jpg" alt="image04" />
-                  <div className="item__box__card__block__text">
-                    Boys
-                  </div>
+              <div className="item__box__card__block">
+                <img className="item__box__card__block__image" src="https://images-na.ssl-images-amazon.com/images/G/01/AmazonExports/Events/2024/BAU2024Aug/GirlWatches_1x._SY116_CB564394432_.jpgg" alt="image03" />
+                <div className="item__box__card__block__text">
+                  Girls
                 </div>
+              </div>
+
+              <div className="item__box__card__block">
+                <img className="item__box__card__block__image" src="https://images-na.ssl-images-amazon.com/images/G/01/AmazonExports/Events/2024/BAU2024Aug/BoyWatches_1x._SY116_CB564394432_.jpg" alt="image04" />
+                <div className="item__box__card__block__text">
+                  Boys
+                </div>
+              </div>
             </div>
 
             <div className="item__box__card__block__seeMore--1row">
@@ -737,9 +749,9 @@ const HomePage = () => {
                 See more
               </Link>
             </div>
-          </div> 
+          </div>
         </div>
-        
+
       </div>
 
       {/* card trượt */}

@@ -2,25 +2,22 @@ import React, { useState } from "react";
 import "./SignUp.css";
 import amazon_logo from "../../Assets/amazon_logo_black.png";
 import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom'; // Import useNavigate
+import axios from 'axios';
 
 const SignUp = () => {
   const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    password: "",
-    repassword: "",
-    age: "",
-    gender: "",
+    user_name: '',
+    email_address: '',
+    phone_number: '',
+    password: '',
+    repassword: '',
+    age: '',
+    gender: '',
+    city: ''
   });
-
-  const [error, setError] = useState({
-    name: "",
-    email: "",
-    password: "",
-    repassword: "",
-    age: "",
-    gender: "",
-  });
+  const [message, setMessage] = useState('');
+  const navigate = useNavigate();
 
   const handleInputChange = (e) => {
     const { id, value } = e.target;
@@ -28,62 +25,54 @@ const SignUp = () => {
       ...formData,
       [id]: value,
     });
-    setError({
-      ...error,
-      [id]: "",
-    });
   };
 
   const validateAge = (age) => {
     const ageNumber = parseInt(age, 10);
-    return ageNumber >= 0 && ageNumber <= 99;
+    return ageNumber >= 0 && ageNumber <= 122;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    let isValid = true;
-    let newError = {
-      name: "",
-      email: "",
-      password: "",
-      repassword: "",
-    };
 
-    if (formData.name.trim() === "") {
-      newError.name = "Please enter your name.";
-      isValid = false;
-    }
-    if (formData.email.trim() === "") {
-      newError.email = "Please enter your email.";
-      isValid = false;
-    }
-    if (formData.password.trim() === "") {
-      newError.password = "Please enter your password.";
-      isValid = false;
-    } else if (formData.password.length < 6) {
-      newError.password = "Password must be at least 6 characters long.";
-      isValid = false;
-    }
-    if (formData.repassword.trim() === "") {
-      newError.repassword = "Please re-enter your password.";
-      isValid = false;
-    } else if (formData.password !== formData.repassword) {
-      newError.repassword = "Passwords do not match.";
-      isValid = false;
+    if (formData.password !== formData.repassword) {
+      setMessage("Passwords do not match.");
+      return;
     }
     if (formData.age.trim() === "" || !validateAge(formData.age)) {
-      newError.age = "Please enter a valid age (0-99).";
-      isValid = false;
-    }
-    if (formData.gender.trim() === "") {
-      newError.gender = "Please select a gender.";
-      isValid = false;
+      setMessage("Please enter a valid age (0-122).");
+      return;
     }
 
-    setError(newError);
+    // Basic validation for username
+    if (!/^\w{3,50}$/.test(formData.user_name)) {
+      setMessage("Invalid username.");
+      return;
+    }
 
-    if (isValid) {
-      console.log("Form submitted", formData);
+    // Phone number validation
+    if (!/^\d{10}$/.test(formData.phone_number)) {
+      setMessage("Phone number must be 10 digits.");
+      return;
+    }
+
+    // Password validation (at least 8 characters, one uppercase, one special character)
+    const passwordRegex = /^(?=.*[A-Z])(?=.*[!@#$%^&*(),.?":{}|<>])[A-Za-z\d!@#$%^&*(),.?":{}|<>]{8,}$/;
+    if (!passwordRegex.test(formData.password)) {
+      setMessage("Password must be at least 8 characters, include one uppercase letter and one special character.");
+      return;
+    }
+
+    try {
+      const response = await axios.post('http://localhost:8000/register', formData);
+      console.log('Registration form send successful:', response.data);
+      // Set a success message
+      setMessage('Please check your mail');
+      // Redirect to the VerifyEmail page, passing the email as state
+      navigate('/signUpVerify', { state: { userData: { ...formData } } });
+    } catch (error) {
+      console.error('Error registering user:', error.response?.data || error.message);
+      setMessage('Can not register at the moment. Please try again.');
     }
   };
 
@@ -95,38 +84,45 @@ const SignUp = () => {
       <div className="signup-box">
         <h1>Create account</h1>
         <form onSubmit={handleSubmit}>
-          <label htmlFor="name">Your name</label>
+          <label htmlFor="user_name">Your name</label>
           <input
             type="text"
-            id="name"
-            value={formData.name}
+            id="user_name"  // Change from 'name' to 'user_name'
+            value={formData.user_name}
             placeholder="First and last name"
             required
             onChange={handleInputChange}
           />
-          {error.name && <p className="error-message">{error.name}</p>}
 
-          <label htmlFor="email">Mobile number or email</label>
+          <label htmlFor="email_address">Email</label>
           <input
             type="email"
-            id="email"
-            value={formData.email}
-            placeholder="Enter your email or mobile number"
+            id="email_address"  // Correct, this matches the 'email_address' key in formData
+            value={formData.email_address}
+            placeholder="Enter your email "
             required
             onChange={handleInputChange}
           />
-          {error.email && <p className="error-message">{error.email}</p>}
+
+          <label htmlFor="email_address">Phone Number</label>
+          <input
+            type="number"
+            id="phone_number"
+            value={formData.phone_number}
+            placeholder="Enter your mobile number"
+            required
+            onChange={handleInputChange}
+          />
 
           <label htmlFor="password">Password</label>
           <input
             type="password"
             id="password"
             value={formData.password}
-            placeholder="At least 6 characters"
+            placeholder="Password must be at least 8 characters, include one uppercase letter and one special character"
             required
             onChange={handleInputChange}
           />
-          {error.password && <p className="error-message">{error.password}</p>}
 
           <label htmlFor="repassword">Re-enter password</label>
           <input
@@ -137,7 +133,7 @@ const SignUp = () => {
             required
             onChange={handleInputChange}
           />
-          {error.repassword && <p className="error-message">{error.repassword}</p>}
+
 
           <label htmlFor="age">Age</label>
           <input
@@ -148,7 +144,7 @@ const SignUp = () => {
             required
             onChange={handleInputChange}
           />
-          {error.age && <p className="error-message">{error.age}</p>}
+
 
           <label htmlFor="gender">Gender</label>
           <select
@@ -162,13 +158,20 @@ const SignUp = () => {
             <option value="female">Female</option>
             <option value="others">Others</option>
           </select>
-          {error.gender && <p className="error-message">{error.gender}</p>}
-          
-          <Link to="/">
-            <button type="submit" className="signup-button">
-              Continue
-            </button>
-          </Link>
+          <label htmlFor="city">City</label>
+          <input
+            type="text"
+            id="city"
+            value={formData.city}
+            placeholder="Which city are you in"
+            required
+            onChange={handleInputChange}
+          />
+
+          <button type="submit" className="signup-button">
+            Sign up
+          </button>
+          {message && <div className="message">{message}</div>}
 
           <p className="agreement-text">
             By creating an account, you agree to Amazon's{" "}
@@ -181,6 +184,12 @@ const SignUp = () => {
           Already have an account?{" "}
           <a href="/SignIn" className="signin-link">
             Sign in
+          </a>
+        </p>
+        <p className="signin-prompt">
+          Forget Password?{" "}
+          <a href="/ForgetPassword" className="signin-link">
+            Click here
           </a>
         </p>
       </div>
