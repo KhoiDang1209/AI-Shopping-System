@@ -38,7 +38,7 @@ const HomePage = () => {
 
   return (
     <div className="homepage">
-      <NavBar />
+      <NavBar userInfo={userInfo} />
       {/* trượt ảnh */}
       <div className="image__container">
         <div

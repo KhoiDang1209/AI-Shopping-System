@@ -43,7 +43,7 @@ function LoginVerify() {
 
             console.log('Validate successful:', response.data);
             setMessage("Email verified successfully!");
-
+            console.log(userInfo)
             // After email verification, navigate to Homepage and pass user info
             navigate('/', { state: { userData: { ...userInfo } } });
 

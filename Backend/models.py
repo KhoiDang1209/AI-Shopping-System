@@ -26,7 +26,7 @@ class SiteUser(Base):
     age = Column(Integer)
     gender = Column(String(10))
     email_address = Column(String(100), unique=True)
-    phone_number = Column(String(10))
+    phone_number = Column(String(10), unique=True)
     city = Column(String(100))
     password = Column(String(255), nullable=False)
     
