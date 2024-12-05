@@ -1,4 +1,4 @@
-import { ADD_TO_CART,REMOVE_FROM_CART,UPDATE_CART_QUANTITY,CLEAR_CART } from "../ActionType";
+import { ADD_TO_CART,REMOVE_FROM_CART,UPDATE_CART_QUANTITY,CLEAR_CART, REMOVE_ALL_FROM_CART } from "../ActionType";
 
 // Call for initial value for item ( as arr )
 const initialState = {
@@ -30,6 +30,13 @@ const CartReducer = (state = initialState, action)=>{
           };
         //Remove all from cart
         case CLEAR_CART:
+          return {
+            ...state,
+            items: []
+          };
+
+        // Handle the remove all action
+        case REMOVE_ALL_FROM_CART:
           return {
             ...state,
             items: []

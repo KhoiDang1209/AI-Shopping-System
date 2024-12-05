@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react'
 import './Cart.css';
 import { useSelector, useDispatch } from 'react-redux';
-import { RemoveFromCart } from '../../Redux/Action/Action';
+import { RemoveFromCart, RemoveAllFromCart } from '../../Redux/Action/Action';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import NavBar from '../../Components/Navbar/Navigation';
 import Footer from '../../Components/Footer/Footer';
 import { GB_CURRENCY } from '../../Utils/constants';
 import {Link} from "react-router-dom";
+import axios from 'axios';
 
 const Cart = () => {
 
@@ -20,16 +21,59 @@ const Cart = () => {
 
   const totalCost = CartItems.reduce((total, item) => total + item.price, 0);
 
-  useEffect(() => {
-    SetCartItem(CartItems);
-  }, [CartItems])
+  // useEffect(() => {
+  //   SetCartItem(CartItems);
+  // }, [CartItems])
 
-  const HandleRemoveFromCart = (id) => {
-    toast.error("Removed From Cart", {
-      position: "bottom-right"
-    })
-    Dispatch(RemoveFromCart(id));
-  }
+  // const HandleRemoveFromCart = (id) => {
+  //   toast.error("Removed From Cart", {
+  //     position: "bottom-right"
+  //   })
+  //   Dispatch(RemoveFromCart(id));
+  // }
+    // Fetch cart items when the component mounts
+  useEffect(() => {
+    fetchCartItems();
+  }, []);
+
+  const fetchCartItems = async () => {
+    try {
+      const response = await axios.post("http://localhost:8000/cart", { type: "display" });
+      const fetchedCart = response.data.cart;
+      SetCartItem(fetchedCart);
+    } catch (error) {
+      console.error("Error fetching cart:", error);
+      toast.error("Failed to load cart items.");
+    }
+  };
+
+  // Handle remove item from the cart
+  const HandleRemoveFromCart = async (id) => {
+    try {
+      await axios.post("http://localhost:8000/cart", { type: "remove", product_id: id });
+      toast.error("Removed From Cart", { position: "bottom-right" });
+      Dispatch(RemoveFromCart(id)); // Update Redux state
+      fetchCartItems(); // Re-fetch cart items after removal
+    } catch (error) {
+      console.error("Error removing item from cart:", error);
+      toast.error("Failed to remove item from cart.");
+    }
+  };
+
+    // Handle Deselect All Items
+    const handleDeselectAll = async () => {
+      try {
+        // Send request to remove all items from the cart
+        await axios.post("http://localhost:8000/cart", { type: "remove-all" });
+        toast.error("All items removed from cart", { position: "bottom-right" });
+        Dispatch(RemoveAllFromCart()); // Clear the Redux cart
+        SetCartItem([]); // Clear the local state for cart items
+        fetchCartItems();
+      } catch (error) {
+        console.error("Error deselecting all items:", error);
+        toast.error("Failed to remove all items from cart.");
+      }
+    };
 
   return (
     <div>
@@ -38,7 +82,7 @@ const Cart = () => {
 
         <div className="TopLeftCart">
             <div className="TopLeftCartTitle">Shopping Cart</div>
-            <div className="DeselectAllCart">Deselect all items</div>
+            <div className="DeselectAllCart" onClick={handleDeselectAll}>Deselect all items</div>
             <div className="CartPriceTextDivider">Price</div>
 
             <div className="CartItemDiv">
@@ -50,7 +94,7 @@ const Cart = () => {
                         <div className="CartItemLeftBlockImage">
                         <img
                             className="CartItemLeftBlockImg"
-                            src={item.imageUrl} />
+                            src={item.imageUrl} alt={item.name} />
                         </div>
                         <div className="CartItemLeftBlockDetails">
                         <div className="CartItemProductName">

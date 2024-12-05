@@ -3,7 +3,7 @@ import random
 import re
 import models
 from dotenv import dotenv_values
-from fastapi import FastAPI, HTTPException, Depends, status, Request, Form
+from fastapi import FastAPI, HTTPException, Depends, status, Request, Form, Body
 from typing import List
 from pydantic import EmailStr, ValidationError
 from sqlalchemy.orm import Session
@@ -619,93 +619,252 @@ async def get_all_categories(db: Session = Depends(get_db)):
 # 4. Search Products Page
 # ------------------------------
 
-@app.get("/products/search")
-async def search_products(query: str = "", db: Session = Depends(get_db)):
-    """Search products by name or category."""
-    products = db.query(Product).filter(
-        Product.product_name.ilike(f"%{query}%")
-    ).all()
+@app.post("/products")
+async def get_products(
+    category: Optional[str] = Body(None, embed=True),
+    min_price: Optional[float] = Body(None, embed=True),
+    max_price: Optional[float] = Body(None, embed=True),
+    page: int = Body(1, embed=True),
+    page_size: int = Body(10, embed=True),
+    db: Session = Depends(get_db),
+):
+    """
+    Fetch and filter products with pagination.
+    """
+    query = db.query(Product)
+
+    if category:
+        query = query.filter(Product.main_category.ilike(f"%{category}%"))
+    if min_price is not None:
+        query = query.filter(Product.discount_price_usd >= min_price)
+    if max_price is not None:
+        query = query.filter(Product.discount_price_usd <= max_price)
+
+    total_products = query.count()
+    products = query.offset((page - 1) * page_size).limit(page_size).all()
 
     if not products:
-        return JSONResponse(status_code=404, content={"message": "No products found."})
+        return {"products": [], "total": 0, "page": page, "page_size": page_size}
 
-    return [
-        {
-            "product_id": product.product_id,
-            "product_name": product.product_name,
-            "main_category": product.main_category,
-            "sub_category": product.sub_category,
-            "discount_price": product.discount_price_usd,
-            "actual_price": product.actual_price_usd,
-            "image": product.product_image,
-        }
-        for product in products
-    ]
+    return {
+        "products": [
+            {
+                "product_id": product.product_id,
+                "name": product.product_name,
+                "category": product.main_category,
+                "price": float(product.discount_price_usd),
+                "image": product.product_image,
+                "ratings": product.average_rating,
+                "stock": product.items[0].is_in_stock if product.items else False,
+            }
+            for product in products
+        ],
+        "total": total_products,
+        "page": page,
+        "page_size": page_size,
+    }
+
+
 
 # ------------------------------
 # 4.1. Product Detail Page
 # ------------------------------
 
-@app.get("/products/{product_id}")
-async def get_product_detail(product_id: int, db: Session = Depends(get_db)):
-    """Fetch detailed information for a specific product."""
+# @app.get("/products/{product_id}")
+# async def get_product_detail(product_id: int, db: Session = Depends(get_db)):
+#     """Fetch detailed information for a specific product."""
+#     product = db.query(Product).filter(Product.product_id == product_id).first()
+#     if not product:
+#         raise HTTPException(status_code=404, detail="Product not found")
+
+#     return {
+#         "product_id": product.product_id,
+#         "product_name": product.product_name,
+#         "main_category": product.main_category,
+#         "sub_category": product.sub_category,
+#         "discount_price": product.discount_price_usd,
+#         "actual_price": product.actual_price_usd,
+#         "description": product.product_image,  # Assuming description exists
+#         "image": product.product_image,
+#     }
+
+# @app.post("/cart/add")
+# async def add_to_cart(product_id: int, quantity: int, db: Session = Depends(get_db)):
+#     """Add a product to the shopping cart or update quantity if it already exists."""
+#     cart_item = db.query(ShoppingCartItem).filter(ShoppingCartItem.product_item_id == product_id).first()
+
+#     if cart_item:
+#         cart_item.quantity += quantity
+#     else:
+#         cart_item = ShoppingCartItem(product_item_id=product_id, quantity=quantity, price=0.0)
+#         db.add(cart_item)
+
+#     db.commit()
+#     return {"message": "Product added to cart successfully."}
+@app.post("/products/detail")
+async def get_product_detail(
+    product_id: int = Body(..., embed=True),
+    db: Session = Depends(get_db),
+):
+    """
+    Fetch detailed information for a specific product by product_id.
+    """
     product = db.query(Product).filter(Product.product_id == product_id).first()
+
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
 
     return {
         "product_id": product.product_id,
-        "product_name": product.product_name,
-        "main_category": product.main_category,
-        "sub_category": product.sub_category,
-        "discount_price": product.discount_price_usd,
-        "actual_price": product.actual_price_usd,
-        "description": product.product_image,  # Assuming description exists
+        "name": product.product_name,
+        "category": product.main_category,
+        "price": float(product.discount_price_usd),
+        "actual_price": float(product.actual_price_usd),
         "image": product.product_image,
+        "description": product.product_image,  # Replace with real description if available
+        "ratings": product.average_rating,
+        "stock": product.items[0].is_in_stock if product.items else False,
     }
 
-@app.post("/cart/add")
-async def add_to_cart(product_id: int, quantity: int, db: Session = Depends(get_db)):
-    """Add a product to the shopping cart or update quantity if it already exists."""
-    cart_item = db.query(ShoppingCartItem).filter(ShoppingCartItem.product_item_id == product_id).first()
-
-    if cart_item:
-        cart_item.quantity += quantity
-    else:
-        cart_item = ShoppingCartItem(product_item_id=product_id, quantity=quantity, price=0.0)
-        db.add(cart_item)
-
-    db.commit()
-    return {"message": "Product added to cart successfully."}
 
 # ------------------------------
 # 5. Cart Page
 # ------------------------------
 
-@app.get("/cart")
-async def view_cart(db: Session = Depends(get_db)):
-    """View all items in the cart and calculate total price."""
+# @app.get("/cart")
+# async def view_cart(db: Session = Depends(get_db)):
+#     """View all items in the cart and calculate total price."""
+#     cart_items = db.query(ShoppingCartItem).all()
+
+#     if not cart_items:
+#         return {"cart": [], "total_price": 0}
+
+#     total_price = sum(item.quantity * float(item.price) for item in cart_items)
+#     return {
+#         "cart": [
+#             {
+#                 "product_id": item.product_item_id,
+#                 "quantity": item.quantity,
+#                 "price": float(item.price),
+#             }
+#             for item in cart_items
+#         ],
+#         "total_price": total_price,
+#     }
+
+# @app.delete("/cart/remove/{product_id}")
+# async def remove_from_cart(product_id: int, db: Session = Depends(get_db)):
+#     """Remove a product from the cart."""
+#     cart_item = db.query(ShoppingCartItem).filter(ShoppingCartItem.product_item_id == product_id).first()
+
+#     if not cart_item:
+#         raise HTTPException(status_code=404, detail="Cart item not found")
+
+#     db.delete(cart_item)
+#     db.commit()
+#     return {"message": "Item removed from cart."}
+
+# @app.post("/cart/checkout")
+# async def checkout(db: Session = Depends(get_db)):
+#     """Checkout the cart and clear all items."""
+#     cart_items = db.query(ShoppingCartItem).all()
+
+#     if not cart_items:
+#         raise HTTPException(status_code=400, detail="Cart is empty")
+
+#     # Simulate order creation (details like user and payment skipped for now)
+#     order_total = sum(item.quantity * float(item.price) for item in cart_items)
+#     db.query(ShoppingCartItem).delete()
+#     db.commit()
+
+#     return {"message": "Checkout successful.", "order_total": order_total}
+
+@app.post("/cart/add")
+async def add_to_cart(
+    product_id: int = Body(..., embed=True),
+    quantity: int = Body(..., embed=True),
+    db: Session = Depends(get_db),
+):
+    """
+    Add a product to the cart or update its quantity if already in the cart.
+    """
+    if quantity < 1:
+        raise HTTPException(status_code=400, detail="Quantity must be at least 1")
+
+    # Check if product exists
+    product = db.query(Product).filter(Product.product_id == product_id).first()
+    if not product:
+        raise HTTPException(status_code=404, detail="Product not found")
+
+    # Check if the product is already in the cart
+    cart_item = db.query(ShoppingCartItem).filter(ShoppingCartItem.product_item_id == product_id).first()
+
+    if cart_item:
+        cart_item.quantity += quantity
+    else:
+        # Add new item to the cart
+        new_cart_item = ShoppingCartItem(product_item_id=product_id, quantity=quantity, price=product.discount_price_usd)
+        db.add(new_cart_item)
+
+    db.commit()
+
+    return {"message": f"{quantity} unit(s) of '{product.product_name}' added to cart."}
+
+# ------------------------------
+# Additional Features from Frontend Observed in Product.js
+# ------------------------------
+
+@app.post("/categories")
+async def get_product_categories(db: Session = Depends(get_db)):
+    """
+    Fetch distinct product categories for filtering.
+    """
+    categories = db.query(Product.main_category).distinct().all()
+    return {"categories": [category[0] for category in categories]}
+
+# ------------------------------
+# Cart Display
+# ------------------------------
+
+@app.post("/cart")
+async def get_cart(db: Session = Depends(get_db)):
+    """
+    Fetch all items in the user's cart.
+    """
     cart_items = db.query(ShoppingCartItem).all()
 
     if not cart_items:
         return {"cart": [], "total_price": 0}
 
     total_price = sum(item.quantity * float(item.price) for item in cart_items)
+
     return {
         "cart": [
             {
                 "product_id": item.product_item_id,
                 "quantity": item.quantity,
                 "price": float(item.price),
+                "name": item.product_item.product_name if item.product_item else "Unknown Product",
+                "imageUrl": item.product_item.product_image if item.product_item else "",
             }
             for item in cart_items
         ],
         "total_price": total_price,
     }
+async def cart(type: str = Body(..., embed=True), db: Session = Depends(get_db)):
+    if type == "remove-all":
+        db.query(ShoppingCartItem).delete()  # Remove all items from the cart
+        db.commit()
+        return {"message": "All items removed from cart."}
+# ------------------------------
+# Remove Item from Cart
+# ------------------------------
 
-@app.delete("/cart/remove/{product_id}")
-async def remove_from_cart(product_id: int, db: Session = Depends(get_db)):
-    """Remove a product from the cart."""
+@app.post("/cart/remove")
+async def remove_from_cart(product_id: int = Body(..., embed=True), db: Session = Depends(get_db)):
+    """
+    Remove a specific item from the cart by product_id.
+    """
     cart_item = db.query(ShoppingCartItem).filter(ShoppingCartItem.product_item_id == product_id).first()
 
     if not cart_item:
@@ -715,58 +874,251 @@ async def remove_from_cart(product_id: int, db: Session = Depends(get_db)):
     db.commit()
     return {"message": "Item removed from cart."}
 
+# ------------------------------
+# Checkout (Clear Cart)
+# ------------------------------
+
 @app.post("/cart/checkout")
 async def checkout(db: Session = Depends(get_db)):
-    """Checkout the cart and clear all items."""
+    """
+    Clear the cart and complete the checkout process.
+    """
     cart_items = db.query(ShoppingCartItem).all()
 
     if not cart_items:
         raise HTTPException(status_code=400, detail="Cart is empty")
 
-    # Simulate order creation (details like user and payment skipped for now)
+    # Simulate order processing
     order_total = sum(item.quantity * float(item.price) for item in cart_items)
+
+    # Clear the cart
     db.query(ShoppingCartItem).delete()
     db.commit()
 
-    return {"message": "Checkout successful.", "order_total": order_total}
+    return {"message": "Checkout successful", "order_total": order_total}
+
+# ------------------------------
+# Additional Functionality
+# ------------------------------
+
+@app.post("/cart/deselect-all")
+async def deselect_all_items(db: Session = Depends(get_db)):
+    """
+    Clear all items from the cart.
+    """
+    cart_items = db.query(ShoppingCartItem).all()
+
+    if not cart_items:
+        return {"message": "Cart is already empty."}
+
+    db.query(ShoppingCartItem).delete()
+    db.commit()
+    return {"message": "All items removed from cart."}
 
 # ------------------------------
 # 6. Order Page
 # ------------------------------
 
-@app.get("/orders/{order_id}")
-async def get_order_detail(order_id: int, db: Session = Depends(get_db)):
-    """Fetch details of a specific order."""
+# @app.get("/orders/{order_id}")
+# async def get_order_detail(order_id: int, db: Session = Depends(get_db)):
+#     """Fetch details of a specific order."""
+#     order = db.query(ShopOrder).filter(ShopOrder.order_id == order_id).first()
+#     if not order:
+#         raise HTTPException(status_code=404, detail="Order not found")
+
+#     return {
+#         "order_id": order.order_id,
+#         "order_date": order.order_date,
+#         "order_total": float(order.order_total),
+#         "items": [
+#             {"product_id": line.product_item_id, "quantity": line.qty, "price": float(line.price)}
+#             for line in order.order_lines
+#         ],
+#     }
+
+# @app.get("/orders/history")
+# async def get_order_history(db: Session = Depends(get_db)):
+#     """Fetch all past orders for a user."""
+#     orders = db.query(ShopOrder).all()
+
+#     if not orders:
+#         return {"message": "No past orders found."}
+
+#     return [
+#         {
+#             "order_id": order.order_id,
+#             "order_date": order.order_date,
+#             "order_total": float(order.order_total),
+#         }
+#         for order in orders
+#     ]
+
+# ------------------------------
+# Checkout Display
+# ------------------------------
+
+@app.post("/checkout/display")
+async def display_checkout(db: Session = Depends(get_db)):
+    """
+    Fetch items in the cart, total price, and available payment and shipping methods.
+    """
+    cart_items = db.query(ShoppingCartItem).all()
+
+    if not cart_items:
+        raise HTTPException(status_code=400, detail="Cart is empty")
+
+    total_price = sum(item.quantity * float(item.price) for item in cart_items)
+
+    payment_methods = db.query(UserPaymentMethod).all()
+    shipping_methods = db.query(ShippingMethod).all()
+
+    return {
+        "cart_items": [
+            {
+                "product_id": item.product_item_id,
+                "name": item.product_item.product_name if item.product_item else "Unknown Product",
+                "price": float(item.price),
+                "quantity": item.quantity,
+                "imageUrl": item.product_item.product_image if item.product_item else "",
+            }
+            for item in cart_items
+        ],
+        "total_price": total_price,
+        "payment_methods": [
+            {"id": method.payment_method_id, "provider": method.provider, "account_number": method.account_number}
+            for method in payment_methods
+        ],
+        "shipping_methods": [
+            {"id": method.shipping_method_id, "type": method.type, "price": float(method.price)}
+            for method in shipping_methods
+        ],
+    }
+
+# ------------------------------
+# Order Create
+# ------------------------------
+
+@app.post("/checkout/create-order")
+async def create_order(
+    payment_method_id: int = Body(..., embed=True),
+    shipping_method_id: int = Body(..., embed=True),
+    db: Session = Depends(get_db),
+):
+    """
+    Create an order with the selected payment and shipping methods.
+    """
+    cart_items = db.query(ShoppingCartItem).all()
+
+    if not cart_items:
+        raise HTTPException(status_code=400, detail="Cart is empty")
+
+    total_price = sum(item.quantity * float(item.price) for item in cart_items)
+
+    # Create the order
+    new_order = ShopOrder(
+        user_id=1,  # Replace with actual user ID from authentication
+        order_date=datetime.now(),
+        order_total=total_price,
+        payment_method_id=payment_method_id,
+        shipping_method_id=shipping_method_id,
+        order_status_id=1,  # Assuming '1' is the ID for 'Pending' status
+    )
+    db.add(new_order)
+    db.commit()
+    db.refresh(new_order)
+
+    # Add order lines
+    for item in cart_items:
+        order_line = OrderLine(
+            order_id=new_order.order_id,
+            product_item_id=item.product_item_id,
+            qty=item.quantity,
+            price=item.price,
+        )
+        db.add(order_line)
+
+    # Clear the cart
+    db.query(ShoppingCartItem).delete()
+    db.commit()
+
+    return {"message": "Order created successfully", "order_id": new_order.order_id}
+
+# ------------------------------
+# Order Display
+# ------------------------------
+
+@app.post("/order/{order_id}")
+async def get_order(order_id: int, db: Session = Depends(get_db)):
+    """
+    Fetch and display details for a specific order by order_id.
+    """
     order = db.query(ShopOrder).filter(ShopOrder.order_id == order_id).first()
+
     if not order:
         raise HTTPException(status_code=404, detail="Order not found")
 
     return {
         "order_id": order.order_id,
         "order_date": order.order_date,
-        "order_total": float(order.order_total),
+        "total_price": float(order.order_total),
+        "status": order.order_status.status if order.order_status else "Unknown",
         "items": [
             {"product_id": line.product_item_id, "quantity": line.qty, "price": float(line.price)}
             for line in order.order_lines
         ],
+        "payment_method": {
+            "provider": order.payment_method.provider,
+            "account_number": order.payment_method.account_number,
+        } if order.payment_method else None,
+        "shipping_method": {
+            "type": order.shipping_method.type,
+            "price": float(order.shipping_method.price),
+        } if order.shipping_method else None,
     }
 
-@app.get("/orders/history")
+# ------------------------------
+# Order History
+# ------------------------------
+
+@app.post("/order/history")
 async def get_order_history(db: Session = Depends(get_db)):
-    """Fetch all past orders for a user."""
-    orders = db.query(ShopOrder).all()
+    """
+    Fetch a list of all past orders for the user.
+    """
+    orders = db.query(ShopOrder).filter(ShopOrder.user_id == 1).all()  # Replace with actual user ID
 
     if not orders:
-        return {"message": "No past orders found."}
+        return {"message": "No past orders found", "orders": []}
 
     return [
         {
             "order_id": order.order_id,
             "order_date": order.order_date,
-            "order_total": float(order.order_total),
+            "total_price": float(order.order_total),
+            "status": order.order_status.status if order.order_status else "Unknown",
         }
         for order in orders
     ]
+
+# ------------------------------
+# Payment Processing (Simulated)
+# ------------------------------
+
+@app.post("/payment/process")
+async def process_payment(order_id: int = Body(..., embed=True), db: Session = Depends(get_db)):
+    """
+    Simulate payment processing for a specific order.
+    """
+    order = db.query(ShopOrder).filter(ShopOrder.order_id == order_id).first()
+
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+
+    # Simulate payment processing
+    order.order_status_id = 2  # Assuming '2' is the ID for 'Completed' status
+    db.commit()
+
+    return {"message": "Payment processed successfully", "order_id": order.order_id}
 
 
 # 4 Search products page
