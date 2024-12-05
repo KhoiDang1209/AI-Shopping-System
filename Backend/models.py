@@ -23,17 +23,13 @@ class SiteUser(Base):
     # User attributes
     user_id = Column(Integer, primary_key=True)
     user_name = Column(String(100), nullable=False)
+    age = Column(Integer)
+    gender = Column(String(10))
     email_address = Column(String(100), unique=True)
     phone_number = Column(String(10))
+    city = Column(String(100))
     password = Column(String(255), nullable=False)
     
-    # One-to-One Relationship (explicitly specifying foreign_keys)
-    personal_info = relationship(
-        "UserPersonalInfo",
-        back_populates="user",
-        uselist=False,
-        foreign_keys="UserPersonalInfo.user_id"
-    )
 
     # Other Relationships
     addresses = relationship("UserAddress", back_populates="user")
@@ -43,25 +39,24 @@ class SiteUser(Base):
     shopping_carts = relationship("ShoppingCart", back_populates="user")
     orders = relationship("ShopOrder", back_populates="user")
 
-
-class UserPersonalInfo(Base):
-    __tablename__ = "user_personal_info"
+# class UserPersonalInfo(Base):
+#     __tablename__ = "user_personal_info"
     
-    # Personal Info attributes
-    user_personal_info_id = Column(Integer, primary_key=True)
-    age = Column(String(10), nullable=False)
-    gender = Column(String(20))
-    city = Column(String(100), nullable=False)
+#     # Personal Info attributes
+#     user_personal_info_id = Column(Integer, primary_key=True)
+#     age = Column(String(10), nullable=False)
+#     gender = Column(String(20))
+#     city = Column(String(100), nullable=False)
     
-    # Foreign Key
-    user_id = Column(Integer, ForeignKey("site_user.user_id"))
+#     # Foreign Key
+#     user_id = Column(Integer, ForeignKey("site_user.user_id"))
     
-    # One-to-One Relationship (explicitly specifying foreign_keys)
-    user = relationship(
-        "SiteUser",
-        back_populates="personal_info",
-        foreign_keys=[user_id]
-    )
+#     # One-to-One Relationship (explicitly specifying foreign_keys)
+#     user = relationship(
+#         "SiteUser",
+#         back_populates="personal_info",
+#         foreign_keys=[user_id]
+#     )
 
 
 class UserAddress(Base):
