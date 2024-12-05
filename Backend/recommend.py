@@ -360,8 +360,8 @@ collaborative_recommendation_model = CollabRecommendationModel(user_df,product_d
 
 
 def get_search_recommendations(query:str):
-    results = search_model.search(query)
-    return results
+    search_result = search_model.search(query)
+    return search_result
 def get_trend_recommendations(user_id:str):
     user_id = str(user_id)
     user_record = user_collection.find_one({"user_id": user_id})
@@ -372,8 +372,8 @@ def get_trend_recommendations(user_id:str):
         "gender": user_record["gender"],
         "city": user_record["city"],
     }
-    results = trend_recommendation_model.recommend(user_info)
-    return results
+    trend_results = trend_recommendation_model.recommend(user_info)
+    return trend_results
 def get_interest_recommendations(user_id:str):
     user_id=str(user_id)
     user_record = user_collection.find_one({"user_id": user_id})
@@ -386,14 +386,14 @@ def get_interest_recommendations(user_id:str):
         "city": user_record["city"],
         "interest": interest_record["interests"]
     }
-    results = interest_recommendation_model.recommend(user_info)
-    return results
+    interest_results = interest_recommendation_model.recommend(user_info)
+    return interest_results
 def get_item_recommendation(item_id:str):
-    result=item_recommendation_model.find_similar_items(item_id)
-    return result
+    item_result=item_recommendation_model.find_similar_items(item_id)
+    return item_result
 def get_association_recommendations(ids: list[str]):
-    results = associate_model.recommend(ids)
-    return results
+    asso_results = associate_model.recommend(ids)
+    return asso_results
 def get_collaborative_recommendations(user_id:str):
     user_record=user_collection.find_one({"user_id": user_id})
     if not user_record:
@@ -403,5 +403,5 @@ def get_collaborative_recommendations(user_id:str):
         "gender": user_record["gender"],
         "city": user_record["city"],
     }
-    results = collaborative_recommendation_model.recommend(user_id,user_info)
-    return results
+    collab_results = collaborative_recommendation_model.recommend(user_id,user_info)
+    return collab_results
