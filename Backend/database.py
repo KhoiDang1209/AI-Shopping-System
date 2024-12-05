@@ -3,7 +3,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 
 
-#URL_DATABASE = 'postgresql://postgres:bin04102004@localhost:5432/AI_Shopping_System_Test'
+#URL_DATABASE = 'postgresql://postgres:bin04102004@localhost:5432/AI_Shopping_System'
 # URL_DATABASE = 'postgresql://postgres:postgres@localhost:5432/AI-shoppingDB'
 
 URL_DATABASE = 'postgresql://postgres:123456@localhost:5433/AI-shoppingDB'
