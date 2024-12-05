@@ -186,6 +186,12 @@ const SignUp = () => {
             Sign in
           </a>
         </p>
+        <p className="signin-prompt">
+          Forget Password?{" "}
+          <a href="/ForgetPassword" className="signin-link">
+            Click here
+          </a>
+        </p>
       </div>
 
       <footer>

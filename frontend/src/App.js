@@ -9,7 +9,9 @@ import Cart from './Pages/CartPage/Cart';
 import SignIn from "./Pages/SignIn/SignIn";
 import Checkout from './Pages/CheckoutPage/Checkout';
 import SignUpVerify from './Pages/SignUpPage/signUpVerify';
-
+import ForgetPassword from './Pages/ForgetPassword/ForgetPassword';
+import FPVerify from './Pages/ForgetPassword/FPVerify';
+import ChangePassword from './Pages/ForgetPassword/ChangePassword';
 function App() {
   return (
     <div className="App">
@@ -23,6 +25,9 @@ function App() {
         <Route path='/Cart' element={<Cart />} />
         <Route path='/Checkout' element={<Checkout />} />
         <Route path='/signUpVerify' element={<SignUpVerify />} />
+        <Route path='/ForgetPassword' element={<ForgetPassword />} />
+        <Route path='/FPVerify' element={<FPVerify />} />
+        <Route path='/ChangePassword' element={<ChangePassword />} />
       </Routes>
     </div>
   );
