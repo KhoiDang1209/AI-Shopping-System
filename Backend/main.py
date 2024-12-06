@@ -1,3 +1,4 @@
+from collections import defaultdict
 import os
 import random
 import re
@@ -103,7 +104,22 @@ async def root():
 @app.post("/getUserInfoByEmail")
 async def getUserInfoByEmail(user: FPEmail, db: Session = Depends(get_db)):
     existing_user = db.query(SiteUser).filter(SiteUser.email_address == user.email).first()
-    return {"name": existing_user.user_name, "email": existing_user.email_address, "phone": existing_user.phone_number, "password": existing_user.password, "user_id": existing_user.user_id}
+    user_addresses = db.query(UserAddress).filter(UserAddress.user_id == existing_user.user_id).all()
+    address = db.query(Address).filter(Address.address_id == user_addresses[0].address_id).first()
+    return {"data": {
+                "name": existing_user.user_name,
+                "email": existing_user.email_address,
+                "phone": existing_user.phone_number,
+                "age": existing_user.age,
+                "gender": existing_user.gender,
+                "city": existing_user.city,
+                "unit_number": address.unit_number,
+                "street_number": address.street_number,
+                "address_line1": address.address_line1,
+                "address_line2": address.address_line2,
+                "region": address.region,
+                "postal_code": address.postal_code
+        }}
 
 @app.post("/register")
 async def register_user(user: UserResponse, db: Session = Depends(get_db)):
@@ -343,38 +359,108 @@ async def insertInterestingProductWithMostChosenItem(userEmail: FPEmail, db: Ses
     return {"message": "Success! Auto-assigned top interesting categories."}
 
 # -------------------------------
-# 2. User Profile 
+# 2. User profile api
+    # profile display
+    # profile update
+    # If-else for checking user address status
+        # if doesnt have -> create new
+        # if have -> update
+    # logout
 # -------------------------------
-
-@app.post("/Update")
-async def Update(user: UpdateRequire, db: Session = Depends(get_db)):
-    # Generate verification code
-    verification_code = generate_verification_code()
-    verification_codes[user.email] = verification_code
-
-    # Send email with verification code
-    html = f"<p>Your verification code is: <strong>{verification_code}</strong></p>"
-    message = MessageSchema(subject="Verification Code", recipients=[user.email], body=html, subtype=MessageType.html)
-    fm = FastMail(conf)
-    await fm.send_message(message)
-
-    return {"message": "Please check your email for verification."}
-
 @app.post("/postUpdate")
 async def postUpdate(changeInfo: UpdateRequire, db: Session = Depends(get_db)):
+    # Find the user based on the provided email
     user = db.query(SiteUser).filter(SiteUser.email_address == changeInfo.email).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    # Update user information
+    # Update user personal information
     user.user_name = changeInfo.name
     user.phone_number = changeInfo.phone
     user.age = changeInfo.age
     user.gender = changeInfo.gender
     user.city = changeInfo.city
-    db.commit()
+    db.commit()  # Commit the updated user info
 
-    return {"message": "User information updated successfully", "data": {"name": user.user_name, "email": user.email_address, "phone": user.phone_number, "age": user.age, "gender": user.gender, "city": user.city}}
+    # Check if the user has existing addresses
+    user_addresses = db.query(UserAddress).filter(UserAddress.user_id == user.user_id).all()
+
+    if not user_addresses:
+        # If no addresses exist, create and link a new address
+        new_address = Address(
+            unit_number=changeInfo.unit_number,
+            street_number=changeInfo.street_number,
+            address_line1=changeInfo.address_line1,
+            address_line2=changeInfo.address_line2,
+            region=changeInfo.region,
+            postal_code=changeInfo.postal_code,
+        )
+        db.add(new_address)
+        db.commit()  # Save the new address
+        db.refresh(new_address)
+
+        # Link the new address to the user in UserAddress table
+        new_user_address = UserAddress(
+            user_id=user.user_id,
+            address_id=new_address.address_id,
+            is_default=True  # Mark this address as the default
+        )
+        db.add(new_user_address)
+        db.commit()  # Save the user-address link
+
+        return {"message": "New address created and linked to user.", "data": {
+            "user": {
+                "name": user.user_name,
+                "email": user.email_address,
+                "phone": user.phone_number,
+                "age": user.age,
+                "gender": user.gender,
+                "city": user.city
+            },
+            "address": {
+                "unit_number": new_address.unit_number,
+                "street_number": new_address.street_number,
+                "address_line1": new_address.address_line1,
+                "address_line2": new_address.address_line2,
+                "region": new_address.region,
+                "postal_code": new_address.postal_code
+            }
+        }}
+
+    else:
+        # If addresses exist, update the first address (or modify logic as needed)
+        address = db.query(Address).filter(Address.address_id == user_addresses[0].address_id).first()
+        if address:
+            address.unit_number = changeInfo.unit_number
+            address.street_number = changeInfo.street_number
+            address.address_line1 = changeInfo.address_line1
+            address.address_line2 = changeInfo.address_line2
+            address.region = changeInfo.region
+            address.postal_code = changeInfo.postal_code
+            db.commit()  # Commit the updated address
+
+        else:
+            raise HTTPException(status_code=404, detail="Address not found for user")
+
+    # Return updated user and address data
+    return {"message": "User information updated successfully", "data": {
+        "user": {
+            "name": user.user_name,
+            "email": user.email_address,
+            "phone": user.phone_number,
+            "age": user.age,
+            "gender": user.gender,
+            "city": user.city
+        },
+        "address": {
+            "unit_number": address.unit_number if address else None,
+            "street_number": address.street_number if address else None,
+            "address_line1": address.address_line1 if address else None,
+            "address_line2": address.address_line2 if address else None,
+            "region": address.region if address else None,
+            "postal_code": address.postal_code if address else None
+        }
+    }}
 
 # -------------------------------
 # Forgot Password
@@ -423,14 +509,6 @@ async def postForgetPassword(changeInfo: ChangePasswordInfor, db: Session = Depe
 def is_email(input_str):
     email_regex = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
     return re.match(email_regex, input_str) is not None
-
-# 2. User profile api
-    # profile display
-    # profile update
-    # If-else for checking user address status
-        # if doesnt have -> create new
-        # if have -> update
-    # logout
 @app.post("/UserAddressInfor/")
 async def UserAddressInfor(email: FPEmail, db: Session = Depends(get_db)):
     # Get the user by email
@@ -461,73 +539,6 @@ async def UserAddressInfor(email: FPEmail, db: Session = Depends(get_db)):
             })
 
     return {"addresses": addresses_info}  
-
-@app.post("/updateAddress/")
-async def updateAddress(user: UserAddressRequest, db: Session = Depends(get_db)):
-    # Generate verification code
-    verification_code = generate_verification_code()
-    verification_codes[user.email] = verification_code
-
-    # Send email with verification code
-    html = f"<p>Your verification code is: <strong>{verification_code}</strong></p>"
-    message = MessageSchema(subject="Verification Code", recipients=[user.email], body=html, subtype=MessageType.html)
-    fm = FastMail(conf)
-    await fm.send_message(message)
-
-    return {"message": "Please check your email for verification."}
-
-@app.post("/postupdateAddress/")
-async def update_address(user_request: UserAddressRequest, db: Session = Depends(get_db)):
-    # Get the user by email
-    user = db.query(SiteUser).filter(SiteUser.email_address == user_request.email).first()
-
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found"
-        )
-
-    # Check if user already has addresses
-    user_addresses = db.query(UserAddress).filter(UserAddress.user_id == user.user_id).all()
-
-    if not user_addresses:
-        # If user has no address, create a new one and link it
-        new_address = Address(
-            unit_number=user_request.unit_number,
-            street_number=user_request.street_number,
-            address_line1=user_request.address_line1,
-            address_line2=user_request.address_line2,
-            region=user_request.region,
-            postal_code=user_request.postal_code,
-        )
-        db.add(new_address)
-        db.commit()  # Save the new address
-        db.refresh(new_address)
-
-        # Link the new address to the user in the UserAddress table
-        new_user_address = UserAddress(
-            user_id=user.user_id,
-            address_id=new_address.address_id,
-            is_default=True  # Set it as default if it's the first address
-        )
-        db.add(new_user_address)
-        db.commit()  # Save the user-address link
-        return {"message": "New address created and linked to user.", "data": user_request}
-    
-    else:
-        # If addresses exist, update the first one (or implement custom logic to choose the address)
-        address = db.query(Address).filter(Address.address_id == user_addresses[0].address_id).first()
-
-        if address:
-            address.unit_number = user_request.unit_number
-            address.street_number = user_request.street_number
-            address.address_line1 = user_request.address_line1
-            address.address_line2 = user_request.address_line2
-            address.region = user_request.region
-            address.postal_code = user_request.postal_code
-
-        db.commit()  # Save the updated address
-        return {"message": "Address updated successfully."}
     
 # 3. Home page (Store page)
     # home page display
@@ -536,24 +547,121 @@ async def update_address(user_request: UserAddressRequest, db: Session = Depends
 @app.post("/getAllProduct/")
 async def get_all_products(db: Session = Depends(get_db)):
     all_products = db.query(Product).all()  # Returns a list of Product objects
-    return [
-        {
-            "product_id": product.product_id,
-            "product_name": product.product_name,
-            "main_category": product.main_category,
-            "main_category_encoded": product.main_category_encoded,
-            "sub_category": product.sub_category,
-            "sub_category_encoded": product.sub_category_encoded,
-            "product_image": product.product_image,
-            "product_link": product.product_link,
-            "average_rating": product.average_rating,
-            "no_of_ratings": product.no_of_ratings,
-            "discount_price_usd": product.discount_price_usd,
-            "actual_price_usd": product.actual_price_usd,
-            "category_id": product.category_id
-        }
-        for product in all_products
-    ]
+
+    # Sort products by no_of_ratings from highest to lowest
+    sorted_products = sorted(all_products, key=lambda p: p.no_of_ratings, reverse=True)
+
+    # Group products by rating ranges
+    grouped_products = defaultdict(list)
+
+    for product in sorted_products:
+        rating = product.average_rating
+        if 0 <= rating < 1:
+            grouped_products["0-1"].append(product)
+        elif 1 <= rating < 2:
+            grouped_products["1-2"].append(product)
+        elif 2 <= rating < 3:
+            grouped_products["2-3"].append(product)
+        elif 3 <= rating < 4:
+            grouped_products["3-4"].append(product)
+        elif 4 <= rating <= 5:
+            grouped_products["4-5"].append(product)
+
+    # Convert grouped products into the required format
+    result = {
+        "0-1": [
+            {
+                "product_id": product.product_id,
+                "product_name": product.product_name,
+                "main_category": product.main_category,
+                "main_category_encoded": product.main_category_encoded,
+                "sub_category": product.sub_category,
+                "sub_category_encoded": product.sub_category_encoded,
+                "product_image": product.product_image,
+                "product_link": product.product_link,
+                "average_rating": product.average_rating,
+                "no_of_ratings": product.no_of_ratings,
+                "discount_price_usd": product.discount_price_usd,
+                "actual_price_usd": product.actual_price_usd,
+                "category_id": product.category_id
+            }
+            for product in grouped_products["0-1"]
+        ],
+        "1-2": [
+            {
+                "product_id": product.product_id,
+                "product_name": product.product_name,
+                "main_category": product.main_category,
+                "main_category_encoded": product.main_category_encoded,
+                "sub_category": product.sub_category,
+                "sub_category_encoded": product.sub_category_encoded,
+                "product_image": product.product_image,
+                "product_link": product.product_link,
+                "average_rating": product.average_rating,
+                "no_of_ratings": product.no_of_ratings,
+                "discount_price_usd": product.discount_price_usd,
+                "actual_price_usd": product.actual_price_usd,
+                "category_id": product.category_id
+            }
+            for product in grouped_products["1-2"]
+        ],
+        "2-3": [
+            {
+                "product_id": product.product_id,
+                "product_name": product.product_name,
+                "main_category": product.main_category,
+                "main_category_encoded": product.main_category_encoded,
+                "sub_category": product.sub_category,
+                "sub_category_encoded": product.sub_category_encoded,
+                "product_image": product.product_image,
+                "product_link": product.product_link,
+                "average_rating": product.average_rating,
+                "no_of_ratings": product.no_of_ratings,
+                "discount_price_usd": product.discount_price_usd,
+                "actual_price_usd": product.actual_price_usd,
+                "category_id": product.category_id
+            }
+            for product in grouped_products["2-3"]
+        ],
+        "3-4": [
+            {
+                "product_id": product.product_id,
+                "product_name": product.product_name,
+                "main_category": product.main_category,
+                "main_category_encoded": product.main_category_encoded,
+                "sub_category": product.sub_category,
+                "sub_category_encoded": product.sub_category_encoded,
+                "product_image": product.product_image,
+                "product_link": product.product_link,
+                "average_rating": product.average_rating,
+                "no_of_ratings": product.no_of_ratings,
+                "discount_price_usd": product.discount_price_usd,
+                "actual_price_usd": product.actual_price_usd,
+                "category_id": product.category_id
+            }
+            for product in grouped_products["3-4"]
+        ],
+        "4-5": [
+            {
+                "product_id": product.product_id,
+                "product_name": product.product_name,
+                "main_category": product.main_category,
+                "main_category_encoded": product.main_category_encoded,
+                "sub_category": product.sub_category,
+                "sub_category_encoded": product.sub_category_encoded,
+                "product_image": product.product_image,
+                "product_link": product.product_link,
+                "average_rating": product.average_rating,
+                "no_of_ratings": product.no_of_ratings,
+                "discount_price_usd": product.discount_price_usd,
+                "actual_price_usd": product.actual_price_usd,
+                "category_id": product.category_id
+            }
+            for product in grouped_products["4-5"]
+        ],
+    }
+
+    return result
 
 
 # Get products by category name

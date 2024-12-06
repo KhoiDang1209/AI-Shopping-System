@@ -13,6 +13,10 @@ import ForgetPassword from './Pages/ForgetPassword/ForgetPassword';
 import FPVerify from './Pages/ForgetPassword/FPVerify';
 import ChangePassword from './Pages/ForgetPassword/ChangePassword';
 import LoginVerify from './Pages/SignIn/LoginVerify';
+import { BrowserRouter as Router } from 'react-router-dom';
+import CategoryPage from './Pages/CategoryPage/CategoryPage';
+import UserPage from './Pages/UserPage/UserPage';
+import ChangeUserInfo from './Pages/UserPage/ChangeUserInfo';
 function App() {
   return (
     <div className="App">
@@ -30,6 +34,9 @@ function App() {
         <Route path='/FPVerify' element={<FPVerify />} />
         <Route path='/ChangePassword' element={<ChangePassword />} />
         <Route path='/LoginVerifyEmail' element={<LoginVerify />} />
+        <Route path="/Homepage/:category" element={<CategoryPage />} />
+        <Route path="/UserPage" element={<UserPage />} />
+        <Route path="/ChangeUserInfo" element={<ChangeUserInfo />} />
       </Routes>
     </div>
   );

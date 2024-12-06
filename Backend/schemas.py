@@ -376,9 +376,15 @@ class UpdateRequire(BaseModel):
     email: EmailStr
     phone: str
     address: str
-    age: str
+    age: int
     gender: str
     city: str
+    unit_number: str
+    street_number: str
+    address_line1: str
+    address_line2: str
+    region: str
+    postal_code: str
 class CategoryName(BaseModel):
     category_name: str
 

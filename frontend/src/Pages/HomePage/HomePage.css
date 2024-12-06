@@ -1,8 +1,22 @@
 .homepage {
+    display: flex;
+    flex-direction: column;
     width: 100%;
     height: 100vh;
-    position: relative;
-    /* object-fit: contain; */
+}
+
+.products-container {
+    flex: 1;
+    /* Ensures this section takes available space */
+}
+
+.item__box {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 20px;
+    padding: 0 11px;
+    margin-top: 20px;
+    /* Adds space between the product list and this section */
 }
 
 /* trượt ảnh */
@@ -24,18 +38,20 @@
 .image__item img {
     width: 100%;
     height: 100%;
-    object-fit: cover; /* Ensures the image scales properly */
+    object-fit: cover;
+    /* Ensures the image scales properly */
     -webkit-mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 1), rgba(0, 0, 0, 0));
     mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 1), rgba(0, 0, 0, 0));
     -webkit-mask-size: 100% 100%;
     mask-size: 100% 100%;
     -webkit-mask-repeat: no-repeat;
     mask-repeat: no-repeat;
-    background-color: transparent; /* Ensures transparency where the fade occurs */
+    background-color: transparent;
+    /* Ensures transparency where the fade occurs */
 }
 
 .image__btn {
-    position: absolute;
+    position: relative;
     top: 0;
     display: flex;
     justify-content: space-between;
@@ -61,13 +77,13 @@
 
 /* các box chứa hàng */
 .item__box {
-    z-index: 10;
+    position: relative;
     display: grid;
-    grid-template-columns: auto auto auto auto;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
     gap: 20px;
-    top: 55%;
     padding: 0 11px;
-    position: absolute;
+    margin-top: 20px;
+    /* Adds space between previous section */
 }
 
 .item__box__card {
@@ -183,12 +199,12 @@
     gap: 20px;
     top: 275%;
     padding: 0 11px;
-    position: absolute;
+    position: relative;
 }
 
 /* card trượt */
 .card__slider {
-    position: absolute;
+    position: relative;
     width: 100%;
     padding: 10px;
     gap: 20px;
@@ -203,7 +219,8 @@
     width: 100%;
     box-sizing: border-box;
     padding: 15px;
-    height: 320px;;
+    height: 320px;
+    ;
     background-color: white;
 }
 
@@ -251,7 +268,7 @@
 }
 
 .card__slider--01 {
-    position: absolute;
+    position: relative;
     width: 100%;
     padding: 10px;
     gap: 20px;
@@ -263,7 +280,7 @@
 }
 
 .card__slider--02 {
-    position: absolute;
+    position: relative;
     width: 100%;
     padding: 10px;
     gap: 20px;
@@ -272,4 +289,73 @@
     box-sizing: border-box;
     background-color: rgb(238, 235, 235);
     top: 330%;
+}
+
+.products-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-around;
+    padding: 20px;
+}
+
+.product-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 20px;
+}
+
+.product-item {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 16px;
+    background-color: #fff;
+    text-align: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease-in-out;
+}
+
+.product-item:hover {
+    transform: scale(1.05);
+}
+
+.product-image {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    border-radius: 8px;
+}
+
+.product-info {
+    margin-top: 10px;
+}
+
+.product-name {
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.product-category {
+    font-size: 14px;
+    color: #555;
+}
+
+.product-price {
+    font-size: 16px;
+    color: #0070f3;
+}
+
+.discount-price {
+    font-weight: bold;
+    color: #f43f5e;
+}
+
+.actual-price {
+    text-decoration: line-through;
+    color: #999;
+}
+
+.product-rating {
+    font-size: 14px;
+    color: #666;
+    margin-top: 8px;
 }

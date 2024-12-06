@@ -18,19 +18,63 @@
     gap: 8px;
 }
 
-.navbar__logo {
+
+
+/* Container to hold both the button and the image */
+.button-container {
+    position: relative;
+    /* Establishes the context for absolute positioning */
     width: 100px;
+    /* Set a fixed width for the container */
     height: 30px;
+    /* Set the height for the container */
+}
+
+/* Button styles */
+.navbar__logo {
+    width: 100%;
+    /* Make the button fill the container width */
+    height: 100%;
+    /* Make the button fill the container height */
     text-decoration: none;
     color: white;
     display: flex;
+    align-items: center;
+    /* Center the image vertically inside the button */
+    justify-content: center;
+    /* Center the image horizontally inside the button */
     padding: 8px;
     cursor: pointer;
+    background: none;
+    border: none;
 
+    /* Hover effect */
     &:hover {
         border: 1px solid;
         border-radius: 3px;
     }
+}
+
+/* Image inside the button */
+
+/* Image positioned above the button */
+.overlay-image {
+    position: absolute;
+    top: -20px;
+    /* Adjust to position the image above the button */
+    left: 0;
+    width: 50px;
+    /* Size of the image */
+    height: 50px;
+    /* Size of the image */
+    object-fit: contain;
+    /* Ensures the image fits within its bounds */
+    z-index: 1;
+    /* Ensure it appears above the button */
+}
+
+.hidden-button {
+    visibility: hidden;
 }
 
 .amazon__logo {
