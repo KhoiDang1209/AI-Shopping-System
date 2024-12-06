@@ -714,50 +714,37 @@ async def get_all_categories(db: Session = Depends(get_db)):
 # 4. Search Products Page
 # ------------------------------
 
-@app.post("/products")
-async def get_products(
-    category: Optional[str] = Body(None, embed=True),
-    min_price: Optional[float] = Body(None, embed=True),
-    max_price: Optional[float] = Body(None, embed=True),
-    page: int = Body(1, embed=True),
-    page_size: int = Body(10, embed=True),
-    db: Session = Depends(get_db),
-):
-    """
-    Fetch and filter products with pagination.
-    """
-    query = db.query(Product)
-
-    if category:
-        query = query.filter(Product.main_category.ilike(f"%{category}%"))
-    if min_price is not None:
-        query = query.filter(Product.discount_price_usd >= min_price)
-    if max_price is not None:
-        query = query.filter(Product.discount_price_usd <= max_price)
-
-    total_products = query.count()
-    products = query.offset((page - 1) * page_size).limit(page_size).all()
+@app.post("/searchProducts/")
+async def search_products(search: str, db: Session = Depends(get_db)):
+    # Search products by name or category
+    products = db.query(Product).filter(
+        Product.product_name.ilike(f"%{search}%") | 
+        Product.main_category.ilike(f"%{search}%") |
+        Product.sub_category.ilike(f"%{search}%")
+    ).all()
 
     if not products:
-        return {"products": [], "total": 0, "page": page, "page_size": page_size}
+        raise HTTPException(status_code=404, detail="No products found")
 
-    return {
-        "products": [
-            {
-                "product_id": product.product_id,
-                "name": product.product_name,
-                "category": product.main_category,
-                "price": float(product.discount_price_usd),
-                "image": product.product_image,
-                "ratings": product.average_rating,
-                "stock": product.items[0].is_in_stock if product.items else False,
-            }
-            for product in products
-        ],
-        "total": total_products,
-        "page": page,
-        "page_size": page_size,
-    }
+    return [
+        {
+            "product_id": product.product_id,
+            "product_name": product.product_name,
+            "main_category": product.main_category,
+            "main_category_encoded": product.main_category_encoded,
+            "sub_category": product.sub_category,
+            "sub_category_encoded": product.sub_category_encoded,
+            "product_image": product.product_image,
+            "product_link": product.product_link,
+            "average_rating": product.average_rating,
+            "no_of_ratings": product.no_of_ratings,
+            "discount_price_usd": product.discount_price_usd,
+            "actual_price_usd": product.actual_price_usd,
+            "category_id": product.category_id
+        }
+        for product in products
+    ]
+
 
 
 
@@ -765,45 +752,8 @@ async def get_products(
 # 4.1. Product Detail Page
 # ------------------------------
 
-# @app.get("/products/{product_id}")
-# async def get_product_detail(product_id: int, db: Session = Depends(get_db)):
-#     """Fetch detailed information for a specific product."""
-#     product = db.query(Product).filter(Product.product_id == product_id).first()
-#     if not product:
-#         raise HTTPException(status_code=404, detail="Product not found")
-
-#     return {
-#         "product_id": product.product_id,
-#         "product_name": product.product_name,
-#         "main_category": product.main_category,
-#         "sub_category": product.sub_category,
-#         "discount_price": product.discount_price_usd,
-#         "actual_price": product.actual_price_usd,
-#         "description": product.product_image,  # Assuming description exists
-#         "image": product.product_image,
-#     }
-
-# @app.post("/cart/add")
-# async def add_to_cart(product_id: int, quantity: int, db: Session = Depends(get_db)):
-#     """Add a product to the shopping cart or update quantity if it already exists."""
-#     cart_item = db.query(ShoppingCartItem).filter(ShoppingCartItem.product_item_id == product_id).first()
-
-#     if cart_item:
-#         cart_item.quantity += quantity
-#     else:
-#         cart_item = ShoppingCartItem(product_item_id=product_id, quantity=quantity, price=0.0)
-#         db.add(cart_item)
-
-#     db.commit()
-#     return {"message": "Product added to cart successfully."}
-@app.post("/products/detail")
-async def get_product_detail(
-    product_id: int = Body(..., embed=True),
-    db: Session = Depends(get_db),
-):
-    """
-    Fetch detailed information for a specific product by product_id.
-    """
+@app.get("/getProductDetails/{product_id}")
+async def get_product_details(product_id: int, db: Session = Depends(get_db)):
     product = db.query(Product).filter(Product.product_id == product_id).first()
 
     if not product:
@@ -811,15 +761,57 @@ async def get_product_detail(
 
     return {
         "product_id": product.product_id,
-        "name": product.product_name,
-        "category": product.main_category,
-        "price": float(product.discount_price_usd),
-        "actual_price": float(product.actual_price_usd),
-        "image": product.product_image,
-        "description": product.product_image,  # Replace with real description if available
-        "ratings": product.average_rating,
-        "stock": product.items[0].is_in_stock if product.items else False,
+        "product_name": product.product_name,
+        "main_category": product.main_category,
+        "main_category_encoded": product.main_category_encoded,
+        "sub_category": product.sub_category,
+        "sub_category_encoded": product.sub_category_encoded,
+        "product_image": product.product_image,
+        "product_link": product.product_link,
+        "average_rating": product.average_rating,
+        "no_of_ratings": product.no_of_ratings,
+        "discount_price_usd": product.discount_price_usd,
+        "actual_price_usd": product.actual_price_usd,
+        "category_id": product.category_id
     }
+
+@app.post("/addToCart/")
+async def add_to_cart(product_id: int, user_email: str, quantity: int, db: Session = Depends(get_db)):
+    # Get the user by email
+    user = db.query(SiteUser).filter(SiteUser.email_address == user_email).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    # Get the product by ID
+    product = db.query(Product).filter(Product.product_id == product_id).first()
+    if not product:
+        raise HTTPException(status_code=404, detail="Product not found")
+
+    # Get the user's shopping cart or create a new one if it doesn't exist
+    cart = db.query(ShoppingCart).filter(ShoppingCart.user_id == user.user_id).first()
+    if not cart:
+        cart = ShoppingCart(user_id=user.user_id)
+        db.add(cart)
+        db.commit()
+        db.refresh(cart)
+
+    # Check if the product is already in the cart
+    cart_item = db.query(ShoppingCartItem).filter(ShoppingCartItem.cart_id == cart.cart_id, 
+                                                   ShoppingCartItem.product_id == product_id).first()
+
+    if cart_item:
+        # If the product is already in the cart, update the quantity
+        cart_item.quantity += quantity
+    else:
+        # If the product is not in the cart, add it as a new item
+        cart_item = ShoppingCartItem(cart_id=cart.cart_id, product_id=product_id, quantity=quantity)
+        db.add(cart_item)
+
+    # Commit changes to the database
+    db.commit()
+
+    return {"message": "Product added to cart successfully"}
+
 
 
 # ------------------------------
@@ -922,30 +914,30 @@ async def get_product_categories(db: Session = Depends(get_db)):
 # ------------------------------
 
 @app.post("/cart")
-async def get_cart(db: Session = Depends(get_db)):
-    """
-    Fetch all items in the user's cart.
-    """
-    cart_items = db.query(ShoppingCartItem).all()
+async def get_cart(
+    type: str = Body(..., embed=True),
+    shopping_cart_id: int = Body(..., embed=True),
+    db: Session = Depends(get_db),
+):
+    if type == "display":
+        cart = db.query(ShoppingCart).filter(ShoppingCart.shopping_cart_id == shopping_cart_id).first()
+        if not cart:
+            return {"cart": []}
 
-    if not cart_items:
-        return {"cart": [], "total_price": 0}
+        return {
+            "cart": [
+                {
+                    "product_item_id": item.product_item_id,
+                    "quantity": item.quantity,
+                    "price": float(item.price),
+                    "name": item.product_item.product_name,  # Assuming ProductItem has this field
+                    "image_url": item.product_item.product_image,  # Assuming ProductItem has this field
+                    "stock": item.product_item.stock,  # Assuming ProductItem has this field
+                }
+                for item in cart.items
+            ]
+        }
 
-    total_price = sum(item.quantity * float(item.price) for item in cart_items)
-
-    return {
-        "cart": [
-            {
-                "product_id": item.product_item_id,
-                "quantity": item.quantity,
-                "price": float(item.price),
-                "name": item.product_item.product_name if item.product_item else "Unknown Product",
-                "imageUrl": item.product_item.product_image if item.product_item else "",
-            }
-            for item in cart_items
-        ],
-        "total_price": total_price,
-    }
 async def cart(type: str = Body(..., embed=True), product_id: int = Body(..., embed=True), quantity: int = Body(..., embed=True), db: Session = Depends(get_db)):
     if type == "remove-all":
         db.query(ShoppingCartItem).delete()  # Remove all items from the cart
@@ -998,24 +990,6 @@ async def checkout(db: Session = Depends(get_db)):
     db.commit()
 
     return {"message": "Checkout successful", "order_total": order_total}
-
-# ------------------------------
-# Additional Functionality
-# ------------------------------
-
-@app.post("/cart/deselect-all")
-async def deselect_all_items(db: Session = Depends(get_db)):
-    """
-    Clear all items from the cart.
-    """
-    cart_items = db.query(ShoppingCartItem).all()
-
-    if not cart_items:
-        return {"message": "Cart is already empty."}
-
-    db.query(ShoppingCartItem).delete()
-    db.commit()
-    return {"message": "All items removed from cart."}
 
 # ------------------------------
 # 6. Order Page
