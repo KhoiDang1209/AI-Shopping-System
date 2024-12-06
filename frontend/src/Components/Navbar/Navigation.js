@@ -26,6 +26,12 @@ const NavBar = ({ userInfo }) => {
         gender: userInfo?.gender || '',
         city: userInfo?.city || '',
     });
+
+    const handleNavigate = () => {
+        navigate('/', {
+            state: { userData: { ...userInfo } },
+        });
+    };
     const [showAll, setShowAll] = useState(false);
     const allItems = [
         { _id: "100", title: "All Departments" },
@@ -71,7 +77,24 @@ const NavBar = ({ userInfo }) => {
     }, [ref, sidebar]);
 
     const CartItems = useSelector((state) => state.cart.items);
+    // When a category is selected
+    const handleCategorySelect = (categoryTitle) => {
+        setCategory(categoryTitle);  // Set the selected category
+        navigate(`/Homepage/${categoryTitle}`, { state: { userData: { ...userData } } });  // Navigate to the new page
+        setShowAll(false);  // Close the dropdown after selection
+    };
+    const handleProfileClick = () => {
+        // Ensure userData is defined
+        if (!userData) {
+            console.error("No user data available!");
+            return;
+        }
 
+        // Use navigate to go to /UserPage with state
+        navigate('/UserPage', {
+            state: { userData }  // Pass userData as state to /UserPage
+        });
+    };
     // khúc này làm suggestion cho search bar
     const [suggestions, setSuggestions] = useState(null);
     const [searchTerm, setSearchTerm] = useState("");
@@ -111,7 +134,7 @@ const NavBar = ({ userInfo }) => {
         setIsDropdownOpen(prevState => !prevState);
     };
     // hết phần suggestion cho search bar
-
+    // console.log(userData)
     return (
         <div className="navbar__component">
             {/* NavBar trên */}
@@ -119,9 +142,12 @@ const NavBar = ({ userInfo }) => {
                 {/* bên trái */}
                 <div className="navbar__up__left">
                     {/* logo */}
-                    <Link to="/" className="navbar__logo">
-                        <img className='amazon__logo' src={amazon_logo} alt='amazon_logo' />
-                    </Link>
+                    <div>
+                        {/* Option 1: Using navigate with button */}
+                        <button onClick={handleNavigate} className="navbar__logo">
+                            <img className="amazon__logo" src={amazon_logo} alt="amazon_logo" />
+                        </button>
+                    </div>
 
                     {/* vị trí */}
                     <div className="navbar__location">
@@ -141,55 +167,70 @@ const NavBar = ({ userInfo }) => {
 
                 {/* ở giữa */}
                 <div className="searchbox__middle">
-                    {/* ô tìm kiếm */}
+                    {/* Search Box */}
                     <div className="navbar__searchbox">
-                        {/* all */}
+                        {/* All Categories Dropdown */}
                         <div className="searchbox__box">
-                            <div className="searchbox__all" onClick={() => setShowAll(!showAll)} onChange={(e) => setCategory(e.target.value)}>
-                                <div className="searchbox__all__text">
-                                    All
-                                </div>
+                            <div
+                                className="searchbox__all"
+                                onClick={() => setShowAll(!showAll)}
+                            >
+                                <div className="searchbox__all__text">All</div>
                                 <ArrowDropDownOutlinedIcon sx={{ fontSize: "20px" }} />
                             </div>
 
+                            {/* Dropdown list of categories */}
                             {showAll && (
                                 <div>
                                     <ul className="searchbox__all__textbox">
                                         {allItems.map(item => (
-                                            <li className="textbox__text" key={item._id}>{item.title}</li>
+                                            <li
+                                                className="textbox__text"
+                                                key={item._id}
+                                                onClick={() => handleCategorySelect(item.title)}  // Handle category selection
+                                            >
+                                                {item.title}
+                                            </li>
                                         ))}
                                     </ul>
                                 </div>
                             )}
 
-                            <input type='text' className="searchbox__input" placeholder='Search Amazon' value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+                            {/* Search Input */}
+                            <input
+                                type="text"
+                                className="searchbox__input"
+                                placeholder="Search Amazon"
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                            />
 
+                            {/* Search Icon */}
                             <div className="searchbox__icon" onClick={onHandleSubmit}>
                                 <SearchOutlinedIcon sx={{ fontSize: "26px" }} />
                             </div>
                         </div>
-                        {
-                            suggestions && searchTerm && (
-                                <div className="suggestion__box">
-                                    {
-                                        suggestions
-                                            .filter((Product) => {
-                                                const currentSearchTerm = searchTerm.toLowerCase();
-                                                const title = Product.name.toLowerCase(); // Match with `name` field from JSON
-                                                return (
-                                                    title.startsWith(currentSearchTerm) && title !== currentSearchTerm
-                                                );
-                                            })
-                                            .slice(0, 10)
-                                            .map((Product) => (
-                                                <div key={Product.id} onClick={() => setSearchTerm(Product.name)}>
-                                                    {Product.name}
-                                                </div>
-                                            ))
-                                    }
-                                </div>
-                            )
-                        }
+
+                        {/* Suggestions box (if any search term is entered) */}
+                        {suggestions && searchTerm && (
+                            <div className="suggestion__box">
+                                {suggestions
+                                    .filter((Product) => {
+                                        const currentSearchTerm = searchTerm.toLowerCase();
+                                        const title = Product.name.toLowerCase();
+                                        return title.startsWith(currentSearchTerm) && title !== currentSearchTerm;
+                                    })
+                                    .slice(0, 10)
+                                    .map((Product) => (
+                                        <div
+                                            key={Product.id}
+                                            onClick={() => setSearchTerm(Product.name)}  // Set search term when suggestion is clicked
+                                        >
+                                            {Product.name}
+                                        </div>
+                                    ))}
+                            </div>
+                        )}
                     </div>
                 </div>
 
@@ -234,9 +275,12 @@ const NavBar = ({ userInfo }) => {
                                     </Link>
                                 </>
                             ) : (
-                                <Link to="/Profile" className="account__dropdownOption">
+                                <div
+                                    onClick={handleProfileClick}
+                                    className="account__dropdownOption"
+                                >
                                     Your Profile
-                                </Link>
+                                </div>
                             )}
                         </div>
                     </div>

@@ -6,10 +6,14 @@ import NavBar from "../../Components/Navbar/Navigation";
 import HomepageFooter from "../../Pages/HomePage/HomepageFooter";
 import { Link } from 'react-router-dom';
 import { useLocation, useNavigate } from 'react-router-dom';
+import axios from "axios";
+
 const HomePage = () => {
+
   const location = useLocation();
   const userData = location.state?.userData;
 
+  console.log(userData)
   const [userInfo, setUserInfo] = useState({
     name: userData?.name || '',
     email: userData?.email || '',
@@ -19,6 +23,9 @@ const HomePage = () => {
     gender: userData?.gender || '',
     city: userData?.city || '',
   });
+
+  const [products, setProducts] = useState([]); // State for storing product data
+  const [loading, setLoading] = useState(true); // Loading state
   const [startSlider, setStartSlider] = useState(0);
   const imgItemRef = useRef(null);
 
@@ -35,7 +42,24 @@ const HomePage = () => {
       setStartSlider(startSlider + 100);
     }
   };
+  // Fetch products from the backend
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const response = await axios.post("http://127.0.0.1:8000/getAllProduct/"); // Adjust URL if needed
+        if (response.status === 200) {
+          setProducts(response.data["4-5"]); // Set the fetched products
+        }
+      } catch (error) {
+        console.error("Error fetching products:", error);
+      } finally {
+        setLoading(false); // Stop loading once data is fetched
+      }
+    };
 
+    fetchProducts();
+  }, []); // Empty dependency array means this will only run once when the component is mounted
+  const limitedProducts = products.slice(0, 10);
   return (
     <div className="homepage">
       <NavBar userInfo={userInfo} />
@@ -108,9 +132,44 @@ const HomePage = () => {
 
       {/* bắt đầu làm */}
       {/* các card */}
-      <div className="item__box">
+      <div className="products-container">
+        {/* Check if products are loading */}
+        {loading ? (
+          <div>Loading...</div>
+        ) : (
+          <div className="product-list">
+            {limitedProducts.map((product) => (
+              <div key={product.product_id} className="product-item">
+                <Link to={product.product_link} className="product-link">
+                  <img
+                    src={product.product_image}
+                    alt={product.product_name}
+                    className="product-image"
+                  />
+                  <div className="product-info">
+                    <h3 className="product-name">{product.product_name}</h3>
+                    <p className="product-category">{product.main_category}</p>
+                    <p className="product-price">
+                      <span className="discount-price">
+                        ${product.discount_price_usd}
+                      </span>
+                      <span className="actual-price">
+                        ${product.actual_price_usd}
+                      </span>
+                    </p>
+                    <p className="product-rating">
+                      {product.average_rating} Stars ({product.no_of_ratings} reviews)
+                    </p>
+                  </div>
+                </Link>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+      {/* <div className="item__box">
         {/* card 01 */}
-        <div className="item__box__card">
+      {/* <div className="item__box__card">
           <div className="item__box__card__title">
             Score Black Friday Week deals
             <div className="item__box__card__image">
@@ -150,10 +209,10 @@ const HomePage = () => {
               </Link>
             </div>
           </div>
-        </div>
+        </div> */}
 
-        {/* card 02 */}
-        <div className="item__box__card">
+      {/* card 02 */}
+      {/* <div className="item__box__card">
           <div className="item__box__card__title">
             Refresh your space
             <div className="item__box__card__image">
@@ -193,10 +252,10 @@ const HomePage = () => {
               </Link>
             </div>
           </div>
-        </div>
+        </div> */}
 
-        {/* card 03 */}
-        <div className="item__box__card">
+      {/* card 03 */}
+      {/* <div className="item__box__card">
           <div className="item__box__card__title">
             Toys under $25
             <div className="item__box__card__image">
@@ -212,10 +271,10 @@ const HomePage = () => {
               </Link>
             </div>
           </div>
-        </div>
+        </div> */}
 
-        {/* card 04 */}
-        <div className="item__box__card">
+      {/* card 04 */}
+      {/* <div className="item__box__card">
           <div className="item__box__card__title">
             Shop Black Friday deals
             <div className="item__box__card__image">
@@ -231,10 +290,10 @@ const HomePage = () => {
               </Link>
             </div>
           </div>
-        </div>
+        </div> */}
 
-        {/* card 05 */}
-        <div className="item__box__card">
+      {/* card 05 */}
+      {/* <div className="item__box__card">
           <div className="item__box__card__title">
             Must-see Black Friday Week deals
             <div className="item__box__card__image">
@@ -274,10 +333,10 @@ const HomePage = () => {
               </Link>
             </div>
           </div>
-        </div>
+        </div> */}
 
-        {/* card 06 */}
-        <div className="item__box__card">
+      {/* card 06 */}
+      {/* <div className="item__box__card">
           <div className="item__box__card__title">
             Black Friday Week deals are here
             <div className="item__box__card__image">
@@ -317,10 +376,10 @@ const HomePage = () => {
               </Link>
             </div>
           </div>
-        </div>
+        </div> */}
 
-        {/* card 07 */}
-        <div className="item__box__card">
+      {/* card 07 */}
+      {/* <div className="item__box__card">
           <div className="item__box__card__title">
             Get your game on
             <div className="item__box__card__image">
@@ -336,10 +395,10 @@ const HomePage = () => {
               </Link>
             </div>
           </div>
-        </div>
+        </div> */}
 
-        {/* card 08 */}
-        <div className="item__box__card">
+      {/* card 08 */}
+      {/* <div className="item__box__card">
           <div className="item__box__card__title">
             Easy updates for elevated spaces
             <div className="item__box__card__image">
@@ -380,7 +439,7 @@ const HomePage = () => {
             </div>
           </div>
         </div>
-      </div>
+      </div> */}
 
       {/* card trượt */}
       <div className="card__slider">
