@@ -3,8 +3,6 @@ POST request
 /search for search query
 data={"query": "string"}
 
-file json list id -> search 
-
 # home page, new user
 /trend for recommend collaborative+trend if user are new and has no interest
 data={"id": "string"} id is user_id
@@ -13,8 +11,8 @@ data={"id": "string"} id is user_id
 /interest for recommend collaborative+interest if user are new and has interest
 data={"id": "string"} id is user_id
 
-# item page, show related items
-/item for recommend similar item of a given item
+# iommtem page, show related items
+/item for recend similar item of a given item
 data={"id": "string"} id is productid
 
 # cart page, show related items in cart

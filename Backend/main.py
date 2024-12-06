@@ -21,6 +21,7 @@ from database import engine, SessionLocal
 from models import *
 from schemas import *
 import requests
+# from ModelApp.ML_FastAPI_Docker_Heroku import main
 
 # Load environment variables
 dotenv_path = os.path.join(os.getcwd(), ".env")
@@ -33,7 +34,8 @@ app = FastAPI()
 
 models.Base.metadata.create_all(bind=engine)
 #Do not modify this as need to create table be for insert data
-# # from insert_data import *
+from recommend import (get_search_recommendations, get_collaborative_recommendations)
+# from insert_data import *
 
 # @app.on_event("startup")
 # async def startup_event():
@@ -534,9 +536,17 @@ async def update_address(user_request: UserAddressRequest, db: Session = Depends
     # home page display
     # recommend product (do after have ai model)
     # categories (show different product categories)
-@app.post("/getAllProduct/")
-async def get_all_products(db: Session = Depends(get_db)):
-    all_products = db.query(Product).all()  # Returns a list of Product objects
+    
+
+@app.get("/getHomePageProduct/")
+async def get_home_page_product(userid: int, db: Session = Depends(get_db)):
+    
+    result = get_collaborative_recommendations(str(userid))
+    
+    all_products = db.query(Product).filter(
+        Product.product_id.in_(result)
+    ).all()  # Returns a list of Product objects
+    
     return [
         {
             "product_id": product.product_id,
@@ -551,7 +561,6 @@ async def get_all_products(db: Session = Depends(get_db)):
             "no_of_ratings": product.no_of_ratings,
             "discount_price_usd": product.discount_price_usd,
             "actual_price_usd": product.actual_price_usd,
-            "category_id": product.category_id
         }
         for product in all_products
     ]
@@ -611,17 +620,8 @@ async def get_all_categories(db: Session = Depends(get_db)):
 @app.get("/products/search")
 async def search_products(query: str = "", db: Session = Depends(get_db)):
     """Search products by name or category."""
-    url="https://recommend-api-458172285932.asia-east1.run.app/search"
-    
-    data = {
-        "query": query
-    }
 
-    response = requests.post(url, json=data)
-    product_ids = response.json()['results']
-
-    # Print the response from the server
-    print(response.json())
+    product_ids = get_search_recommendations(query)
     
     products = db.query(Product).filter(
         Product.product_id.in_(product_ids)
@@ -652,23 +652,24 @@ async def search_products(query: str = "", db: Session = Depends(get_db)):
 # 4.1. Product Detail Page
 # ------------------------------
 
-@app.get("/products/{product_id}")
-async def get_product_detail(product_id: int, db: Session = Depends(get_db)):
+@app.get("/products/{product_id}", response_model=ProductItemResponse)
+async def get_product_detail(product_item_id: String, db: Session = Depends(get_db)):
     """Fetch detailed information for a specific product."""
-    product = db.query(Product).filter(Product.product_id == product_id).first()
+    
+    product = db.query(ProductItem).filter(
+        ProductItem.product_item_id == product_item_id
+    ).first()
+    
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
 
-    return {
-        "product_id": product.product_id,
-        "product_name": product.product_name,
-        "main_category": product.main_category,
-        "sub_category": product.sub_category,
-        "discount_price": product.discount_price_usd,
-        "actual_price": product.actual_price_usd,
-        "description": product.product_image,  # Assuming description exists
-        "image": product.product_image,
-    }
+    return [
+        {
+            "product_item_id": 
+        }
+    ]
+    
+@app.get("/product/{product_id}")
 
 @app.post("/cart/add")
 async def add_to_cart(product_id: int, quantity: int, db: Session = Depends(get_db)):

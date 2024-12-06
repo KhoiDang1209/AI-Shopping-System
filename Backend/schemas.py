@@ -82,20 +82,25 @@ class AddressResponse(AddressBase):
 
 # Product Schemas
 class ProductBase(BaseModel):
+    product_id: str
     product_name: str
-    description: Optional[str]
-    category_id: int
+    main_category: str
+    main_category_encoded: str
+    sub_category: str
+    sub_category_encoded: str
+    product_image: Optional[str] = None
+    product_link: Optional[str] = None
+    average_rating: Optional[float] = 0.0
+    no_of_ratings: Optional[int] = 0
+    discount_price_usd: Optional[float] = None
+    actual_price_usd: Optional[float] = None
+    
+    class Config:
+        orm_mode = True
 
 
 class ProductCreate(ProductBase):
     pass
-
-
-class ProductResponse(ProductBase):
-    product_id: int
-
-    class Config:
-        orm_mode = True
 
 
 # Order Schemas
@@ -232,15 +237,15 @@ class VariationResponse(BaseModel):
         orm_mode = True
         
     # products
-class ProductResponse(BaseModel):
-    product_id: int
+class ProductItemResponse(BaseModel):
+    product_item_id: int
     product_name: str
-    description: Optional[str] = None
-    price: Decimal
     SKU: str
+    price: Decimal
+    is_in_stock: bool
     product_image: Optional[str] = None
     category: CategoryResponse
-    variations: Optional[List[VariationResponse]] = []
+    product: ProductBase
 
     class Config:
         orm_mode = True

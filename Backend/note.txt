@@ -60,10 +60,10 @@ postgresql://postgres:bin04102004@127.0.0.1:5432/AI_Shopping_System
 
 
 AI_related_product_apis:
-  show homepage products
-  show searched products
-  show selected item from searched products
-
+  show homepage products done ?
+  show searched products done
+  recommend selected related items notdone
+  recommend in-cart related items notdone
 
 Đức Độ
 CREATE TABLE "country" (
