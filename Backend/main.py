@@ -652,12 +652,12 @@ async def search_products(query: str = "", db: Session = Depends(get_db)):
 # 4.1. Product Detail Page
 # ------------------------------
 
-@app.get("/products/{product_id}", response_model=ProductItemResponse)
-async def get_product_detail(product_item_id: String, db: Session = Depends(get_db)):
+@app.get("/products/{product_id}")
+async def get_product_detail(product_id: String, db: Session = Depends(get_db)):
     """Fetch detailed information for a specific product."""
     
-    product = db.query(ProductItem).filter(
-        ProductItem.product_item_id == product_item_id
+    product = db.query(Product).filter(
+        Product.product_id == product_id
     ).first()
     
     if not product:
@@ -665,11 +665,24 @@ async def get_product_detail(product_item_id: String, db: Session = Depends(get_
 
     return [
         {
-            "product_item_id": 
+            "product_id": product.product_id,
+            "product_name": product.product_name,
+            "main_category": product.main_category,
+            "main_category_encoded": product.main_category_encoded,
+            "sub_category": product.sub_category,
+            "sub_category_encoded": product.sub_category_encoded,
+            "product_image": product.product_image,
+            "product_link": product.product_link,
+            "average_rating": product.average_rating,
+            "no_of_ratings": product.no_of_ratings,
+            "discount_price_usd": product.discount_price_usd,
+            "actual_price_usd": product.actual_price_usd,
         }
     ]
-    
-@app.get("/product/{product_id}")
+
+
+@app.get()
+async def get_selected_related_item(product)
 
 @app.post("/cart/add")
 async def add_to_cart(product_id: int, quantity: int, db: Session = Depends(get_db)):
