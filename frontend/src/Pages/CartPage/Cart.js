@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import './Cart.css';
 import { useSelector, useDispatch } from 'react-redux';
-import { RemoveFromCart, RemoveAllFromCart } from '../../Redux/Action/Action';
+import { RemoveFromCart, RemoveAllFromCart, UpdateCartQuantity } from '../../Redux/Action/Action';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import NavBar from '../../Components/Navbar/Navigation';
@@ -75,6 +75,32 @@ const Cart = () => {
       }
     };
 
+  // Handle quantity change for an item
+  const handleQuantityChange = async (id, newQuantity) => {
+    if (newQuantity < 1) {
+      toast.warn("Quantity cannot be less than 1.");
+      return;
+    }
+
+    try {
+      // Send updated quantity to the backend
+      await axios.post("http://localhost:8000/cart", { type: "update-quantity", product_id: id, quantity: newQuantity });
+
+      // Update Redux state
+      Dispatch(UpdateCartQuantity(id, newQuantity));
+
+      // Update local state
+      SetCartItem((prevItems) =>
+        prevItems.map((item) => (item.product_id === id ? { ...item, quantity: newQuantity } : item))
+      );
+
+      toast.success("Quantity updated", { position: "bottom-right" });
+    } catch (error) {
+      console.error("Error updating quantity:", error);
+      toast.error("Failed to update quantity.");
+    }
+  };
+
   return (
     <div>
         <NavBar />
@@ -102,6 +128,29 @@ const Cart = () => {
                         </div>
                         <div className="InStockCart">In Stock</div>
                         <div className="FreeShipping">Free Shipping Available</div>
+                        
+                        {/* Quantity Management */}
+                        <div className="CartQuantityControls">
+                          <button
+                            className="DecreaseButton"
+                            onClick={() => handleQuantityChange(item.product_id, item.quantity - 1)}
+                          >
+                            -
+                          </button>
+                          <input
+                            type="number"
+                            className="QuantityInput"
+                            value={item.quantity}
+                            onChange={(e) => handleQuantityChange(item.product_id, parseInt(e.target.value))}
+                          />
+                          <button
+                            className="IncreaseButton"
+                            onClick={() => handleQuantityChange(item.product_id, item.quantity + 1)}
+                          >
+                            +
+                          </button>
+                        </div>
+
                         <div className="RemoveFromCart" onClick={() => (HandleRemoveFromCart(item.id))}>Remove from Cart</div>
                         </div>
                     </div>
