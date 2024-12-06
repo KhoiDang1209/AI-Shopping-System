@@ -45,9 +45,6 @@ const User = () => {
               <strong>Email:</strong> <span>{userInfo.email}</span>
             </div>
             <div className="user__info__item">
-              <strong>Phone:</strong> <span>{userInfo.phone}</span>
-            </div>
-            <div className="user__info__item">
               <strong>Address:</strong> <span>{userInfo.address}</span>
             </div>
           </div>
