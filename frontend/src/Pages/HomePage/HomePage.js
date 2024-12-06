@@ -9,11 +9,11 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import axios from "axios";
 
 const HomePage = () => {
-
   const location = useLocation();
   const userData = location.state?.userData;
 
-  console.log(userData)
+  console.log(userData);
+
   const [userInfo, setUserInfo] = useState({
     name: userData?.name || '',
     email: userData?.email || '',
@@ -42,24 +42,31 @@ const HomePage = () => {
       setStartSlider(startSlider + 100);
     }
   };
-  // Fetch products from the backend
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const response = await axios.post("http://127.0.0.1:8000/getAllProduct/"); // Adjust URL if needed
-        if (response.status === 200) {
-          setProducts(response.data["4-5"]); // Set the fetched products
-        }
-      } catch (error) {
-        console.error("Error fetching products:", error);
-      } finally {
-        setLoading(false); // Stop loading once data is fetched
-      }
-    };
 
-    fetchProducts();
-  }, []); // Empty dependency array means this will only run once when the component is mounted
+  // Fetch products only if userData is null
+  useEffect(() => {
+    if (!userData) {
+      const fetchProducts = async () => {
+        try {
+          const response = await axios.post("http://127.0.0.1:8000/getAllProduct/"); // Adjust URL if needed
+          if (response.status === 200) {
+            setProducts(response.data["4-5"]); // Set the fetched products
+          }
+        } catch (error) {
+          console.error("Error fetching products:", error);
+        } finally {
+          setLoading(false); // Stop loading once data is fetched
+        }
+      };
+
+      fetchProducts();
+    } else {
+      setLoading(false); // If userData exists, we just stop loading without fetching
+    }
+  }, [userData]); // Dependency on userData, will re-run when userData changes
+
   const limitedProducts = products.slice(0, 10);
+
   return (
     <div className="homepage">
       <NavBar userInfo={userInfo} />
