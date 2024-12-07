@@ -23,6 +23,7 @@ const CategoryPage = () => {
     const [listOfProductByCategory, setlistOfProductByCategory] = useState([]);
     const [productsPerPage] = useState(30);
     const [currentPage, setCurrentPage] = useState(1);
+    const [selectedRating, setSelectedRating] = useState(0); // 0 means no filter, 1 means 1 star & up, etc.
     const [userInfo, setUserInfo] = useState({
         name: userData?.name || '',
         email: userData?.email || '',
@@ -62,19 +63,23 @@ const CategoryPage = () => {
     // Calculate the range of products to display based on current page
     const indexOfLastProduct = currentPage * productsPerPage;
     const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
-    const currentProducts = listOfProductByCategory.slice(indexOfFirstProduct, indexOfLastProduct);
+    const currentProducts = listOfProductByCategory
+        .filter(item => selectedRating === 0 || item.average_rating >= selectedRating)  // Apply rating filter
+        .slice(indexOfFirstProduct, indexOfLastProduct);
     const totalPages = Math.ceil(listOfProductByCategory.length / productsPerPage);
 
     // Handle page change
     const handlePageChange = (pageNumber) => {
         setCurrentPage(pageNumber);
     };
+
     return (
         <div className='ProductPage'>
             <NavBar />
             <div className='ProductTopBanner'>
+                {/* Banner content */}
                 <div className='ProductTopBannerItems'>Electronics</div>
-                <div className='ProductTopBannerItemsSubMenu'>Mobiles & Accessories</div>
+                <div className="ProductTopBannerItemsSubMenu">Mobiles & Accessories</div>
                 <div className="ProductTopBannerItemsSubMenu">Laptops & Accessories</div>
                 <div className="ProductTopBannerItemsSubMenu">TV & Home Entertainment</div>
                 <div className="ProductTopBannerItemsSubMenu">Audio</div>
@@ -97,7 +102,8 @@ const CategoryPage = () => {
                         <div className="ProductPageMainLeftCategoryContentSub">Amazon Prime</div>
                         <div className="ProductPageMainLeftCategoryContentSub">Average Customer Review</div>
 
-                        <div className="RatingLeftBox">
+                        {/* Rating Filters */}
+                        <div className="RatingLeftBox" onClick={() => setSelectedRating(4)}>
                             <StarRateIcon sx={{ fontSize: "20px", color: "#febd69" }} />
                             <StarRateIcon sx={{ fontSize: "20px", color: "#febd69" }} />
                             <StarRateIcon sx={{ fontSize: "20px", color: "#febd69" }} />
@@ -106,7 +112,7 @@ const CategoryPage = () => {
                             <div className="AndUp"> & Up</div>
                         </div>
 
-                        <div className="RatingLeftBox">
+                        <div className="RatingLeftBox" onClick={() => setSelectedRating(3)}>
                             <StarRateIcon sx={{ fontSize: "20px", color: "#febd69" }} />
                             <StarRateIcon sx={{ fontSize: "20px", color: "#febd69" }} />
                             <StarRateIcon sx={{ fontSize: "20px", color: "#febd69" }} />
@@ -114,8 +120,7 @@ const CategoryPage = () => {
                             <StarOutlineIcon sx={{ fontSize: "20px", color: "#febd69" }} />
                             <div className="AndUp"> & Up</div>
                         </div>
-
-                        <div className="RatingLeftBox">
+                        <div className="RatingLeftBox" onClick={() => setSelectedRating(2)}>
                             <StarRateIcon sx={{ fontSize: "20px", color: "#febd69" }} />
                             <StarRateIcon sx={{ fontSize: "20px", color: "#febd69" }} />
                             <StarOutlineIcon sx={{ fontSize: "20px", color: "#febd69" }} />
@@ -123,8 +128,7 @@ const CategoryPage = () => {
                             <StarOutlineIcon sx={{ fontSize: "20px", color: "#febd69" }} />
                             <div className="AndUp"> & Up</div>
                         </div>
-
-                        <div className="RatingLeftBox">
+                        <div className="RatingLeftBox" onClick={() => setSelectedRating(1)}>
                             <StarRateIcon sx={{ fontSize: "20px", color: "#febd69" }} />
                             <StarOutlineIcon sx={{ fontSize: "20px", color: "#febd69" }} />
                             <StarOutlineIcon sx={{ fontSize: "20px", color: "#febd69" }} />
@@ -132,7 +136,6 @@ const CategoryPage = () => {
                             <StarOutlineIcon sx={{ fontSize: "20px", color: "#febd69" }} />
                             <div className="AndUp"> & Up</div>
                         </div>
-
                     </div>
                 </div>
 
