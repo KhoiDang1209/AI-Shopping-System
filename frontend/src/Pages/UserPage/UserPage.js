@@ -33,7 +33,7 @@ const UserPage = () => {
         const fetchUserInfor = async () => {
             try {
                 console.log(userInfo.email)
-                const response = await axios.post("http://127.0.0.1:8000/getUserInfoByEmail/", {
+                const response = await axios.get("http://127.0.0.1:8000/getUserProfile/", {
                     email: userInfo.email  // Pass the category to the API
                 });
                 console.log(response);

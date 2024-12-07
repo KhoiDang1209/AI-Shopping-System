@@ -1,9 +1,9 @@
 import React, { useRef, useState, useEffect } from "react";
-import "./CategoryPage.css";
+// import "./CategoryPage.css";
 import ChevronRightOutlinedIcon from "@mui/icons-material/ChevronRightOutlined";
 import ChevronLeftOutlinedIcon from "@mui/icons-material/ChevronLeftOutlined";
 import NavBar from "../../Components/Navbar/Navigation";
-import HomepageFooter from "../../Pages/HomePage/HomepageFooter";
+// import HomepageFooter from "../../Pages/HomePage/HomepageFooter";
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useParams } from 'react-router-dom';
 import axios from 'axios';
@@ -872,7 +872,7 @@ const CategoryPage = () => {
                 </div>
             </div>
 
-            <HomepageFooter />
+            {/* <HomepageFooter /> */}
         </div>
     );
 };

@@ -7,7 +7,7 @@ import os
 
 # Path to your CSV files (adjust if necessary)
 CSV_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "ModelApp", "Data")
-product_csv_path = os.path.join(CSV_DIR, "product.csv")
+product_csv_path = os.path.join(CSV_DIR, "new_product.csv")
 user_data_csv_path = os.path.join(CSV_DIR, "new_user_data.csv")
 product_rating_csv_path = os.path.join(CSV_DIR, "new_rating.csv")
 

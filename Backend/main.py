@@ -101,7 +101,7 @@ async def root():
 # User Authentication
 # -------------------------------
 #Login and register
-@app.post("/getUserInfoByEmail")
+@app.get("/getUserProfile")
 async def getUserInfoByEmail(user: FPEmail, db: Session = Depends(get_db)):
     existing_user = db.query(SiteUser).filter(SiteUser.email_address == user.email).first()
     user_addresses = db.query(UserAddress).filter(UserAddress.user_id == existing_user.user_id).all()
@@ -178,6 +178,7 @@ async def postRegister(user: UserRegisterRequest, db: Session = Depends(get_db))
     
     # Add and commit SiteUser to get the user_id
     db.add(db_user)
+    db.flush()  # This sends the user data to the DB but doesn't commit yet
     db.commit()
     db.refresh(db_user)
 
@@ -285,78 +286,6 @@ async def postLogin(user: LoginRequire, db: Session = Depends(get_db)):
 
     return {"message": "Login successful", "user": user_response}
 
-
-@app.post("/preHomepage/")
-async def preHomepage(userEmail: FPEmail, db: Session = Depends(get_db)):
-    getUserID = db.query(SiteUser).filter(SiteUser.email_address == userEmail.email).first()
-    if not getUserID:
-        raise HTTPException(status_code=404, detail="User not found")
-    
-    checkIfFirstTimeLogin = db.query(InterestingCategory).filter(InterestingCategory.user_id == getUserID.user_id).first()
-    return {"data": bool(checkIfFirstTimeLogin)}
-
-
-@app.post("/getAllInterestingProductByUserEmail/")
-async def getAllInterestingProductByUserEmail(userEmail: FPEmail, db: Session = Depends(get_db)):
-    getUserID = db.query(SiteUser).filter(SiteUser.email_address == userEmail.email).first()
-    if not getUserID:
-        raise HTTPException(status_code=404, detail="User not found")
-
-    interesting_categories = db.query(InterestingCategory).filter(InterestingCategory.user_id == getUserID.user_id).all()
-    if not interesting_categories:
-        return {"data": []}
-    
-    category_names = [db.query(ProductCategory.category_name).filter(ProductCategory.category_id == cat.category_id).scalar() for cat in interesting_categories]
-    return {"data": category_names}
-
-
-@app.post("/insertInterestingProduct/")
-async def insertInterestingProduct(list: ListOfInterestingProduct, db: Session = Depends(get_db)):
-    user_id = db.query(SiteUser).filter(SiteUser.email_address == list.email).first().user_id
-    if not user_id:
-        raise HTTPException(status_code=404, detail="User not found")
-    
-    # Insert the selected categories into the InterestingCategory table
-    for category_name in list.category_name:
-        category_id = db.query(ProductCategory).filter(ProductCategory.category_name == category_name).first().category_id
-        if not category_id:
-            raise HTTPException(status_code=404, detail=f"Category '{category_name}' not found")
-        
-        existing_entry = db.query(InterestingCategory).filter(
-            InterestingCategory.user_id == user_id,
-            InterestingCategory.category_id == category_id
-        ).first()
-        if not existing_entry:
-            interesting_category = InterestingCategory(user_id=user_id, category_id=category_id)
-            db.add(interesting_category)
-    db.commit()
-
-    return {"message": "Success! Categories added to the database."}
-
-
-@app.post("/insertInterestingProductWithMostChosenItem/")
-async def insertInterestingProductWithMostChosenItem(userEmail: FPEmail, db: Session = Depends(get_db)):
-    getUserID = db.query(SiteUser).filter(SiteUser.email_address == userEmail.email).first()
-    if not getUserID:
-        raise HTTPException(status_code=404, detail="User not found")
-    
-    top_categories = db.query(
-        ProductCategory.category_id,
-        func.count(InterestingCategory.category_id).label("category_count")
-    ).join(InterestingCategory, InterestingCategory.category_id == ProductCategory.category_id).group_by(ProductCategory.category_id).order_by(func.count(InterestingCategory.category_id).desc()).limit(3).all()
-
-    for category in top_categories:
-        existing_entry = db.query(InterestingCategory).filter(
-            InterestingCategory.user_id == getUserID.user_id,
-            InterestingCategory.category_id == category.category_id
-        ).first()
-        if not existing_entry:
-            interesting_category = InterestingCategory(user_id=getUserID.user_id, category_id=category.category_id)
-            db.add(interesting_category)
-    
-    db.commit()
-
-    return {"message": "Success! Auto-assigned top interesting categories."}
 
 # -------------------------------
 # 2. User profile api
@@ -509,67 +438,34 @@ async def postForgetPassword(changeInfo: ChangePasswordInfor, db: Session = Depe
 def is_email(input_str):
     email_regex = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
     return re.match(email_regex, input_str) is not None
-@app.post("/UserAddressInfor/")
-async def UserAddressInfor(email: FPEmail, db: Session = Depends(get_db)):
-    # Get the user by email
-    user = db.query(SiteUser).filter(SiteUser.email_address == email.email).first()
-
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found"
-        )
-
-    # Get the user addresses
-    user_addresses = db.query(UserAddress).filter(UserAddress.user_id == user.user_id).all()
-
-    # Fetch the address details by joining the Address table
-    addresses_info = []
-    for user_address in user_addresses:
-        address = db.query(Address).filter(Address.address_id == user_address.address_id).first()
-        if address:
-            addresses_info.append({
-                "unit_number": address.unit_number,
-                "street_number": address.street_number,
-                "address_line1": address.address_line1,
-                "address_line2": address.address_line2,
-                "region": address.region,
-                "postal_code": address.postal_code,
-                "is_default": user_address.is_default
-            })
-
-    return {"addresses": addresses_info}  
     
 # 3. Home page (Store page)
     # home page display
     # recommend product (do after have ai model)
     # categories (show different product categories)
-@app.post("/getAllProduct/")
+@app.get("/getAllProduct/")
 async def get_all_products(db: Session = Depends(get_db)):
     all_products = db.query(Product).all()  # Returns a list of Product objects
 
-    # Sort products by no_of_ratings from highest to lowest
-    sorted_products = sorted(all_products, key=lambda p: p.no_of_ratings, reverse=True)
+    # Group products by main category
+    grouped_products_by_category = defaultdict(list)
 
-    # Group products by rating ranges
-    grouped_products = defaultdict(list)
+    for product in all_products:
+        grouped_products_by_category[product.main_category].append(product)
 
-    for product in sorted_products:
-        rating = product.average_rating
-        if 0 <= rating < 1:
-            grouped_products["0-1"].append(product)
-        elif 1 <= rating < 2:
-            grouped_products["1-2"].append(product)
-        elif 2 <= rating < 3:
-            grouped_products["2-3"].append(product)
-        elif 3 <= rating < 4:
-            grouped_products["3-4"].append(product)
-        elif 4 <= rating <= 5:
-            grouped_products["4-5"].append(product)
+    # Result to hold top 20 products for each main category
+    result = {}
 
-    # Convert grouped products into the required format
-    result = {
-        "0-1": [
+    # Process each main category
+    for main_category, products in grouped_products_by_category.items():
+        # Sort products first by number of ratings (highest), then by average rating (highest)
+        sorted_products = sorted(products, key=lambda p: (p.no_of_ratings, p.average_rating), reverse=True)
+        
+        # Take top 20 products
+        top_products = sorted_products[:20]
+
+        # Prepare the result format for the top 20 products
+        result[main_category] = [
             {
                 "product_id": product.product_id,
                 "product_name": product.product_name,
@@ -585,87 +481,14 @@ async def get_all_products(db: Session = Depends(get_db)):
                 "actual_price_usd": product.actual_price_usd,
                 "category_id": product.category_id
             }
-            for product in grouped_products["0-1"]
-        ],
-        "1-2": [
-            {
-                "product_id": product.product_id,
-                "product_name": product.product_name,
-                "main_category": product.main_category,
-                "main_category_encoded": product.main_category_encoded,
-                "sub_category": product.sub_category,
-                "sub_category_encoded": product.sub_category_encoded,
-                "product_image": product.product_image,
-                "product_link": product.product_link,
-                "average_rating": product.average_rating,
-                "no_of_ratings": product.no_of_ratings,
-                "discount_price_usd": product.discount_price_usd,
-                "actual_price_usd": product.actual_price_usd,
-                "category_id": product.category_id
-            }
-            for product in grouped_products["1-2"]
-        ],
-        "2-3": [
-            {
-                "product_id": product.product_id,
-                "product_name": product.product_name,
-                "main_category": product.main_category,
-                "main_category_encoded": product.main_category_encoded,
-                "sub_category": product.sub_category,
-                "sub_category_encoded": product.sub_category_encoded,
-                "product_image": product.product_image,
-                "product_link": product.product_link,
-                "average_rating": product.average_rating,
-                "no_of_ratings": product.no_of_ratings,
-                "discount_price_usd": product.discount_price_usd,
-                "actual_price_usd": product.actual_price_usd,
-                "category_id": product.category_id
-            }
-            for product in grouped_products["2-3"]
-        ],
-        "3-4": [
-            {
-                "product_id": product.product_id,
-                "product_name": product.product_name,
-                "main_category": product.main_category,
-                "main_category_encoded": product.main_category_encoded,
-                "sub_category": product.sub_category,
-                "sub_category_encoded": product.sub_category_encoded,
-                "product_image": product.product_image,
-                "product_link": product.product_link,
-                "average_rating": product.average_rating,
-                "no_of_ratings": product.no_of_ratings,
-                "discount_price_usd": product.discount_price_usd,
-                "actual_price_usd": product.actual_price_usd,
-                "category_id": product.category_id
-            }
-            for product in grouped_products["3-4"]
-        ],
-        "4-5": [
-            {
-                "product_id": product.product_id,
-                "product_name": product.product_name,
-                "main_category": product.main_category,
-                "main_category_encoded": product.main_category_encoded,
-                "sub_category": product.sub_category,
-                "sub_category_encoded": product.sub_category_encoded,
-                "product_image": product.product_image,
-                "product_link": product.product_link,
-                "average_rating": product.average_rating,
-                "no_of_ratings": product.no_of_ratings,
-                "discount_price_usd": product.discount_price_usd,
-                "actual_price_usd": product.actual_price_usd,
-                "category_id": product.category_id
-            }
-            for product in grouped_products["4-5"]
-        ],
-    }
+            for product in top_products
+        ]
 
     return result
 
 
 # Get products by category name
-@app.post("/getProductbyCategory/")
+@app.get("/getProductbyCategory/")
 async def get_products_by_category(categoryNeed: CategoryName, db: Session = Depends(get_db)):
     category = db.query(ProductCategory).filter(ProductCategory.category_name == categoryNeed.category_name).first()
     if not category:
@@ -697,17 +520,13 @@ async def get_products_by_category(categoryNeed: CategoryName, db: Session = Dep
 
 
 # Get all categories
-@app.post("/getAllCategory/")
+@app.get("/getAllCategory/")
 async def get_all_categories(db: Session = Depends(get_db)):
-    all_categories = db.query(ProductCategory).all()  # Returns a list of ProductCategory objects
-    return [
-        {
-            "category_id": category.category_id,
-            "parent_category_id": category.parent_category_id,
-            "category_name": category.category_name,
-        }
-        for category in all_categories
-    ]
+    # Query the database and get a list of categories
+    all_category = db.query(Product.main_category).distinct().all()  # Get distinct categories
+    # Extract the main_category values from the result tuple
+    categories = [category[0] for category in all_category]
+    return {"categories": categories}
 
 
 # ------------------------------
