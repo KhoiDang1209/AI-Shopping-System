@@ -386,7 +386,7 @@ class UpdateRequire(BaseModel):
     region: str
     postal_code: str
 class CategoryName(BaseModel):
-    category_name: str
+    categoryencode: str
 
     class Config:
         orm_mode = True

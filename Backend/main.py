@@ -505,16 +505,13 @@ async def get_all_products(db: Session = Depends(get_db)):
 
 
 # Get products by category name
-@app.get("/getProductbyCategory/")
-async def get_products_by_category(categoryNeed: CategoryName, db: Session = Depends(get_db)):
-    category = db.query(ProductCategory).filter(ProductCategory.category_name == categoryNeed.category_name).first()
-    if not category:
-        return {"error": "Category not found"}
-
-    products_by_category = db.query(Product).filter(Product.category_id == category.category_id).all()
+@app.get("/getProductbyCategory/", response_model=List[dict])
+async def get_products_by_category(categoryencode: str, db: Session = Depends(get_db)):
+    # Query products based on categoryencode
+    products_by_category = db.query(Product).filter(Product.main_category_encoded == categoryencode).all()
 
     if not products_by_category:
-        return {"error": "No products found for this category"}
+        raise HTTPException(status_code=404, detail="No products found for this category")
 
     return [
         {
@@ -530,7 +527,7 @@ async def get_products_by_category(categoryNeed: CategoryName, db: Session = Dep
             "no_of_ratings": product.no_of_ratings,
             "discount_price_usd": product.discount_price_usd,
             "actual_price_usd": product.actual_price_usd,
-            "category_id": product.category_id
+            "category_id": product.category_id,
         }
         for product in products_by_category
     ]

@@ -28,7 +28,8 @@ const HomePage = () => {
     gender: userData?.gender || '',
     city: userData?.city || '',
   });
-  console.log(userInfo)
+
+  console.log(userData)
   const slideRight = () => {
     const totalSlides = imgItemRef.current.children.length - 1; // Total number of images
     const endSlider = totalSlides * -100; // Max negative translateX value
@@ -301,7 +302,7 @@ const HomePage = () => {
 
       </div>
 
-      {!userData && (
+      {(!userData || (Object.keys(userData).length === 0 && userData.constructor === Object)) && (
         <div className="card__slider">
           {randomCategoriesWithProducts && randomCategoriesWithProducts.length > 0 ? (
             <div className="card__slider--long">
@@ -343,7 +344,7 @@ const HomePage = () => {
         </div>
       )}
 
-      {!userData && (
+      {(!userData || (Object.keys(userData).length === 0 && userData.constructor === Object)) && (
         <div className="card__slider">
           {randomCategoriesWithProducts && randomCategoriesWithProducts.length > 0 ? (
             <div className="card__slider--long">
@@ -384,7 +385,7 @@ const HomePage = () => {
           )}
         </div>
       )}
-      {!userData && (
+      {(!userData || (Object.keys(userData).length === 0 && userData.constructor === Object)) && (
         <div className="card__slider">
           {randomCategoriesWithProducts && randomCategoriesWithProducts.length > 0 ? (
             <div className="card__slider--long">
@@ -425,7 +426,7 @@ const HomePage = () => {
           )}
         </div>
       )}
-      {!userData && (
+      {(!userData || (Object.keys(userData).length === 0 && userData.constructor === Object)) && (
         <div className="card__slider">
           {randomCategoriesWithProducts && randomCategoriesWithProducts.length > 0 ? (
             <div className="card__slider--long">
@@ -466,7 +467,7 @@ const HomePage = () => {
           )}
         </div>
       )}
-      {!userData && (
+      {(!userData || (Object.keys(userData).length === 0 && userData.constructor === Object)) && (
         <div className="card__slider">
           {randomCategoriesWithProducts && randomCategoriesWithProducts.length > 0 ? (
             <div className="card__slider--long">
