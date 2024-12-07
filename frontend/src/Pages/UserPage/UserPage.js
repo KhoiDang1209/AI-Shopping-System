@@ -30,27 +30,29 @@ const UserPage = () => {
         postal_code: userData?.postal_code || '',
     });
     useEffect(() => {
-        const fetchUserInfor = async () => {
-            try {
-                console.log(userInfo.email)
-                const response = await axios.get("http://127.0.0.1:8000/getUserProfile/", {
-                    email: userInfo.email  // Pass the category to the API
-                });
-                console.log(response);
+        if (!userInfo?.email) return; // Avoid making the API call if email is undefined
 
-                // Handle the successful response, access the 'data' key from the response
+        const fetchUserInfo = async () => {
+            try {
+                const response = await axios.get("http://127.0.0.1:8000/getUserProfile/", {
+                    params: {
+                        email: userInfo.email,
+                    },
+                });
+
                 if (response.status === 200) {
-                    setUserInfo(response.data.data);  // Access 'data' from the response and update state
+                    setUserInfo(response.data.data);
                 }
             } catch (err) {
-                setError("Failed to fetch products.");
+                setError("Failed to fetch user data.");
                 console.error(err);
             } finally {
-                setLoading(false);  // Set loading to false once data is fetched
+                setLoading(false);
             }
         };
-        fetchUserInfor();
-    }, [userInfo]);
+
+        fetchUserInfo();
+    }, [userInfo?.email]); // Fetch only when email changes
     // Simulating user information change
     const handleUserChange = async (e) => {
         try {

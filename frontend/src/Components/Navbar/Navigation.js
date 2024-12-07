@@ -95,6 +95,13 @@ const NavBar = ({ userInfo }) => {
             state: { userData }  // Pass userData as state to /UserPage
         });
     };
+
+    const handleLogOutClick = () => {
+        // Clear user info and navigate to home page
+        setUserData(null); // Optionally clear user-specific state
+        navigate('/', { state: null }); // Pass null state to clear location.state
+    };
+
     // khúc này làm suggestion cho search bar
     const [suggestions, setSuggestions] = useState(null);
     const [searchTerm, setSearchTerm] = useState("");
@@ -248,7 +255,7 @@ const NavBar = ({ userInfo }) => {
                     <div className="account">
                         <div className="account__left">
                             <div className="account__up">
-                                {userData.name ? `Hello, ${userData.name}` : "Hello, User"}
+                                {userData?.name ? `Hello, ${userData.name}` : "Hello, User"}
                             </div>
                             <div className="account__down">
                                 Accounts & Lists
@@ -262,7 +269,7 @@ const NavBar = ({ userInfo }) => {
                         <div
                             className={`account__dropdownMenu ${isDropdownOpen ? 'open' : ''}`}
                         >
-                            {!userData.name ? (
+                            {!userData?.name ? (
                                 <>
                                     <Link to="/SignUp" className="account__dropdownOption">
                                         Sign Up
@@ -275,11 +282,13 @@ const NavBar = ({ userInfo }) => {
                                     </Link>
                                 </>
                             ) : (
-                                <div
-                                    onClick={handleProfileClick}
-                                    className="account__dropdownOption"
-                                >
-                                    Your Profile
+                                <div>
+                                    <div onClick={handleProfileClick} className="account__dropdownOption">
+                                        Your Profile
+                                    </div>
+                                    <div onClick={handleLogOutClick} className="account__dropdownOption">
+                                        Log Out
+                                    </div>
                                 </div>
                             )}
                         </div>

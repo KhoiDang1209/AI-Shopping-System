@@ -102,25 +102,35 @@ async def root():
 # -------------------------------
 #Login and register
 @app.get("/getUserProfile")
-async def getUserInfoByEmail(user: FPEmail, db: Session = Depends(get_db)):
-    existing_user = db.query(SiteUser).filter(SiteUser.email_address == user.email).first()
-    user_addresses = db.query(UserAddress).filter(UserAddress.user_id == existing_user.user_id).all()
-    address = db.query(Address).filter(Address.address_id == user_addresses[0].address_id).first()
-    return {"data": {
-                "name": existing_user.user_name,
-                "email": existing_user.email_address,
-                "phone": existing_user.phone_number,
-                "age": existing_user.age,
-                "gender": existing_user.gender,
-                "city": existing_user.city,
-                "unit_number": address.unit_number,
-                "street_number": address.street_number,
-                "address_line1": address.address_line1,
-                "address_line2": address.address_line2,
-                "region": address.region,
-                "postal_code": address.postal_code
-        }}
+async def getUserInfoByEmail(email: str, db: Session = Depends(get_db)):
+    existing_user = db.query(SiteUser).filter(SiteUser.email_address == email).first()
+    if not existing_user:
+        raise HTTPException(status_code=404, detail="User not found")
 
+    user_addresses = db.query(UserAddress).filter(UserAddress.user_id == existing_user.user_id).all()
+    if not user_addresses:
+        raise HTTPException(status_code=404, detail="Address not found")
+
+    address = db.query(Address).filter(Address.address_id == user_addresses[0].address_id).first()
+    if not address:
+        raise HTTPException(status_code=404, detail="Detailed address not found")
+
+    return {
+        "data": {
+            "name": existing_user.user_name,
+            "email": existing_user.email_address,
+            "phone": existing_user.phone_number,
+            "age": existing_user.age,
+            "gender": existing_user.gender,
+            "city": existing_user.city,
+            "unit_number": address.unit_number,
+            "street_number": address.street_number,
+            "address_line1": address.address_line1,
+            "address_line2": address.address_line2,
+            "region": address.region,
+            "postal_code": address.postal_code,
+        }
+    }
 @app.post("/register")
 async def register_user(user: UserResponse, db: Session = Depends(get_db)):
     # Check if email already exists

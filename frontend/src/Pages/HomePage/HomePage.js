@@ -9,6 +9,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import axios from "axios";
 
 const HomePage = () => {
+
   const location = useLocation();
   const userData = location.state?.userData;
   const [randomCategoriesWithProducts, setRandomCategoriesWithProducts] = useState([]); // Holds 5 random categories with products
@@ -27,7 +28,7 @@ const HomePage = () => {
     gender: userData?.gender || '',
     city: userData?.city || '',
   });
-
+  console.log(userInfo)
   const slideRight = () => {
     const totalSlides = imgItemRef.current.children.length - 1; // Total number of images
     const endSlider = totalSlides * -100; // Max negative translateX value
@@ -47,7 +48,6 @@ const HomePage = () => {
         setLoading(true);
         // Fetch categories
         const categoriesResponse = await axios.get("http://127.0.0.1:8000/getAllCategory/");
-        console.log(categoriesResponse)
         if (categoriesResponse.status === 200) {
           setListOfAllMainCategory(categoriesResponse.data.categories);
         }
