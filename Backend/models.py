@@ -21,12 +21,12 @@ class SiteUser(Base):
     __tablename__ = "site_user"
     
     # User attributes
-    user_id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, primary_key=True, autoincrement=True)
     user_name = Column(String(100), nullable=False)
     age = Column(Integer)
     gender = Column(String(10))
-    email_address = Column(String(100), unique=True)
-    phone_number = Column(String(10), unique=True)
+    email_address = Column(String(100), unique=True, nullable=False)
+    phone_number = Column(String(10), unique=True, nullable=False)
     city = Column(String(100))
     password = Column(String(255), nullable=False)
     

@@ -47,6 +47,7 @@ const HomePage = () => {
         setLoading(true);
         // Fetch categories
         const categoriesResponse = await axios.get("http://127.0.0.1:8000/getAllCategory/");
+        console.log(categoriesResponse)
         if (categoriesResponse.status === 200) {
           setListOfAllMainCategory(categoriesResponse.data.categories);
         }

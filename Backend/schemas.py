@@ -144,7 +144,7 @@ class UserRegisterRequest(BaseModel):
     email_address: EmailStr
     phone_number:  str
     password: str
-    age: str
+    age: int
     gender: str
     city: str
     # @field_validator('password')

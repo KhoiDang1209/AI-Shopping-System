@@ -59,7 +59,6 @@ def insert_user_data():
     for index, row in user_data_df.iterrows():
         try:
             new_user = SiteUser(
-                user_id=row['user_id'],
                 user_name=row['user_name'],
                 age=row['age'],
                 gender=row['gender'],
