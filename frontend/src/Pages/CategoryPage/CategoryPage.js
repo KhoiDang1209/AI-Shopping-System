@@ -34,6 +34,7 @@ const CategoryPage = () => {
         city: userData?.city || '',
     });
     const HandleAddToCart = (item) => {
+        console.log(item)
         toast.success("Added Item To Cart", {
             position: "bottom-right"
         });
@@ -75,7 +76,7 @@ const CategoryPage = () => {
 
     return (
         <div className='ProductPage'>
-            <NavBar />
+            <NavBar userInfo={userInfo} />
             <div className='ProductTopBanner'>
                 {/* Banner content */}
                 <div className='ProductTopBannerItems'>Electronics</div>
