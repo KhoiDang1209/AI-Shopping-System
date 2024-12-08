@@ -609,7 +609,7 @@ async def get_product_details(product_id: int, db: Session = Depends(get_db)):
     }
 
 @app.post("/addToCart/")
-async def add_to_cart(product_id: int, user_email: str, quantity: int, db: Session = Depends(get_db)):
+async def add_to_cart(product_id: str, user_email: str, quantity: int, db: Session = Depends(get_db)):
     # Get the user by email
     user = db.query(SiteUser).filter(SiteUser.email_address == user_email).first()
     if not user:

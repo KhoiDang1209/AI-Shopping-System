@@ -13,6 +13,7 @@ import { GB_CURRENCY } from '../../Utils/constants';
 import ItemRatings from '../ItemPage/ItemRatings';
 import { useParams, useLocation } from 'react-router-dom';
 import axios from "axios";
+import { useNavigate } from 'react-router-dom';  // Import useNavigate
 
 const CategoryPage = () => {
     const { category } = useParams();
@@ -23,7 +24,9 @@ const CategoryPage = () => {
     const [listOfProductByCategory, setlistOfProductByCategory] = useState([]);
     const [productsPerPage] = useState(30);
     const [currentPage, setCurrentPage] = useState(1);
-    const [selectedRating, setSelectedRating] = useState(0); // 0 means no filter, 1 means 1 star & up, etc.
+    const [selectedRating, setSelectedRating] = useState(0);// 0 means no filter, 1 means 1 star & up, etc.
+    const navigate = useNavigate(); // Hook to handle navigation
+
     const [userInfo, setUserInfo] = useState({
         name: userData?.name || '',
         email: userData?.email || '',
@@ -33,12 +36,43 @@ const CategoryPage = () => {
         gender: userData?.gender || '',
         city: userData?.city || '',
     });
-    const HandleAddToCart = (item) => {
-        console.log(item)
-        toast.success("Added Item To Cart", {
-            position: "bottom-right"
-        });
-        Dispatch(AddToCart(item));
+    //User can only add to cart when log in avoid unknow cart
+    const HandleAddToCart = async (item) => {
+        if (!userInfo || !userInfo.email) {
+            // Pop up login request and navigate to login
+            toast.info("Please log in to add items to the cart.", {
+                position: "bottom-right"
+            });
+
+            // Navigate to the login page, passing the current page and the item to add as state
+            navigate('/SignIn', {
+                state: {
+                    from: location.pathname,
+                    category,
+                    itemToAdd: item,
+                }
+            });
+            return;
+        }
+
+        // console.log(item);
+        // toast.success("Added Item To Cart", {
+        //     position: "bottom-right"
+        // });
+        // Dispatch(AddToCart(item));
+        try {
+            console.log(item.product_id || item.id, userInfo.email)
+            const response = await axios.post("http://localhost:8000/addToCart", { product_id: (item.product_id || item.id), user_email: userInfo.email, quantity: 1 });
+
+            if (response.status === 200) {
+                toast.success('Added to cart successfully', {
+                    position: 'bottom-right',
+                });
+            }
+        } catch (error) {
+            console.error("Error fetching cart:", error);
+            toast.error(error);
+        }
     };
 
     // Fetching product data from API

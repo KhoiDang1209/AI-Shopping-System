@@ -214,7 +214,7 @@ class ShoppingCart(Base):
 class ShoppingCartItem(Base):
     __tablename__ = "shopping_cart_item"
     shopping_cart_id = Column(Integer, ForeignKey("shopping_cart.shopping_cart_id"), primary_key=True)
-    product_item_id = Column(Integer, ForeignKey("product_item.product_item_id"), primary_key=True)
+    product_item_id = Column(String(100), ForeignKey("product_item.product_item_id"), primary_key=True)
     quantity = Column(Integer, nullable=False)
     price = Column(DECIMAL(10, 2), nullable=False)
 
