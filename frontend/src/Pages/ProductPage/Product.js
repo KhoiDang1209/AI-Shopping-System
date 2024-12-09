@@ -1,4 +1,4 @@
-import React, { useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import './Product.css';
 import StarRateIcon from '@mui/icons-material/StarRate';
 import StarOutlineIcon from '@mui/icons-material/StarOutline';
@@ -29,20 +29,21 @@ const Product = () => {
   const [error, setError] = useState(null);
 
   // Fetch the JSON file from the public folder
+  //Test take product from here
   useEffect(() => {
-      fetch("/Data/Product.json") // Relative to the public folder
-          .then((response) => {
-              if (!response.ok) {
-                  throw new Error("Failed to fetch product data.");
-              }
-              return response.json();
-          })
-          .then((data) => {
-              setProducts(data.Product);
-          })
-          .catch((error) => {
-              console.error("Error fetching products:", error);
-          });
+    fetch("/Data/Product.json") // Relative to the public folder
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Failed to fetch product data.");
+        }
+        return response.json();
+      })
+      .then((data) => {
+        setProducts(data.Product);
+      })
+      .catch((error) => {
+        console.error("Error fetching products:", error);
+      });
   }, []);
     // Fetch products from the backend API
     // useEffect(() => {
@@ -60,6 +61,7 @@ const Product = () => {
     //   fetchProducts();
     // }, []);
 
+<<<<<<< HEAD
       // Fetch product details by product_id (for individual product page)
   // const fetchProductDetails = async (productId) => {
   //   try {
@@ -122,6 +124,11 @@ const Product = () => {
   // if (products.length === 0) {
   //     return <h1>Loading Products...</h1>;
   // }
+=======
+  if (products.length === 0) {
+    return <h1>Loading Products...</h1>;
+  }
+>>>>>>> 66597a0ee6eb20a78b2c587535b6cadc74ce3fd7
 
 
 
@@ -246,7 +253,7 @@ const Product = () => {
                       </div>
                       <div className='DeliveryHomepage'>
                         Free Domestic Shipping By Amazon
-                      0</div>
+                        0</div>
                     </div>
                   </div>
                 );
@@ -261,7 +268,7 @@ const Product = () => {
         </div>
 
       </div>
-      <ToastContainer/>
+      <ToastContainer />
       <ProductFooter />
     </div>
 

@@ -21,12 +21,12 @@ class SiteUser(Base):
     __tablename__ = "site_user"
     
     # User attributes
-    user_id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, primary_key=True, autoincrement=True)
     user_name = Column(String(100), nullable=False)
     age = Column(Integer)
     gender = Column(String(10))
-    email_address = Column(String(100), unique=True)
-    phone_number = Column(String(10), unique=True)
+    email_address = Column(String(100), unique=True, nullable=False)
+    phone_number = Column(String(10), unique=True, nullable=False)
     city = Column(String(100))
     password = Column(String(255), nullable=False)
     
@@ -214,7 +214,7 @@ class ShoppingCart(Base):
 class ShoppingCartItem(Base):
     __tablename__ = "shopping_cart_item"
     shopping_cart_id = Column(Integer, ForeignKey("shopping_cart.shopping_cart_id"), primary_key=True)
-    product_item_id = Column(Integer, ForeignKey("product_item.product_item_id"), primary_key=True)
+    product_item_id = Column(String(100), ForeignKey("product_item.product_item_id"), primary_key=True)
     quantity = Column(Integer, nullable=False)
     price = Column(DECIMAL(10, 2), nullable=False)
 

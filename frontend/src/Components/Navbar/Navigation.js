@@ -17,6 +17,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { callAPI } from '../../Utils/CallAPI';
 
 const NavBar = ({ userInfo }) => {
+    const [category, setCategory] = useState("All");
     const [userData, setUserData] = useState({
         name: userInfo?.name || '',
         email: userInfo?.email || '',
@@ -34,36 +35,50 @@ const NavBar = ({ userInfo }) => {
     };
     const [showAll, setShowAll] = useState(false);
     const allItems = [
-        { _id: "100", title: "All Departments" },
-        { _id: "101", title: "Arts & Crafts" },
-        { _id: "102", title: "Automotive" },
-        { _id: "103", title: "Baby" },
-        { _id: "104", title: "Beauty & Personal Care" },
-        { _id: "105", title: "Books" },
-        { _id: "106", title: "Boys' Fashion" },
-        { _id: "107", title: "Computers" },
-        { _id: "108", title: "Deals" },
-        { _id: "109", title: "Digital Musics" },
-        { _id: "110", title: "Electronics" },
-        { _id: "111", title: "Girls' Fashion" },
-        { _id: "112", title: "Health & Households" },
-        { _id: "113", title: "Home & Kitchen" },
-        { _id: "114", title: "Industrial & Scientific" },
-        { _id: "115", title: "Kindle Store" },
-        { _id: "116", title: "Luggage" },
-        { _id: "117", title: "Men's Fashion" },
-        { _id: "118", title: "Movies & TVs" },
-        { _id: "119", title: "Music, CDs & Vinyl" },
-        { _id: "120", title: "Pet Supplies" },
-        { _id: "121", title: "Prime Video" },
-        { _id: "122", title: "Software" },
-        { _id: "123", title: "Sports & Outdoors" },
-        { _id: "124", title: "Tools & Home Improvements" },
-        { _id: "125", title: "Toys & Games" },
-        { _id: "126", title: "Video Games" },
-        { _id: "127", title: "Women's Fashion" }
+        { main_category_encoded: 15, title: "stores" },
+        { main_category_encoded: 4, title: "car & motorbike" },
+        { main_category_encoded: 7, title: "home, kitchen, pets" },
+        { main_category_encoded: 13, title: "pet supplies" },
+        { main_category_encoded: 6, title: "home & kitchen" },
+        { main_category_encoded: 11, title: "men's shoes" },
+        { main_category_encoded: 0, title: "accessories" },
+        { main_category_encoded: 3, title: "beauty & health" },
+        { main_category_encoded: 16, title: "toys & baby products" },
+        { main_category_encoded: 12, title: "music" },
+        { main_category_encoded: 14, title: "sports & fitness" },
+        { main_category_encoded: 17, title: "tv, audio & cameras" },
+        { main_category_encoded: 19, title: "women's shoes" },
+        { main_category_encoded: 1, title: "appliances" },
+        { main_category_encoded: 5, title: "grocery & gourmet foods" },
+        { main_category_encoded: 9, title: "kids' fashion" },
+        { main_category_encoded: 2, title: "bags & luggage" },
+        { main_category_encoded: 10, title: "men's clothing" },
+        { main_category_encoded: 8, title: "industrial supplies" },
+        { main_category_encoded: 18, title: "women's clothing" }
     ];
 
+    const categoryMapping = {
+        "stores": 15,
+        "car & motorbike": 4,
+        "home, kitchen, pets": 7,
+        "pet supplies": 13,
+        "home & kitchen": 6,
+        "men's shoes": 11,
+        "accessories": 0,
+        "beauty & health": 3,
+        "toys & baby products": 16,
+        "music": 12,
+        "sports & fitness": 14,
+        "tv, audio & cameras": 17,
+        "women's shoes": 19,
+        "appliances": 1,
+        "grocery & gourmet foods": 5,
+        "kids' fashion": 9,
+        "bags & luggage": 2,
+        "men's clothing": 10,
+        "industrial supplies": 8,
+        "women's clothing": 18
+    };
 
     const [sidebar, setSiderbar] = useState(false)
 
@@ -79,9 +94,14 @@ const NavBar = ({ userInfo }) => {
     const CartItems = useSelector((state) => state.cart.items);
     // When a category is selected
     const handleCategorySelect = (categoryTitle) => {
-        setCategory(categoryTitle);  // Set the selected category
-        navigate(`/Homepage/${categoryTitle}`, { state: { userData: { ...userData } } });  // Navigate to the new page
-        setShowAll(false);  // Close the dropdown after selection
+        const mainCategoryEncoded = categoryMapping[categoryTitle]; // Get main_category_encoded
+        if (mainCategoryEncoded === undefined) {
+            console.error("Category title not found in mapping:", categoryTitle);
+            return; // Stop execution if the category title is invalid
+        }
+
+        navigate(`/Homepage/${mainCategoryEncoded}`, { state: { userData: { ...userData } } }); // Navigate with the encoded value
+        setShowAll(false); // Close the dropdown after selection
     };
     const handleProfileClick = () => {
         // Ensure userData is defined
@@ -95,6 +115,13 @@ const NavBar = ({ userInfo }) => {
             state: { userData }  // Pass userData as state to /UserPage
         });
     };
+
+    const handleLogOutClick = () => {
+        // Clear user info and navigate to home page
+        setUserData(null); // Optionally clear user-specific state
+        navigate('/', { state: null }); // Pass null state to clear location.state
+    };
+
     // khúc này làm suggestion cho search bar
     const [suggestions, setSuggestions] = useState(null);
     const [searchTerm, setSearchTerm] = useState("");
@@ -114,7 +141,7 @@ const NavBar = ({ userInfo }) => {
         getSuggestions();
     }, []);
 
-    const [category, setCategory] = useState("All");
+
     const navigate = useNavigate();
 
     const onHandleSubmit = (e) => {
@@ -165,6 +192,7 @@ const NavBar = ({ userInfo }) => {
                     </div>
                 </div>
 
+
                 {/* ở giữa */}
                 <div className="searchbox__middle">
                     {/* Search Box */}
@@ -195,6 +223,7 @@ const NavBar = ({ userInfo }) => {
                                     </ul>
                                 </div>
                             )}
+
 
                             {/* Search Input */}
                             <input
@@ -248,7 +277,7 @@ const NavBar = ({ userInfo }) => {
                     <div className="account">
                         <div className="account__left">
                             <div className="account__up">
-                                {userData.name ? `Hello, ${userData.name}` : "Hello, User"}
+                                {userData?.name ? `Hello, ${userData.name}` : "Hello, User"}
                             </div>
                             <div className="account__down">
                                 Accounts & Lists
@@ -262,7 +291,7 @@ const NavBar = ({ userInfo }) => {
                         <div
                             className={`account__dropdownMenu ${isDropdownOpen ? 'open' : ''}`}
                         >
-                            {!userData.name ? (
+                            {!userData?.name ? (
                                 <>
                                     <Link to="/SignUp" className="account__dropdownOption">
                                         Sign Up
@@ -275,11 +304,13 @@ const NavBar = ({ userInfo }) => {
                                     </Link>
                                 </>
                             ) : (
-                                <div
-                                    onClick={handleProfileClick}
-                                    className="account__dropdownOption"
-                                >
-                                    Your Profile
+                                <div>
+                                    <div onClick={handleProfileClick} className="account__dropdownOption">
+                                        Your Profile
+                                    </div>
+                                    <div onClick={handleLogOutClick} className="account__dropdownOption">
+                                        Log Out
+                                    </div>
                                 </div>
                             )}
                         </div>

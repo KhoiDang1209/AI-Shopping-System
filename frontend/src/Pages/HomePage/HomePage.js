@@ -9,10 +9,15 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import axios from "axios";
 
 const HomePage = () => {
+
   const location = useLocation();
   const userData = location.state?.userData;
-
-  console.log(userData);
+  const [randomCategoriesWithProducts, setRandomCategoriesWithProducts] = useState([]); // Holds 5 random categories with products
+  const [listOfAllMainCategory, setListOfAllMainCategory] = useState([]);
+  const [originalProducts, setOriginalProducts] = useState({}); // Store the original products by category
+  const [loading, setLoading] = useState(true);
+  const [startSlider, setStartSlider] = useState(0);
+  const imgItemRef = useRef(null);
 
   const [userInfo, setUserInfo] = useState({
     name: userData?.name || '',
@@ -24,11 +29,7 @@ const HomePage = () => {
     city: userData?.city || '',
   });
 
-  const [products, setProducts] = useState([]); // State for storing product data
-  const [loading, setLoading] = useState(true); // Loading state
-  const [startSlider, setStartSlider] = useState(0);
-  const imgItemRef = useRef(null);
-
+  console.log(userData)
   const slideRight = () => {
     const totalSlides = imgItemRef.current.children.length - 1; // Total number of images
     const endSlider = totalSlides * -100; // Max negative translateX value
@@ -42,30 +43,69 @@ const HomePage = () => {
       setStartSlider(startSlider + 100);
     }
   };
-
-  // Fetch products only if userData is null
   useEffect(() => {
-    if (!userData) {
-      const fetchProducts = async () => {
-        try {
-          const response = await axios.post("http://127.0.0.1:8000/getAllProduct/"); // Adjust URL if needed
-          if (response.status === 200) {
-            setProducts(response.data["4-5"]); // Set the fetched products
-          }
-        } catch (error) {
-          console.error("Error fetching products:", error);
-        } finally {
-          setLoading(false); // Stop loading once data is fetched
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        // Fetch categories
+        const categoriesResponse = await axios.get("http://127.0.0.1:8000/getAllCategory/");
+        if (categoriesResponse.status === 200) {
+          setListOfAllMainCategory(categoriesResponse.data.categories);
         }
-      };
 
-      fetchProducts();
-    } else {
-      setLoading(false); // If userData exists, we just stop loading without fetching
-    }
-  }, [userData]); // Dependency on userData, will re-run when userData changes
+        // Fetch products
+        const productsResponse = await axios.get("http://127.0.0.1:8000/getAllProduct/");
+        if (productsResponse.status === 200) {
+          setOriginalProducts(productsResponse.data);
+        }
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []); // Runs only on mount
 
-  const limitedProducts = products.slice(0, 10);
+  // Process categories and products
+  useEffect(() => {
+    // Ensure both listOfAllMainCategory and originalProducts are available
+    if (listOfAllMainCategory.length === 0 || Object.keys(originalProducts).length === 0) return;
+
+    const updateRandomCategories = () => {
+      // Select 5 random categories
+      const selectedCategory = listOfAllMainCategory
+        .sort(() => 0.5 - Math.random()) // Shuffle categories randomly
+        .slice(0, 5); // Pick only 5 categories
+
+      // Ensure that each selected category has up to 100 products and slice to 20 for display
+      const categoriesWithProducts = selectedCategory.map((category) => {
+        const products = originalProducts[category] || [];
+
+        // Limit the category to 100 products (if available), then slice to show 20 products at a time
+        const productsToDisplay = products.length >= 100 ? products.slice(0, 100) : products;
+
+        return {
+          category,
+          products: productsToDisplay.slice(0, 20) // Only display 20 products at a time
+        };
+      });
+
+      // Set the state with the updated categories and products
+      setRandomCategoriesWithProducts(categoriesWithProducts);
+    };
+
+    // Initialize categories on first render
+    updateRandomCategories();
+
+    // Set an interval to update the categories every 10 seconds
+    const interval = setInterval(updateRandomCategories, 10000);
+
+    // Clean up the interval on component unmount
+    return () => clearInterval(interval);
+
+  }, [listOfAllMainCategory, originalProducts]); // Dependencies to re-run the effect when data changes
+
 
   return (
     <div className="homepage">
@@ -134,92 +174,55 @@ const HomePage = () => {
             <ChevronRightOutlinedIcon />
           </button>
         </div>
-
       </div>
 
-      {/* bắt đầu làm */}
-      {/* các card */}
-      <div className="products-container">
-        {/* Check if products are loading */}
-        {loading ? (
-          <div>Loading...</div>
-        ) : (
-          <div className="product-list">
-            {limitedProducts.map((product) => (
-              <div key={product.product_id} className="product-item">
-                <Link to={product.product_link} className="product-link">
-                  <img
-                    src={product.product_image}
-                    alt={product.product_name}
-                    className="product-image"
-                  />
-                  <div className="product-info">
-                    <h3 className="product-name">{product.product_name}</h3>
-                    <p className="product-category">{product.main_category}</p>
-                    <p className="product-price">
-                      <span className="discount-price">
-                        ${product.discount_price_usd}
-                      </span>
-                      <span className="actual-price">
-                        ${product.actual_price_usd}
-                      </span>
-                    </p>
-                    <p className="product-rating">
-                      {product.average_rating} Stars ({product.no_of_ratings} reviews)
-                    </p>
+      <div className="item__box__container">
+        <div className="item__box">
+          <div className="item__box__card">
+            <div className="item__box__card__title">
+              Score Black Friday Week deals
+              <div className="item__box__card__image">
+
+                <div className="item__box__card__block">
+                  <img className="item__box__card__block__image" src="https://images-na.ssl-images-amazon.com/images/G/01/DiscoTec/2024/BFCM/GW/Quad_Cards/BFCM_2024_772_BFW_CM_DQC_AmazonBasics_3D_1x_v3._SY116_CB541717183_.jpg" alt="image01" />
+                  <div className="item__box__card__block__text">
+                    Amazon Basics and more
                   </div>
+                </div>
+
+                <div className="item__box__card__block">
+                  <img className="item__box__card__block__image" src="https://images-na.ssl-images-amazon.com/images/G/01/DiscoTec/2024/BFCM/GW/Quad_Cards/BFCM_2024_768_BFW_CM_DQC_HomeImprovement_2D_1x_v3._SY116_CB541717183_.jpg" alt="image02" />
+                  <div className="item__box__card__block__text">
+                    Home Improvement
+                  </div>
+                </div>
+
+                <div className="item__box__card__block">
+                  <img className="item__box__card__block__image" src="https://images-na.ssl-images-amazon.com/images/G/01/DiscoTec/2024/BFCM/GW/Quad_Cards/BFCM_2024_770_BFW_CM_DQC_Phone_Accessories_3B_1x_v3._SY116_CB541717183_.jpg" alt="image03" />
+                  <div className="item__box__card__block__text">
+                    Cell phones & accessories
+                  </div>
+                </div>
+
+                <div className="item__box__card__block">
+                  <img className="item__box__card__block__image" src="https://images-na.ssl-images-amazon.com/images/G/01/DiscoTec/2024/BFCM/GW/Quad_Cards/BFCM_2024_769_BFW_CM_DQC_Furniture_3A_1x_v3._SY116_CB541717183_.jpg" alt="image04" />
+                  <div className="item__box__card__block__text">
+                    Furniture
+                  </div>
+                </div>
+              </div>
+
+              <div className="item__box__card__block__seeMore">
+                <Link to="/Product" className="seeMore">
+                  See more
                 </Link>
               </div>
-            ))}
-          </div>
-        )}
-      </div>
-      {/* <div className="item__box">
-        {/* card 01 */}
-      {/* <div className="item__box__card">
-          <div className="item__box__card__title">
-            Score Black Friday Week deals
-            <div className="item__box__card__image">
-
-              <div className="item__box__card__block">
-                <img className="item__box__card__block__image" src="https://images-na.ssl-images-amazon.com/images/G/01/DiscoTec/2024/BFCM/GW/Quad_Cards/BFCM_2024_772_BFW_CM_DQC_AmazonBasics_3D_1x_v3._SY116_CB541717183_.jpg" alt="image01" />
-                <div className="item__box__card__block__text">
-                  Amazon Basics and more
-                </div>
-              </div>
-
-              <div className="item__box__card__block">
-                <img className="item__box__card__block__image" src="https://images-na.ssl-images-amazon.com/images/G/01/DiscoTec/2024/BFCM/GW/Quad_Cards/BFCM_2024_768_BFW_CM_DQC_HomeImprovement_2D_1x_v3._SY116_CB541717183_.jpg" alt="image02" />
-                <div className="item__box__card__block__text">
-                  Home Improvement
-                </div>
-              </div>
-
-              <div className="item__box__card__block">
-                <img className="item__box__card__block__image" src="https://images-na.ssl-images-amazon.com/images/G/01/DiscoTec/2024/BFCM/GW/Quad_Cards/BFCM_2024_770_BFW_CM_DQC_Phone_Accessories_3B_1x_v3._SY116_CB541717183_.jpg" alt="image03" />
-                <div className="item__box__card__block__text">
-                  Cell phones & accessories
-                </div>
-              </div>
-
-              <div className="item__box__card__block">
-                <img className="item__box__card__block__image" src="https://images-na.ssl-images-amazon.com/images/G/01/DiscoTec/2024/BFCM/GW/Quad_Cards/BFCM_2024_769_BFW_CM_DQC_Furniture_3A_1x_v3._SY116_CB541717183_.jpg" alt="image04" />
-                <div className="item__box__card__block__text">
-                  Furniture
-                </div>
-              </div>
-            </div>
-
-            <div className="item__box__card__block__seeMore">
-              <Link to="/Product" className="seeMore">
-                See more
-              </Link>
             </div>
           </div>
-        </div> */}
 
-      {/* card 02 */}
-      {/* <div className="item__box__card">
+        </div>
+
+        <div className="item__box__card">
           <div className="item__box__card__title">
             Refresh your space
             <div className="item__box__card__image">
@@ -259,10 +262,9 @@ const HomePage = () => {
               </Link>
             </div>
           </div>
-        </div> */}
+        </div>
 
-      {/* card 03 */}
-      {/* <div className="item__box__card">
+        <div className="item__box__card">
           <div className="item__box__card__title">
             Toys under $25
             <div className="item__box__card__image">
@@ -278,10 +280,9 @@ const HomePage = () => {
               </Link>
             </div>
           </div>
-        </div> */}
+        </div>
 
-      {/* card 04 */}
-      {/* <div className="item__box__card">
+        <div className="item__box__card">
           <div className="item__box__card__title">
             Shop Black Friday deals
             <div className="item__box__card__image">
@@ -297,93 +298,342 @@ const HomePage = () => {
               </Link>
             </div>
           </div>
-        </div> */}
+        </div>
 
-      {/* card 05 */}
-      {/* <div className="item__box__card">
+      </div>
+
+      {(!userData || (Object.keys(userData).length === 0 && userData.constructor === Object)) && (
+        <div className="card__slider">
+          {randomCategoriesWithProducts && randomCategoriesWithProducts.length > 0 ? (
+            <div className="card__slider--long">
+              <div className="card__slider__title">
+                {randomCategoriesWithProducts[0].category}
+              </div>
+              <div className="card__slider__box">
+                <div className="card__slider__scroll">
+                  {randomCategoriesWithProducts[0].products
+                    .slice(0, 20)
+                    .map((product) => (
+                      <div
+                        key={product.product_id || product.product_name}
+                        className="card__slider__item1"
+                      >
+                        <Link
+                          to={product.product_link}
+                          className="card__slider__item__link"
+                        >
+                          <img
+                            src={product.product_image}
+                            alt={product.product_name}
+                            className="card__slider__item__image"
+                            onError={(e) => {
+                              e.target.onerror = null;
+                              e.target.src =
+                                "https://via.placeholder.com/150?text=Image+Unavailable"; // Fallback image
+                            }}
+                          />
+                        </Link>
+                      </div>
+                    ))}
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="loading-indicator">Loading...</div> // Loading indicator
+          )}
+        </div>
+      )}
+
+      {(!userData || (Object.keys(userData).length === 0 && userData.constructor === Object)) && (
+        <div className="card__slider">
+          {randomCategoriesWithProducts && randomCategoriesWithProducts.length > 0 ? (
+            <div className="card__slider--long">
+              <div className="card__slider__title">
+                {randomCategoriesWithProducts[1].category}
+              </div>
+              <div className="card__slider__box">
+                <div className="card__slider__scroll">
+                  {randomCategoriesWithProducts[1].products
+                    .slice(0, 20)
+                    .map((product) => (
+                      <div
+                        key={product.product_id || product.product_name}
+                        className="card__slider__item1"
+                      >
+                        <Link
+                          to={product.product_link}
+                          className="card__slider__item__link"
+                        >
+                          <img
+                            src={product.product_image}
+                            alt={product.product_name}
+                            className="card__slider__item__image"
+                            onError={(e) => {
+                              e.target.onerror = null;
+                              e.target.src =
+                                "https://via.placeholder.com/150?text=Image+Unavailable"; // Fallback image
+                            }}
+                          />
+                        </Link>
+                      </div>
+                    ))}
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="loading-indicator">Loading...</div> // Loading indicator
+          )}
+        </div>
+      )}
+      {(!userData || (Object.keys(userData).length === 0 && userData.constructor === Object)) && (
+        <div className="card__slider">
+          {randomCategoriesWithProducts && randomCategoriesWithProducts.length > 0 ? (
+            <div className="card__slider--long">
+              <div className="card__slider__title">
+                {randomCategoriesWithProducts[2].category}
+              </div>
+              <div className="card__slider__box">
+                <div className="card__slider__scroll">
+                  {randomCategoriesWithProducts[2].products
+                    .slice(0, 20)
+                    .map((product) => (
+                      <div
+                        key={product.product_id || product.product_name}
+                        className="card__slider__item1"
+                      >
+                        <Link
+                          to={product.product_link}
+                          className="card__slider__item__link"
+                        >
+                          <img
+                            src={product.product_image}
+                            alt={product.product_name}
+                            className="card__slider__item__image"
+                            onError={(e) => {
+                              e.target.onerror = null;
+                              e.target.src =
+                                "https://via.placeholder.com/150?text=Image+Unavailable"; // Fallback image
+                            }}
+                          />
+                        </Link>
+                      </div>
+                    ))}
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="loading-indicator">Loading...</div> // Loading indicator
+          )}
+        </div>
+      )}
+      {(!userData || (Object.keys(userData).length === 0 && userData.constructor === Object)) && (
+        <div className="card__slider">
+          {randomCategoriesWithProducts && randomCategoriesWithProducts.length > 0 ? (
+            <div className="card__slider--long">
+              <div className="card__slider__title">
+                {randomCategoriesWithProducts[3].category}
+              </div>
+              <div className="card__slider__box">
+                <div className="card__slider__scroll">
+                  {randomCategoriesWithProducts[3].products
+                    .slice(0, 20)
+                    .map((product) => (
+                      <div
+                        key={product.product_id || product.product_name}
+                        className="card__slider__item1"
+                      >
+                        <Link
+                          to={product.product_link}
+                          className="card__slider__item__link"
+                        >
+                          <img
+                            src={product.product_image}
+                            alt={product.product_name}
+                            className="card__slider__item__image"
+                            onError={(e) => {
+                              e.target.onerror = null;
+                              e.target.src =
+                                "https://via.placeholder.com/150?text=Image+Unavailable"; // Fallback image
+                            }}
+                          />
+                        </Link>
+                      </div>
+                    ))}
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="loading-indicator">Loading...</div> // Loading indicator
+          )}
+        </div>
+      )}
+      {(!userData || (Object.keys(userData).length === 0 && userData.constructor === Object)) && (
+        <div className="card__slider">
+          {randomCategoriesWithProducts && randomCategoriesWithProducts.length > 0 ? (
+            <div className="card__slider--long">
+              <div className="card__slider__title">
+                {randomCategoriesWithProducts[4].category}
+              </div>
+              <div className="card__slider__box">
+                <div className="card__slider__scroll">
+                  {randomCategoriesWithProducts[4].products
+                    .slice(0, 20)
+                    .map((product) => (
+                      <div
+                        key={product.product_id || product.product_name}
+                        className="card__slider__item1"
+                      >
+                        <Link
+                          to={product.product_link}
+                          className="card__slider__item__link"
+                        >
+                          <img
+                            src={product.product_image}
+                            alt={product.product_name}
+                            className="card__slider__item__image"
+                            onError={(e) => {
+                              e.target.onerror = null;
+                              e.target.src =
+                                "https://via.placeholder.com/150?text=Image+Unavailable"; // Fallback image
+                            }}
+                          />
+                        </Link>
+                      </div>
+                    ))}
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="loading-indicator">Loading...</div> // Loading indicator
+          )}
+        </div>
+      )}
+
+      <div className="item__box__container">
+        <div className="item__box">
+          <div className="item__box__card">
+            <div className="item__box__card__title">
+              Score Black Friday Week deals
+              <div className="item__box__card__image">
+
+                <div className="item__box__card__block">
+                  <img className="item__box__card__block__image" src="https://images-na.ssl-images-amazon.com/images/G/01/DiscoTec/2024/BFCM/GW/Quad_Cards/BFCM_2024_772_BFW_CM_DQC_AmazonBasics_3D_1x_v3._SY116_CB541717183_.jpg" alt="image01" />
+                  <div className="item__box__card__block__text">
+                    Amazon Basics and more
+                  </div>
+                </div>
+
+                <div className="item__box__card__block">
+                  <img className="item__box__card__block__image" src="https://images-na.ssl-images-amazon.com/images/G/01/DiscoTec/2024/BFCM/GW/Quad_Cards/BFCM_2024_768_BFW_CM_DQC_HomeImprovement_2D_1x_v3._SY116_CB541717183_.jpg" alt="image02" />
+                  <div className="item__box__card__block__text">
+                    Home Improvement
+                  </div>
+                </div>
+
+                <div className="item__box__card__block">
+                  <img className="item__box__card__block__image" src="https://images-na.ssl-images-amazon.com/images/G/01/DiscoTec/2024/BFCM/GW/Quad_Cards/BFCM_2024_770_BFW_CM_DQC_Phone_Accessories_3B_1x_v3._SY116_CB541717183_.jpg" alt="image03" />
+                  <div className="item__box__card__block__text">
+                    Cell phones & accessories
+                  </div>
+                </div>
+
+                <div className="item__box__card__block">
+                  <img className="item__box__card__block__image" src="https://images-na.ssl-images-amazon.com/images/G/01/DiscoTec/2024/BFCM/GW/Quad_Cards/BFCM_2024_769_BFW_CM_DQC_Furniture_3A_1x_v3._SY116_CB541717183_.jpg" alt="image04" />
+                  <div className="item__box__card__block__text">
+                    Furniture
+                  </div>
+                </div>
+              </div>
+
+              <div className="item__box__card__block__seeMore">
+                <Link to="/Product" className="seeMore">
+                  See more
+                </Link>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <div className="item__box__card">
           <div className="item__box__card__title">
-            Must-see Black Friday Week deals
+            Refresh your space
             <div className="item__box__card__image">
 
               <div className="item__box__card__block">
-                <img className="item__box__card__block__image" src="https://images-na.ssl-images-amazon.com/images/G/01/DiscoTec/2024/BFCM/GW/Quad_Cards/BFCM_2024_761_BFW_CM_DQC_Home_1A_1x_v3._SY116_CB541717183_.jpg" alt="image01" />
+                <img className="item__box__card__block__image" src="https://images-na.ssl-images-amazon.com/images/G/01/launchpad/2023/Gateway/January/DesktopQuadCat_186x116_LP-HP_B08MYX5Q2W_01.23._SY116_CB619238939_.jpg" alt="image01" />
+                <div className="item__box__card__block__text">
+                  Dining
+                </div>
+              </div>
+
+              <div className="item__box__card__block">
+                <img className="item__box__card__block__image" src="https://images-na.ssl-images-amazon.com/images/G/01/launchpad/2023/Gateway/January/DesktopQuadCat_186x116_home_B08RCCP3HV_01.23._SY116_CB619238939_.jpgg" alt="image02" />
                 <div className="item__box__card__block__text">
                   Home
                 </div>
               </div>
 
               <div className="item__box__card__block">
-                <img className="item__box__card__block__image" src="https://images-na.ssl-images-amazon.com/images/G/01/DiscoTec/2024/BFCM/GW/Quad_Cards/BFCM_2024_767_BFW_CM_DQC_Sports_Outdoors_2C_1x_v3._SY116_CB541717183_.jpg" alt="image02" />
-                <div className="item__box__card__block__text">
-                  Sports & Outdoors
-                </div>
-              </div>
-
-              <div className="item__box__card__block">
-                <img className="item__box__card__block__image" src="https://images-na.ssl-images-amazon.com/images/G/01/DiscoTec/2024/BFCM/GW/Quad_Cards/BFCM_2024_764_BFW_CM_DQC_Beauty_1D_1x_v3._SY116_CB541717183_.jpg" alt="image03" />
-                <div className="item__box__card__block__text">
-                  Beauty
-                </div>
-              </div>
-
-              <div className="item__box__card__block">
-                <img className="item__box__card__block__image" src="https://images-na.ssl-images-amazon.com/images/G/01/DiscoTec/2024/BFCM/GW/Quad_Cards/BFCM_2024_766_BFW_CM_DQC_Headphones_2B_1x_v3._SY116_CB541717183_.jpgg" alt="image04" />
-                <div className="item__box__card__block__text">
-                  Headphones
-                </div>
-              </div>
-            </div>
-
-            <div className="item__box__card__block__seeMore">
-              <Link to="/Product" className="seeMore">
-                Shop all deals
-              </Link>
-            </div>
-          </div>
-        </div> */}
-
-      {/* card 06 */}
-      {/* <div className="item__box__card">
-          <div className="item__box__card__title">
-            Black Friday Week deals are here
-            <div className="item__box__card__image">
-
-              <div className="item__box__card__block">
-                <img className="item__box__card__block__image" src="https://images-na.ssl-images-amazon.com/images/G/01/DiscoTec/2024/BFCM/GW/Quad_Cards/BFCM_2024_763_BFW_CM_DQC_ComputerVideoGames_1C_1x_v3._SY116_CB541717183_.jpg" alt="image01" />
-                <div className="item__box__card__block__text">
-                  Tech & gaming
-                </div>
-              </div>
-
-              <div className="item__box__card__block">
-                <img className="item__box__card__block__image" src="https://images-na.ssl-images-amazon.com/images/G/01/DiscoTec/2024/BFCM/GW/Quad_Cards/BFCM_2024_771_BFW_CM_DQC_Deals_Toys_Games_3C_1x_v3._SY116_CB541717183_.jpg" alt="image02" />
-                <div className="item__box__card__block__text">
-                  Toys & games
-                </div>
-              </div>
-
-              <div className="item__box__card__block">
-                <img className="item__box__card__block__image" src="https://images-na.ssl-images-amazon.com/images/G/01/DiscoTec/2024/BFCM/GW/Quad_Cards/BFCM_2024_765_BFW_CM_DQC_Kitchen_2A_1x_v3._SY116_CB541717183_.jpg" alt="image03" />
+                <img className="item__box__card__block__image" src="https://images-na.ssl-images-amazon.com/images/G/01/launchpad/2023/Gateway/January/DesktopQuadCat_186x116_kitchen_B0126LMDFK_01.23._SY116_CB619238939_.jpg" alt="image03" />
                 <div className="item__box__card__block__text">
                   Kitchen
                 </div>
               </div>
 
               <div className="item__box__card__block">
-                <img className="item__box__card__block__image" src="https://images-na.ssl-images-amazon.com/images/G/01/DiscoTec/2024/BFCM/GW/Quad_Cards/BFCM_2024_762_BFW_CM_DQC_Fashion_1B_1x_v3._SY116_CB541717183_.jpg" alt="image04" />
+                <img className="item__box__card__block__image" src="https://images-na.ssl-images-amazon.com/images/G/01/launchpad/2023/Gateway/January/DesktopQuadCat_186x116_health-beauty_B07662GN57_01.23._SY116_CB619238939_.jpg" alt="image04" />
                 <div className="item__box__card__block__text">
-                  Fashion
+                  Health and Beauty
                 </div>
               </div>
             </div>
 
-            <div className="item__box__card__block__seeMore">
-              <Link to="/Product" className="seeMore">
+            <div className="item__box__card__block__seeMore--1row">
+              <Link to="/Product" className="seeMore--1row">
                 See more
               </Link>
             </div>
           </div>
-        </div> */}
+        </div>
+
+        <div className="item__box__card">
+          <div className="item__box__card__title">
+            Toys under $25
+            <div className="item__box__card__image">
+
+              <div className="item__box__card__block__only">
+                <img className="item__box__card__block__image__only" src="https://images-na.ssl-images-amazon.com/images/G/01/AmazonExports/Events/2023/EBF23/Fuji_Desktop_Single_image_EBF_1x_v3._SY304_CB573698005_.jpgg" alt="image01" />
+              </div>
+            </div>
+
+            <div className="item__box__card__block__seeMore__only">
+              <Link to="/Product" className="seeMore__only">
+                See more
+              </Link>
+            </div>
+          </div>
+        </div>
+
+        <div className="item__box__card">
+          <div className="item__box__card__title">
+            Shop Black Friday deals
+            <div className="item__box__card__image">
+
+              <div className="item__box__card__block__only">
+                <img className="item__box__card__block__image__only" src="https://images-na.ssl-images-amazon.com/images/G/01/AmazonExports/Events/2024/BlackFriday24/Fuji_Black_Friday_Dashboard_card_1X_EN._SY304_CB542042483_.jpg" alt="image01" />
+              </div>
+            </div>
+
+            <div className="item__box__card__block__seeMore__only">
+              <Link to="/Product" className="seeMore__only">
+                Shop Black Friday deals
+              </Link>
+            </div>
+          </div>
+        </div>
+
+      </div>
 
       {/* card 07 */}
       {/* <div className="item__box__card">
@@ -448,206 +698,10 @@ const HomePage = () => {
         </div>
       </div> */}
 
-      {/* card trượt */}
-      <div className="card__slider">
-        <div className="card__slider--long">
-          <div className="card__slider__title">
-            Popular products in Wireless internationally
-          </div>
-          {/* khung bao bên ngoài khung trượt card */}
-          <div className="card__slider__box">
-            {/* tạo thanh kéo ngang */}
-            <div className="card__slider__scroll">
-              {/* khung cho card */}
-              <div className="card__slider__item">
-                <img src="https://m.media-amazon.com/images/I/71blOLk9A6L._AC_SY200_.jpg" alt="image01" className="card__slider__item__image" />
-              </div>
-
-              <div className="card__slider__item">
-                <img src="https://m.media-amazon.com/images/I/612bzkKC0WL._AC_SY200_.jpg" alt="image02" className="card__slider__item__image" />
-              </div>
-
-              <div className="card__slider__item">
-                <img src="https://m.media-amazon.com/images/I/81qhkS6lcUL._AC_SY200_.jpg" alt="image03" className="card__slider__item__image" />
-              </div>
-
-              <div className="card__slider__item">
-                <img src="https://m.media-amazon.com/images/I/51T9lfJEUML._AC_SY200_.jpg" alt="image04" className="card__slider__item__image" />
-              </div>
-
-              <div className="card__slider__item">
-                <img src="https://m.media-amazon.com/images/I/613cPuOz5OL._AC_SY200_.jpg" alt="image05" className="card__slider__item__image" />
-              </div>
-
-              <div className="card__slider__item">
-                <img src="https://m.media-amazon.com/images/I/71B+4V5YhnL._AC_SY200_.jpg" alt="image06" className="card__slider__item__image" />
-              </div>
-
-              <div className="card__slider__item">
-                <img src="https://m.media-amazon.com/images/I/71H6lbf27hL._AC_SY200_.jpg" alt="image07" className="card__slider__item__image" />
-              </div>
-
-              <div className="card__slider__item">
-                <img src="https://m.media-amazon.com/images/I/51yaQQSq59L._AC_SY200_.jpg" alt="image08" className="card__slider__item__image" />
-              </div>
-
-              <div className="card__slider__item">
-                <img src="https://m.media-amazon.com/images/I/61QZKB8QIRL._AC_SY200_.jpg" alt="image09" className="card__slider__item__image" />
-              </div>
-
-              <div className="card__slider__item">
-                <img src="https://m.media-amazon.com/images/I/71R6ka8Os4L._AC_SY200_.jpg" alt="image10" className="card__slider__item__image" />
-              </div>
-
-              <div className="card__slider__item">
-                <img src="https://m.media-amazon.com/images/I/615H+ZA6E1L._AC_SY200_.jpg" alt="image11" className="card__slider__item__image" />
-              </div>
-
-              <div className="card__slider__item">
-                <img src="https://m.media-amazon.com/images/I/61nen6x72LL._AC_SY200_.jpg" alt="image12" className="card__slider__item__image" />
-              </div>
-
-              <div className="card__slider__item">
-                <img src="https://m.media-amazon.com/images/I/612sUi2P8rL._AC_SY200_.jpg" alt="image13" className="card__slider__item__image" />
-              </div>
-
-              <div className="card__slider__item">
-                <img src="https://m.media-amazon.com/images/I/71JPv74eM-L._AC_SY200_.jpg" alt="image14" className="card__slider__item__image" />
-              </div>
-
-              <div className="card__slider__item">
-                <img src="https://m.media-amazon.com/images/I/41rwpIz0sxL._AC_SY200_.jpg" alt="image15" className="card__slider__item__image" />
-              </div>
-
-              <div className="card__slider__item">
-                <img src="https://m.media-amazon.com/images/I/4161BoDqu3L._AC_SY200_.jpg" alt="image16" className="card__slider__item__image" />
-              </div>
-
-              <div className="card__slider__item">
-                <img src="https://m.media-amazon.com/images/I/51IxhAeE2fL._AC_SY200_.jpg" alt="image17" className="card__slider__item__image" />
-              </div>
-
-              <div className="card__slider__item">
-                <img src="https://m.media-amazon.com/images/I/61VwfUI+-eL._AC_SY200_.jpg" alt="image18" className="card__slider__item__image" />
-              </div>
-
-              <div className="card__slider__item">
-                <img src="https://m.media-amazon.com/images/I/61mGfE74wxL._AC_SY200_.jpg" alt="image19" className="card__slider__item__image" />
-              </div>
-
-              <div className="card__slider__item">
-                <img src="https://m.media-amazon.com/images/I/51L2WuVkQfL._AC_SY200_.jpg" alt="image20" className="card__slider__item__image" />
-              </div>
-
-              <div className="card__slider__item">
-                <img src="https://m.media-amazon.com/images/I/81xZ069pe1L._AC_SY200_.jpg" alt="image21" className="card__slider__item__image" />
-              </div>
-
-              <div className="card__slider__item">
-                <img src="https://m.media-amazon.com/images/I/610Jl4dUB7L._AC_SY200_.jpg" alt="image22" className="card__slider__item__image" />
-              </div>
-
-              <div className="card__slider__item">
-                <img src="https://m.media-amazon.com/images/I/61m+fKy7wzL._AC_SY200_.jpg" alt="image23" className="card__slider__item__image" />
-              </div>
-
-              <div className="card__slider__item">
-                <img src="https://m.media-amazon.com/images/I/81q2MtIt4CL._AC_SY200_.jpg" alt="image24" className="card__slider__item__image" />
-              </div>
-
-              <div className="card__slider__item">
-                <img src="https://m.media-amazon.com/images/I/61zW8yc4hTL._AC_SY200_.jpg" alt="image25" className="card__slider__item__image" />
-              </div>
-
-              <div className="card__slider__item">
-                <img src="https://m.media-amazon.com/images/I/61V2k6wY5tL._AC_SY200_.jpg" alt="image26" className="card__slider__item__image" />
-              </div>
-
-              <div className="card__slider__item">
-                <img src="https://m.media-amazon.com/images/I/71MnyXxedIL._AC_SY200_.jpg" alt="image27" className="card__slider__item__image" />
-              </div>
-
-              <div className="card__slider__item">
-                <img src="https://m.media-amazon.com/images/I/71RzaVCib3L._AC_SY200_.jpg" alt="image28" className="card__slider__item__image" />
-              </div>
-
-              <div className="card__slider__item">
-                <img src="https://m.media-amazon.com/images/I/61yNuISrZ3L._AC_SY200_.jpg" alt="image29" className="card__slider__item__image" />
-              </div>
-
-              <div className="card__slider__item">
-                <img src="https://m.media-amazon.com/images/I/518Qh+G3I5L._AC_SY200_.jpg" alt="image30" className="card__slider__item__image" />
-              </div>
-
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* card trượt */}
-      <div className="card__slider--01">
-        <div className="card__slider--long">
-          <div className="card__slider__title">
-            Here come Holiday Specials
-          </div>
-          {/* khung bao bên ngoài khung trượt card */}
-          <div className="card__slider__box">
-            {/* tạo thanh kéo ngang */}
-            <div className="card__slider__scroll">
-              {/* khung cho card */}
-              <div className="card__slider__item">
-                <img src="https://images-na.ssl-images-amazon.com/images/G/01/AmazonExports/Events/2024/Holiday_Shovler/Fuji_HolidayGG_Shoveler_Holiday_deals_1X_EN._CB541659723_.jpg" alt="image01" className="card__slider__item__image" />
-              </div>
-
-              <div className="card__slider__item">
-                <img src="https://images-na.ssl-images-amazon.com/images/G/01/AmazonExports/Events/2024/Holiday_Shovler/Fuji_HolidayGG_Shoveler_Most_loved_deals_1X_EN._CB541659723_.jpg" alt="image02" className="card__slider__item__image" />
-              </div>
-
-              <div className="card__slider__item">
-                <img src="https://images-na.ssl-images-amazon.com/images/G/01/AmazonExports/Events/2024/Holiday_Shovler/Fuji_HolidayGG_Shoveler_Deals_under_50_1X_EN._CB541659723_.jpg" alt="image03" className="card__slider__item__image" />
-              </div>
-
-              <div className="card__slider__item">
-                <img src="https://images-na.ssl-images-amazon.com/images/G/01/AmazonExports/Events/2024/Holiday_Shovler/Fuji_HolidayGG_Shoveler_Deals_on_Computer_1X_EN._CB541659723_.jpg" alt="image04" className="card__slider__item__image" />
-              </div>
-
-              <div className="card__slider__item">
-                <img src="https://images-na.ssl-images-amazon.com/images/G/01/AmazonExports/Events/2024/Holiday_Shovler/Fuji_HolidayGG_Shoveler_Deals_on_Fashion_1X_EN._CB541659723_.jpg" alt="image05" className="card__slider__item__image" />
-              </div>
-
-              <div className="card__slider__item">
-                <img src="https://images-na.ssl-images-amazon.com/images/G/01/AmazonExports/Events/2024/Holiday_Shovler/Fuji_HolidayGG_Shoveler_Deals_on_Toys__Games_1X_EN._CB541659723_.jpg" alt="image06" className="card__slider__item__image" />
-              </div>
-
-              <div className="card__slider__item">
-                <img src="https://images-na.ssl-images-amazon.com/images/G/01/AmazonExports/Events/2024/Holiday_Shovler/Fuji_HolidayGG_Shoveler_Gift_guides_1X_EN._CB541659723_.jpg" alt="image07" className="card__slider__item__image" />
-              </div>
-
-              <div className="card__slider__item">
-                <img src="https://images-na.ssl-images-amazon.com/images/G/01/AmazonExports/Events/2024/Holiday_Shovler/Fuji_HolidayGG_Shoveler_Holiday_Fashion__1X_EN._CB541659723_.jpg" alt="image08" className="card__slider__item__image" />
-              </div>
-
-              <div className="card__slider__item">
-                <img src="https://images-na.ssl-images-amazon.com/images/G/01/AmazonExports/Events/2024/Holiday_Shovler/Fuji_HolidayGG_Shoveler_Holiday_Home_Decor_1X_EN._CB541659723_.jpg" alt="image09" className="card__slider__item__image" />
-              </div>
-
-              <div className="card__slider__item">
-                <img src="https://images-na.ssl-images-amazon.com/images/G/01/AmazonExports/Events/2024/Holiday_Shovler/Fuji_HolidayGG_Shoveler_Electronics_Gift_Guide_1X_EN._CB541659723_.jpg" alt="image10" className="card__slider__item__image" />
-              </div>
-
-              <div className="card__slider__item">
-                <img src="https://images-na.ssl-images-amazon.com/images/G/01/AmazonExports/Events/2024/Holiday_Shovler/Fuji_HolidayGG_Shoveler_Holiday_Toys_List_1X_EN._CB541659723_.jpg" alt="image11" className="card__slider__item__image" />
-              </div>
-
-            </div>
-          </div>
-        </div>
-      </div>
-
       {/* các card */}
-      <div className="item__box--01">
-        {/* card 01 */}
-        <div className="item__box__card">
+      {/* <div className="item__box--01"> */}
+      {/* card 01 */}
+      {/* <div className="item__box__card">
           <div className="item__box__card__title">
             Most-loved travel essentials
             <div className="item__box__card__image">
@@ -687,10 +741,10 @@ const HomePage = () => {
               </Link>
             </div>
           </div>
-        </div>
+        </div> */}
 
-        {/* card 02 */}
-        <div className="item__box__card">
+      {/* card 02 */}
+      {/* <div className="item__box__card">
           <div className="item__box__card__title">
             Fantastic Finds for Home
             <div className="item__box__card__image">
@@ -730,10 +784,10 @@ const HomePage = () => {
               </Link>
             </div>
           </div>
-        </div>
+        </div> */}
 
-        {/* card 03 */}
-        <div className="item__box__card">
+      {/* card 03 */}
+      {/* <div className="item__box__card">
           <div className="item__box__card__title">
             Gaming merchandise
             <div className="item__box__card__image">
@@ -773,10 +827,10 @@ const HomePage = () => {
               </Link>
             </div>
           </div>
-        </div>
+        </div> */}
 
-        {/* card 04 */}
-        <div className="item__box__card">
+      {/* card 04 */}
+      {/* <div className="item__box__card">
           <div className="item__box__card__title">
             Most-loved watches
             <div className="item__box__card__image">
@@ -818,20 +872,20 @@ const HomePage = () => {
           </div>
         </div>
 
-      </div>
+      </div> */}
 
       {/* card trượt */}
-      <div className="card__slider--02">
+      {/* <div className="card__slider--02">
         <div className="card__slider--long">
           <div className="card__slider__title">
             Here come Holiday Specials
-          </div>
-          {/* khung bao bên ngoài khung trượt card */}
-          <div className="card__slider__box">
+          </div> */}
+      {/* khung bao bên ngoài khung trượt card */}
+      {/* <div className="card__slider__box">
             {/* tạo thanh kéo ngang */}
-            <div className="card__slider__scroll">
-              {/* khung cho card */}
-              <div className="card__slider__item">
+      {/* <div className="card__slider__scroll"> */}
+      {/* khung cho card */}
+      {/*<div className="card__slider__item">
                 <img src="https://m.media-amazon.com/images/I/814ODyP8cgL._AC_SY200_.jpg" alt="image01" className="card__slider__item__image" />
               </div>
 
@@ -898,7 +952,7 @@ const HomePage = () => {
             </div>
           </div>
         </div>
-      </div>
+      </div> */}
 
       <HomepageFooter />
     </div>

@@ -144,7 +144,7 @@ class UserRegisterRequest(BaseModel):
     email_address: EmailStr
     phone_number:  str
     password: str
-    age: str
+    age: int
     gender: str
     city: str
     # @field_validator('password')
@@ -386,7 +386,7 @@ class UpdateRequire(BaseModel):
     region: str
     postal_code: str
 class CategoryName(BaseModel):
-    category_name: str
+    categoryencode: str
 
     class Config:
         orm_mode = True
