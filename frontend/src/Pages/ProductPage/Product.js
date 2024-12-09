@@ -61,7 +61,7 @@ const Product = () => {
     //   fetchProducts();
     // }, []);
 
-<<<<<<< HEAD
+
       // Fetch product details by product_id (for individual product page)
   // const fetchProductDetails = async (productId) => {
   //   try {
@@ -124,11 +124,11 @@ const Product = () => {
   // if (products.length === 0) {
   //     return <h1>Loading Products...</h1>;
   // }
-=======
+
   if (products.length === 0) {
     return <h1>Loading Products...</h1>;
   }
->>>>>>> 66597a0ee6eb20a78b2c587535b6cadc74ce3fd7
+
 
 
 
