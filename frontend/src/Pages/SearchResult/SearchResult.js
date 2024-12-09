@@ -15,17 +15,18 @@ const SearchResult = () => {
     const searchTermFromParams = SearchParams.get("searchTerm") || '';
     setSearchTerm(searchTermFromParams);
 
-    fetch(`http://localhost:8000/products/search?query=${encodeURIComponent(searchTermFromParams)}`)
-      .then((searchResults) => {
-        const products = searchResults.Product || [];
-        const results = products.filter((product) =>
-          product.name.toLowerCase().includes(searchTermFromParams.toLowerCase())
-        );
-        setProducts(results);
-      })
-      .catch((error) => {
-        console.error("Error fetching search results:", error);
-      });
+    const fetchProducts = async () => {
+      fetch(`http://localhost:8000/products/search?query=${encodeURIComponent(searchTermFromParams)}`)
+        .then((response) => response.json())
+        .then((data) => {
+          setProducts(data.products || []);
+        })
+        .catch((error) => {
+          console.error("Error fetching search results:", error);
+        });
+    }
+
+    fetchProducts();
   }, [SearchParams]); // Ensure it updates when SearchParams changes
 
   return (
@@ -34,7 +35,7 @@ const SearchResult = () => {
       {
         products && products.map((product, key) => {
           return (
-            <Link className="searchresult__link" key={key} to={`/Item/${product.product_id}`}>
+            <Link className="searchresult__link" key={product.product_id} to={`/Item/${product.product_id}`}>
                 <div className="searchresult__container">
                   <div className="searchresult__image">
                     <img                   

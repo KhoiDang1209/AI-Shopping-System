@@ -6,17 +6,17 @@ const ItemDetail = ({product, ratings}) => {
   return (
     <div className="items__detail">
         <div className="items__detail__text">
-            {product.name}
+            {product.product_name}
         </div>
         
-        <div className="items__detail__text--normal">
+        {/* <div className="items__detail__text--normal">
             by <span className="items__detail__brand">{product.brand}</span>
-        </div>
+        </div> */}
         
         {
             ratings &&
                 <div className="items__detail__text--normal">
-                    <ItemRatings avgRating={product.avgRating} ratings={product.ratings} />
+                    <ItemRatings average_rating={product.average_rating} no_of_ratings={product.no_of_ratings} />
                 </div>
         }
 

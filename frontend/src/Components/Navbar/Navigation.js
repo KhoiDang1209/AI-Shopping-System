@@ -76,7 +76,7 @@ const NavBar = ({ userInfo }) => {
     const [suggestions, setSuggestions] = useState([]);
     const [searchTerm, setSearchTerm] = useState("");
 
-    const getSuggestions = (query) => {
+    const getSuggestions = async (query) => {
         fetch(`http://localhost:8000/products/search?query=${query}`)
         .then((response) => {
             if (!response.ok) {
@@ -94,7 +94,11 @@ const NavBar = ({ userInfo }) => {
 
     useEffect(() => {
         const delayDebounceFn = setTimeout(() => {
-          getSuggestions(searchTerm);
+            if (searchTerm.trim()) { // Only fetch if searchTerm is non-empty
+                getSuggestions(searchTerm);
+            } else {
+                setSuggestions([]); // Clear suggestions for empty input
+            }
         }, 300); // Add debounce to reduce API calls
     
         return () => clearTimeout(delayDebounceFn); // Cleanup debounce timer
@@ -185,9 +189,7 @@ const NavBar = ({ userInfo }) => {
                                             .filter((Product) => {
                                                 const currentSearchTerm = searchTerm.toLowerCase();
                                                 const title = Product.product_name.toLowerCase(); // Match with `name` field from JSON
-                                                return (
-                                                    title.startsWith(currentSearchTerm) && title !== currentSearchTerm
-                                                );
+                                                return title.includes(currentSearchTerm);
                                             })
                                             .slice(0, 10)
                                             .map((Product) => (

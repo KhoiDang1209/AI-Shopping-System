@@ -636,7 +636,7 @@ async def search_products(query: str = "", db: Session = Depends(get_db)):
 # 4.1. Product Detail Page
 # ------------------------------
 
-@app.get("/products/{product_id}")
+@app.get("/Item/{product_id}")
 async def get_product_detail(product_id: str, db: Session = Depends(get_db)):
     """Fetch detailed information for a specific product."""
     
