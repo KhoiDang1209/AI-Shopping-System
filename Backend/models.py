@@ -133,7 +133,7 @@ class ProductItem(Base):
     __tablename__ = "product_item"
 
     # Product Item attributes
-    product_item_id = Column(Integer, primary_key=True)
+    product_item_id = Column(String(100), primary_key=True)
     product_id = Column(String(100), ForeignKey("product.product_id"))
     SKU = Column(String(50), nullable=False)
     price = Column(DECIMAL(10, 2), nullable=False)
@@ -149,7 +149,7 @@ class ProductItem(Base):
 
 class ProductConfiguration(Base):
     __tablename__ = "product_configuration"
-    product_item_id = Column(Integer, ForeignKey("product_item.product_item_id"), primary_key=True)
+    product_item_id = Column(String, ForeignKey("product_item.product_item_id"), primary_key=True)
     variation_option_id = Column(Integer, ForeignKey("variation_option.variation_option_id"), primary_key=True)
 
     variation_option = relationship("VariationOption", back_populates="product_configurations")
@@ -251,7 +251,7 @@ class OrderLine(Base):
     __tablename__ = "order_line"
     ordered_product_id = Column(Integer, primary_key=True)
     order_id = Column(Integer, ForeignKey("shop_order.order_id"))
-    product_item_id = Column(Integer, ForeignKey("product_item.product_item_id"))
+    product_item_id = Column(String, ForeignKey("product_item.product_item_id"))
     qty = Column(Integer, nullable=False)
     price = Column(DECIMAL(10, 2), nullable=False)
 

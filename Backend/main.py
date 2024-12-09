@@ -40,7 +40,7 @@ models.Base.metadata.create_all(bind=engine)
 #     print("Running data insertion task on startup...")
 #     insert_product_data()
 #     insert_user_data()
-#     insert_product_rating_data()
+#     insert_product_rating_data() 
 
 # CORS Middleware
 origins = ["http://localhost:3000"]  # Replace with your frontend URL

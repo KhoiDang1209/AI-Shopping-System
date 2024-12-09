@@ -1,0 +1,426 @@
+Metadata-Version: 2.1
+Name: annotate
+Version: 1.1.2
+Summary: Decorator to set a function's __annotations__ like Py3.
+Author: Adam Karpierz
+Author-email: adam@karpierz.net
+Maintainer: Adam Karpierz
+Maintainer-email: adam@karpierz.net
+License: zlib/libpng License ; https://opensource.org/license/zlib
+Project-URL: Homepage, https://pypi.org/project/annotate/
+Project-URL: Documentation, https://annotate2.readthedocs.io/
+Project-URL: Download, https://pypi.org/project/annotate/
+Project-URL: Source, https://github.com/karpierz/annotate
+Project-URL: Issues, https://github.com/karpierz/annotate/issues
+Keywords: annotate,typing,decorator
+Platform: any
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: zlib/libpng License
+Classifier: Operating System :: OS Independent
+Classifier: Natural Language :: Polish
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.9
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.12
+Classifier: Programming Language :: Python :: 3.13
+Classifier: Programming Language :: Python :: 3 :: Only
+Classifier: Programming Language :: Python :: Implementation :: CPython
+Classifier: Programming Language :: Python :: Implementation :: PyPy
+Classifier: Topic :: Software Development :: Libraries :: Python Modules
+Requires-Python: <4.0.0,>=3.9.0
+Description-Content-Type: text/x-rst; charset=UTF-8
+License-File: LICENSE
+Requires-Dist: setuptools>=75.3.0
+Requires-Dist: pkg-about>=1.2.2
+Provides-Extra: doc
+Requires-Dist: Sphinx>=7.4.7; extra == "doc"
+Requires-Dist: sphinx-toolbox>=3.8.1; extra == "doc"
+Requires-Dist: sphinx-tabs>=3.4.5; extra == "doc"
+Requires-Dist: sphinx-copybutton>=0.5.2; extra == "doc"
+Requires-Dist: sphinxcontrib-spelling>=8.0.0; extra == "doc"
+Requires-Dist: sphinx-lint>=1.0.0; extra == "doc"
+Requires-Dist: restructuredtext-lint>=1.4.0; extra == "doc"
+Requires-Dist: nbsphinx>=0.9.5; extra == "doc"
+Provides-Extra: test
+Requires-Dist: deepdiff>=8.0.1; extra == "test"
+Requires-Dist: rich>=13.9.4; extra == "test"
+
+annotate
+========
+
+Function annotations.
+
+Overview
+========
+
+**@annotate**
+
+| Decorator to set a function's __annotations__ like Py3.
+| https://www.python.org/dev/peps/pep-3107/
+
+`PyPI record`_.
+
+`Documentation`_.
+
+Examples
+--------
+
+.. code:: python
+
+  from typing   import Optional, Tuple, Union, Sequence
+  from annotate import annotate
+
+  from .lib import cached
+  from .    import jni
+
+  from .jobjectbase import JObjectBase
+  from .jclass      import JClass
+  from .jobject     import JObject
+
+
+  class JArray(JObjectBase):
+      """Java Array"""
+
+      @classmethod
+      @annotate('JArray', size=Union[int, long])
+      def newBooleanArray(cls, size):
+          ...
+      ...
+      @classmethod
+      @annotate('JArray', size=Union[int, long])
+      def newDoubleArray(cls, size):
+          ...
+      @classmethod
+      @annotate('JArray', size=Union[int, long])
+      def newStringArray(cls, size):
+          ...
+      @classmethod
+      @annotate('JArray', size=Union[int, long], component_class=JClass)
+      def newObjectArray(cls, size, component_class):
+          ...
+
+      @annotate(jenv=jni.JNIEnv, jarr=jni.jarray, borrowed=bool)
+      def __init__(self, jenv, jarr, borrowed=False):
+          ...
+
+      def __hash__(self):
+          return super(JArray, self).__hash__()
+
+      def __len__(self):
+          return self.getLength()
+
+      @annotate(JObject, borrowed=bool)
+      def asObject(self, borrowed=False):
+          ...
+
+      @cached
+      @annotate(int)
+      def getLength(self):
+          ...
+
+      @annotate(bool, idx=int)
+      def getBoolean(self, idx):
+          ...
+      ...
+      @annotate(float, idx=int)
+      def getDouble(self, idx):
+          ...
+      @annotate(Optional[str], idx=int)
+      def getString(self, idx):
+          ...
+      @annotate(Optional[JObject], idx=int)
+      def getObject(self, idx):
+          ...
+
+      @annotate(idx=int, val=bool)
+      def setBoolean(self, idx, val):
+          ...
+      @annotate(idx=int, val=str)
+      def setChar(self, idx, val):
+          ...
+      ...
+      @annotate(idx=int, val=Union[int, long])
+      def setLong(self, idx, val):
+          ...
+      @annotate(idx=int, val=float)
+      def setDouble(self, idx, val):
+          ...
+      @annotate(idx=int, val=Optional[str])
+      def setString(self, idx, val):
+          ...
+      @annotate(idx=int, val=Optional[JObject])
+      def setObject(self, idx, val):
+          ...
+
+      @annotate('JArray', start=int, stop=int, step=int)
+      def getBooleanSlice(self, start, stop, step):
+          ...
+      ...
+      @annotate('JArray', start=int, stop=int, step=int)
+      def getDoubleSlice(self, start, stop, step):
+          ...
+      @annotate('JArray', start=int, stop=int, step=int)
+      def getStringSlice(self, start, stop, step):
+          ...
+      @annotate('JArray', start=int, stop=int, step=int)
+      def getObjectSlice(self, start, stop, step):
+          ...
+
+      @annotate(start=int, stop=int, step=int, val=Sequence[bool])
+      def setBooleanSlice(self, start, stop, step, val):
+          ...
+      @annotate(start=int, stop=int, step=int, val=Union[Sequence[str], str])
+      def setCharSlice(self, start, stop, step, val):
+          ...
+      @annotate(start=int, stop=int, step=int,
+                val=Union[Sequence[Union[int,bytes]], (bytes, bytearray)])
+      def setByteSlice(self, start, stop, step, val):
+          ...
+      ...
+      @annotate(start=int, stop=int, step=int, val=Sequence[float])
+      def setDoubleSlice(self, start, stop, step, val):
+          ...
+      @annotate(start=int, stop=int, step=int, val=Sequence[Optional[str]])
+      def setStringSlice(self, start, stop, step, val):
+          ...
+      @annotate(start=int, stop=int, step=int, val=Sequence[Optional[JObject]])
+      def setObjectSlice(self, start, stop, step, val):
+          ...
+
+      @annotate(Tuple)
+      def getBooleanBuffer(self):
+          with self.jvm as (jvm, jenv):
+              is_copy = jni.jboolean()
+              return jenv.GetBooleanArrayElements(self._jobj, is_copy), jni.sizeof(jni.jboolean), b"B", is_copy
+      ...
+      @annotate(Tuple)
+      def getDoubleBuffer(self):
+          with self.jvm as (jvm, jenv):
+              is_copy = jni.jboolean()
+              return jenv.GetDoubleArrayElements(self._jobj, is_copy), jni.sizeof(jni.jdouble), b"d", is_copy
+
+      @annotate(buf=object)
+      def releaseBooleanBuffer(self, buf):
+          with self.jvm as (jvm, jenv):
+              jenv.ReleaseBooleanArrayElements(self._jobj, jni.cast(buf, jni.POINTER(jni.jboolean)))
+      ...
+      @annotate(buf=object)
+      def releaseDoubleBuffer(self, buf):
+          with self.jvm as (jvm, jenv):
+              jenv.ReleaseDoubleArrayElements(self._jobj, jni.cast(buf, jni.POINTER(jni.jdouble)))
+
+Installation
+============
+
+Prerequisites:
+
++ Python 3.9 or higher
+
+  * https://www.python.org/
+
++ pip and setuptools
+
+  * https://pypi.org/project/pip/
+  * https://pypi.org/project/setuptools/
+
+To install run:
+
+  .. parsed-literal::
+
+    python -m pip install --upgrade |package|
+
+Development
+===========
+
+Prerequisites:
+
++ Development is strictly based on *tox*. To install it run::
+
+    python -m pip install --upgrade tox
+
+Visit `Development page`_.
+
+Installation from sources:
+
+clone the sources:
+
+  .. parsed-literal::
+
+    git clone |respository| |package|
+
+and run:
+
+  .. parsed-literal::
+
+    python -m pip install ./|package|
+
+or on development mode:
+
+  .. parsed-literal::
+
+    python -m pip install --editable ./|package|
+
+License
+=======
+
+  | |copyright|
+  | Licensed under the zlib/libpng License
+  | https://opensource.org/license/zlib
+  | Please refer to the accompanying LICENSE file.
+
+Authors
+=======
+
+* Adam Karpierz <adam@karpierz.net>
+
+.. |package| replace:: annotate
+.. |package_bold| replace:: **annotate**
+.. |copyright| replace:: Copyright (c) 2012-2024 Adam Karpierz
+.. |respository| replace:: https://github.com/karpierz/annotate.git
+.. _Development page: https://github.com/karpierz/annotate
+.. _PyPI record: https://pypi.org/project/annotate/
+.. _Documentation: https://annotate.readthedocs.io/
+
+Changelog
+=========
+
+1.1.2 (2024-10-30)
+------------------
+- Setup (dependencies) update.
+
+1.1.1 (2024-10-09)
+------------------
+- Setup (dependencies) update.
+
+1.1.0 (2024-09-30)
+------------------
+- Drop support for Python 3.8
+- Setup (dependencies) update.
+
+1.0.20 (2024-08-13)
+-------------------
+- Add support for Python 3.12 and 3.13
+- Drop support for Python 3.7
+- Setup (dependencies) update.
+
+1.0.19 (2022-10-18)
+-------------------
+- Tox configuration has been moved to pyproject.toml
+
+1.0.18 (2022-08-22)
+-------------------
+- Setup update.
+
+1.0.17 (2022-07-24)
+-------------------
+- Add support for Python 3.10 and 3.11
+- Setup update (currently based mainly on pyproject.toml).
+
+1.0.16 (2022-01-10)
+-------------------
+- Drop support for Python 2, 3.5 and 3.6
+- Copyright year update.
+- Setup update.
+
+1.0.15 (2020-10-18)
+-------------------
+- Setup: fix an improper dependencies versions.
+- Setup general update and cleanup.
+- Fixed docs setup.
+
+1.0.8 (2019-05-21)
+------------------
+- Update required setuptools version.
+- Setup update and improvements.
+
+1.0.7 (2018-11-08)
+------------------
+- Drop support for Python 2.6 and 3.0-3.3
+- Update required setuptools version.
+
+1.0.6 (2018-05-08)
+------------------
+- Update required setuptools version.
+- Improve and simplify setup and packaging.
+
+1.0.5 (2018-02-26)
+------------------
+- Improve and simplify setup and packaging.
+
+1.0.4 (2018-01-28)
+------------------
+- Fix a bug and inconsistencies in tox.ini
+- Update of README.rst.
+
+1.0.1 (2018-01-24)
+------------------
+- Update required Sphinx version.
+- Update doc Sphinx configuration files.
+
+1.0.0 (2017-11-18)
+------------------
+- Setup improvements.
+- Other minor improvements.
+
+0.7.4 (2017-01-05)
+------------------
+- Minor setup improvements.
+
+0.7.3 (2016-09-25)
+------------------
+- Fix bug in setup.py
+
+0.7.1 (2016-09-25)
+------------------
+- More PEP8 compliant
+
+0.6.7 (2016-09-24)
+------------------
+- Minor description suplement
+
+0.6.4 (2016-09-23)
+------------------
+- Simplify package structure.
+
+0.6.3 (2016-06-19)
+------------------
+- | Fix incompatibility for older versions of setuptools.
+  | Add example.
+
+0.6.0 (2015-08-17)
+------------------
+- Python3 support.
+
+0.5.1 (2015-02-27)
+------------------
+- | Remove 'returns' as keyword argument for declare return type.
+  | For now, the type of returned value should be declared by the
+  | first positional argument.
+
+0.3.3 (2014-09-15)
+------------------
+- Add wheels.
+
+0.3.2 (2014-09-13)
+------------------
+- Standarize package.
+
+0.3.0 (2014-09-06)
+------------------
+- Standarize package.
+- Cosmetic changes.
+
+0.2.6 (2014-06-10)
+------------------
+- Portable setup.py.
+
+0.2.5 (2014-06-10)
+------------------
+- Cosmetic changes.
+
+0.2.3 (2012-10-13)
+------------------
+- Initial release.
