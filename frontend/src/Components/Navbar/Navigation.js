@@ -99,7 +99,7 @@ const NavBar = ({ userInfo }) => {
             console.error("Category title not found in mapping:", categoryTitle);
             return; // Stop execution if the category title is invalid
         }
-
+        console.log(userData)
         navigate(`/Homepage/${mainCategoryEncoded}`, { state: { userData: { ...userData } } }); // Navigate with the encoded value
         setShowAll(false); // Close the dropdown after selection
     };

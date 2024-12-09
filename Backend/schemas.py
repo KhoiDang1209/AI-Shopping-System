@@ -136,7 +136,10 @@ class ShopOrderResponse(ShopOrderBase):
     class Config:
         orm_mode = True
 
-
+class AddToCartRequest(BaseModel):
+    product_id: str
+    user_email: str
+    quantity: int
 #Main schema
 # 1. Login & Register schema
 class UserRegisterRequest(BaseModel):

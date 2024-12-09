@@ -33,7 +33,7 @@ app = FastAPI()
 
 models.Base.metadata.create_all(bind=engine)
 #Do not modify this as need to create table be for insert data
-# from insert_data import *
+from insert_data import *
 
 # @app.on_event("startup")
 # async def startup_event():
@@ -615,7 +615,12 @@ async def get_product_details(product_id: int, db: Session = Depends(get_db)):
     }
 
 @app.post("/addToCart/")
-async def add_to_cart(product_id: str, user_email: str, quantity: int, db: Session = Depends(get_db)):
+async def add_to_cart(request: AddToCartRequest, db: Session = Depends(get_db)):
+    # Extract data from the request
+    product_id = request.product_id
+    user_email = request.user_email
+    quantity = request.quantity
+
     # Get the user by email
     user = db.query(SiteUser).filter(SiteUser.email_address == user_email).first()
     if not user:
@@ -635,19 +640,25 @@ async def add_to_cart(product_id: str, user_email: str, quantity: int, db: Sessi
         db.refresh(cart)
 
     # Check if the product is already in the cart
-    cart_item = db.query(ShoppingCartItem).filter(ShoppingCartItem.cart_id == cart.cart_id, 
-                                                   ShoppingCartItem.product_id == product_id).first()
+    cart_item = db.query(ShoppingCartItem).filter(
+        ShoppingCartItem.shopping_cart_id == cart.shopping_cart_id,
+        ShoppingCartItem.product_item_id == product.product_id
+    ).first()
 
     if cart_item:
         # If the product is already in the cart, update the quantity
         cart_item.quantity += quantity
     else:
         # If the product is not in the cart, add it as a new item
-        cart_item = ShoppingCartItem(cart_id=cart.cart_id, product_id=product_id, quantity=quantity)
+        cart_item = ShoppingCartItem(shopping_cart_id=cart.shopping_cart_id, product_item_id=product.product_id, quantity=quantity, price=product.discount_price_usd)
         db.add(cart_item)
 
     # Commit changes to the database
-    db.commit()
+    try:
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Database commit failed: {e}")
 
     return {"message": "Product added to cart successfully"}
 

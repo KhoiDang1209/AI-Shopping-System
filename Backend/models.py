@@ -100,7 +100,8 @@ class Product(Base):
     category = relationship("ProductCategory", back_populates="products")
     items = relationship("ProductItem", back_populates="product")
     ratings = relationship("ProductRating", back_populates="product")  # This should store related ProductRatings
-    
+    shopping_cart_item = relationship("ShoppingCartItem", back_populates="product")
+
 class ProductRating(Base):
     __tablename__ = "product_rating"
     
@@ -214,12 +215,12 @@ class ShoppingCart(Base):
 class ShoppingCartItem(Base):
     __tablename__ = "shopping_cart_item"
     shopping_cart_id = Column(Integer, ForeignKey("shopping_cart.shopping_cart_id"), primary_key=True)
-    product_item_id = Column(String(100), ForeignKey("product_item.product_item_id"), primary_key=True)
+    product_id = Column(String(100), ForeignKey("product.product_id"), primary_key=True)
     quantity = Column(Integer, nullable=False)
     price = Column(DECIMAL(10, 2), nullable=False)
 
     shopping_cart = relationship("ShoppingCart", back_populates="items")
-    product_item = relationship("ProductItem")
+    product = relationship("Product",back_populates="shopping_cart_item")
 
 
 # 3. Order-related Tables
