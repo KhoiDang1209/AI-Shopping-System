@@ -814,20 +814,51 @@ async def handle_cart(
     cart_id = cart.shopping_cart_id
 
     if request.type == "display":
-        cart_items = db.query(ShoppingCartItem).filter(ShoppingCartItem.shopping_cart_id == cart_id).all()
+        # Fetch cart items and associated product information
+        cart_items = (
+            db.query(ShoppingCartItem, Product)
+            .join(Product, ShoppingCartItem.product_id == Product.product_id)
+            .filter(ShoppingCartItem.shopping_cart_id == cart_id)
+            .all()
+        )
+        
         if not cart_items:
             return {"cart": []}
+        
+        # Format the response
         return {
             "cart": [
                 {
-                    "shopping_cart_id": item.shopping_cart_id,
-                    "product_id": item.product_id,
-                    "quantity": item.quantity,
-                    "price": item.price,
+                    "shopping_cart_id": item.ShoppingCartItem.shopping_cart_id,
+                    "product_id": item.Product.product_id,
+                    "quantity": item.ShoppingCartItem.quantity,
+                    "price": item.ShoppingCartItem.price,
+                    "product_name": item.Product.product_name,
+                    "product_image": item.Product.product_image,
+                    "average_rating": item.Product.average_rating,
+                    "discount_price_usd": str(item.Product.discount_price_usd),  # Ensure proper serialization
+                    "actual_price_usd": str(item.Product.actual_price_usd),
                 }
                 for item in cart_items
             ]
         }
+
+    elif request.type == "remove":
+        # Remove a specific product from the cart
+        cart_item = (
+            db.query(ShoppingCartItem)
+            .filter(
+                ShoppingCartItem.shopping_cart_id == cart_id,
+                ShoppingCartItem.product_id == request.product_id
+            )
+            .first()
+        )
+        if not cart_item:
+            raise HTTPException(status_code=404, detail="Product not found in cart")
+        
+        db.delete(cart_item)
+        db.commit()
+        return {"message": f"Product {request.product_id} removed from cart."}
 
     elif request.type == "remove-all":
         db.query(ShoppingCartItem).filter(ShoppingCartItem.shopping_cart_id == cart_id).delete()
@@ -851,6 +882,7 @@ async def handle_cart(
 
     else:
         raise HTTPException(status_code=400, detail="Invalid operation type")
+
 # ------------------------------
 # Remove Item from Cart
 # ------------------------------

@@ -27,8 +27,6 @@ const Cart = () => {
   const [CartItem, SetCartItem] = useState([]);
   const Dispatch = useDispatch();
   const CartItems = useSelector((state) => state.cart.items);
-
-  const totalCost = CartItems.reduce((total, item) => total + item.price, 0);
   const HandleAddToCart = async (item) => {
     if (!userInfo || !userInfo.email) {
       // Pop up login request and navigate to login
@@ -69,7 +67,13 @@ const Cart = () => {
   useEffect(() => {
     fetchCartItems();
   }, []);
+  const totalCost = CartItems.reduce((total, item) => {
+    // Fallback values in case the properties are missing
+    const quantity = item.quantity || 1; // Default to 1 if quantity is missing
+    const price = item.discount_price_usd || item.price || 0; // Default to 0 if price is missing
 
+    return total + (quantity * price);
+  }, 0);
   const fetchCartItems = async () => {
     try {
       const response = await axios.post("http://localhost:8000/cart", { type: "display", user_email: userInfo.email });
@@ -80,11 +84,19 @@ const Cart = () => {
       toast.error("Failed to load cart items.");
     }
   };
+
+
+
   console.log(CartItem)
   // Handle remove item from the cart
   const HandleRemoveFromCart = async (id) => {
     try {
-      await axios.post("http://localhost:8000/cart", { type: "remove", product_id: id });
+      console.log("Removing product with ID:", id); // Add logging
+      const response = await axios.post("http://localhost:8000/cart", {
+        type: "remove",
+        user_email: userInfo.email,
+        product_id: id
+      });
       toast.error("Removed From Cart", { position: "bottom-right" });
       Dispatch(RemoveFromCart(id)); // Update Redux state
       fetchCartItems(); // Re-fetch cart items after removal
@@ -98,7 +110,7 @@ const Cart = () => {
   const handleDeselectAll = async () => {
     try {
       // Send request to remove all items from the cart
-      await axios.post("http://localhost:8000/cart", { type: "remove-all" });
+      await axios.post("http://localhost:8000/cart", { type: "remove-all", user_email: userInfo.email });
       toast.error("All items removed from cart", { position: "bottom-right" });
       Dispatch(RemoveAllFromCart()); // Clear the Redux cart
       SetCartItem([]); // Clear the local state for cart items
@@ -118,7 +130,12 @@ const Cart = () => {
 
     try {
       // Send updated quantity to the backend
-      await axios.post("http://localhost:8000/cart", { type: "update-quantity", product_id: id, quantity: newQuantity });
+      await axios.post("http://localhost:8000/cart", {
+        type: "update-quantity",
+        user_email: userInfo.email,
+        product_id: id,
+        quantity: newQuantity
+      });
 
       // Update Redux state
       Dispatch(UpdateCartQuantity(id, newQuantity));
@@ -192,7 +209,7 @@ const Cart = () => {
 
                     <div
                       className="RemoveFromCart"
-                      onClick={() => HandleRemoveFromCart(item.id)}
+                      onClick={() => HandleRemoveFromCart(item.product_id)}
                     >
                       Remove from Cart
                     </div>
@@ -208,8 +225,12 @@ const Cart = () => {
         </div>
 
         <div className="TopRightCart">
-          <div className="SubTotalTitle">
-            Subtotal ({CartItems.length} items): <span className="SubTotalTitleSpan">{GB_CURRENCY.format(totalCost)}</span></div>
+          <div>
+            Subtotal ({CartItems.length} items):
+            <span className="SubTotalTitleSpan">
+              {GB_CURRENCY.format(totalCost)} {/* Use the totalCost variable */}
+            </span>
+          </div>
           <div className="GiftAddTo">
             <input type="checkbox" />
             <div>This order contains a gift</div>

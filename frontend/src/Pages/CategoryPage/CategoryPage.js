@@ -59,7 +59,7 @@ const CategoryPage = () => {
         // toast.success("Added Item To Cart", {
         //     position: "bottom-right"
         // });
-        // Dispatch(AddToCart(item));
+        Dispatch(AddToCart(item));
         try {
             console.log(item.product_id || item.id, userInfo.email)
             const response = await axios.post("http://localhost:8000/addToCart", { product_id: (item.product_id || item.id), user_email: userInfo.email, quantity: 1 });
