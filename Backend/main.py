@@ -36,7 +36,7 @@ app = FastAPI()
 models.Base.metadata.create_all(bind=engine)
 #Do not modify this as need to create table be for insert data
 from recommend import (get_search_recommendations, get_collaborative_recommendations,
-                       get_item_recommendation)
+                       get_item_recommendation, get_association_recommendations)
 # from insert_data import *
 
 # @app.on_event("startup")
@@ -794,6 +794,67 @@ async def get_product_categories(db: Session = Depends(get_db)):
 # ------------------------------
 # Cart Display
 # ------------------------------
+
+@app.post("/cartRelatedItems")
+async def cart_related_items(
+    request: CartFetch,
+    db: Session = Depends(get_db),
+):
+    # Find user by email
+    user = db.query(SiteUser).filter(SiteUser.email_address == request.user_email).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    # Find the shopping cart for this user
+    cart = db.query(ShoppingCart).filter(ShoppingCart.user_id == user.user_id).first()
+    if not cart:
+        return {"products": []}
+
+    cart_id = cart.shopping_cart_id
+
+    # Check the request type if you want, but since this is for related items, we only need to display
+    # and find product_ids from the cart items.
+    if request.type == "display":
+        cart_items = (
+            db.query(ShoppingCartItem, Product)
+            .join(Product, ShoppingCartItem.product_id == Product.product_id)
+            .filter(ShoppingCartItem.shopping_cart_id == cart_id)
+            .all()
+        )
+
+        if not cart_items:
+            return {"products": []}
+
+        product_ids_in_cart = [item.ShoppingCartItem.product_id for item in cart_items]
+
+        recommended_product_ids = get_item_recommendation(product_ids_in_cart)
+
+        recommended_products = db.query(Product).filter(
+            Product.product_id.in_(recommended_product_ids)
+        ).all()
+
+        if not recommended_products:
+            return JSONResponse(status_code=404, content={"message": "No related products found."})
+
+        return {
+            "products": [
+                {
+                    "product_id": product.product_id,
+                    "product_name": product.product_name,
+                    "product_image": product.product_image,
+                    "product_link": product.product_link,
+                    "average_rating": product.average_rating,
+                    "no_of_ratings": product.no_of_ratings,
+                    "discount_price_usd": str(product.discount_price_usd),
+                    "actual_price_usd": str(product.actual_price_usd),
+                }
+                for product in recommended_products
+            ]
+        }
+
+    # If request.type is not "display", you can handle other cases or return an error
+    return JSONResponse(status_code=400, content={"message": "Invalid request type."})
+
 
 @app.post("/cart")
 async def handle_cart(

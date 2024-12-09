@@ -45,7 +45,11 @@ const Cart = () => {
   // Fetch cart items when the component mounts
   useEffect(() => {
     fetchCartItems();
+    if (CartItem.length > 0) {
+      fetchRecommendedItems();
+    }
   }, [CartItem]);
+
   const totalCost = CartItem.reduce((total, item) => {
     // Fallback values in case the properties are missing
     const quantity = item.quantity || 1; // Default to 1 if quantity is missing
@@ -53,6 +57,7 @@ const Cart = () => {
 
     return total + (quantity * price);
   }, 0);
+
   const fetchCartItems = async () => {
     try {
       const response = await axios.post("http://localhost:8000/cart", { type: "display", user_email: userInfo.email });
@@ -64,7 +69,26 @@ const Cart = () => {
     }
   };
 
+  const [recommendedItems, setRecommendedItems] = useState([]);
 
+  const fetchRecommendedItems = async () => {
+    try {
+      const response = await axios.post("http://localhost:8000/cartRelatedItems", {
+        user_email: userInfo.email,
+        type: "display"
+      });
+
+      if (response.data.products && Array.isArray(response.data.products)) {
+        setRecommendedItems(response.data.products);
+      } else {
+        setRecommendedItems([]);
+      }
+    } catch (error) {
+      console.error("Error fetching related items:", error);
+      // Not showing a toast error here because recommended items are not critical
+      setRecommendedItems([]);
+    }
+  };
 
   console.log(CartItem)
   // Handle remove item from the cart
@@ -222,8 +246,9 @@ const Cart = () => {
         </div>
         <ToastContainer />
       </div>
+
       <div className='ItemImageProductPage2'>
-        {CartItem.map((item, ind) => (
+        {recommendedItems.map((item, ind) => (
           <div className='ItemImageProductPageOne' key={item.product_id}>
             <div className='ImageBlockItemImageProductPageOne'>
               <img src={item.product_image} className="ProductImageProduct" alt={item.product_name} />
@@ -260,8 +285,6 @@ const Cart = () => {
             </div>
           </div>
         ))}
-
-        {/* ))} */}
       </div>
       <Footer />
     </div>
