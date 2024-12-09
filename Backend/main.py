@@ -676,7 +676,7 @@ async def add_to_cart(request: AddToCartRequest, db: Session = Depends(get_db)):
     # Check if the product is already in the cart
     cart_item = db.query(ShoppingCartItem).filter(
         ShoppingCartItem.shopping_cart_id == cart.shopping_cart_id,
-        ShoppingCartItem.product_item_id == product.product_id
+        ShoppingCartItem.product_id == product.product_id
     ).first()
 
     if cart_item:
@@ -684,7 +684,7 @@ async def add_to_cart(request: AddToCartRequest, db: Session = Depends(get_db)):
         cart_item.quantity += quantity
     else:
         # If the product is not in the cart, add it as a new item
-        cart_item = ShoppingCartItem(shopping_cart_id=cart.shopping_cart_id, product_item_id=product.product_id, quantity=quantity, price=product.discount_price_usd)
+        cart_item = ShoppingCartItem(shopping_cart_id=cart.shopping_cart_id, product_id=product.product_id, quantity=quantity, price=product.discount_price_usd)
         db.add(cart_item)
 
     # Commit changes to the database

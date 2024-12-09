@@ -128,18 +128,18 @@ const NavBar = ({ userInfo }) => {
 
     const getSuggestions = async (query) => {
         fetch(`http://localhost:8000/products/search?query=${query}`)
-        .then((response) => {
-            if (!response.ok) {
-            throw new Error("Failed to fetch suggestions");
-            }
-            return response.json();
-        })
-        .then((data) => {
-            setSuggestions(data.products || []); // Adjust for the API response format
-        })
-        .catch((error) => {
-            console.error("Error fetching suggestions:", error);
-        });
+            .then((response) => {
+                if (!response.ok) {
+                    throw new Error("Failed to fetch suggestions");
+                }
+                return response.json();
+            })
+            .then((data) => {
+                setSuggestions(data.products || []); // Adjust for the API response format
+            })
+            .catch((error) => {
+                console.error("Error fetching suggestions:", error);
+            });
     };
 
     useEffect(() => {
@@ -150,7 +150,7 @@ const NavBar = ({ userInfo }) => {
                 setSuggestions([]); // Clear suggestions for empty input
             }
         }, 300); // Add debounce to reduce API calls
-    
+
         return () => clearTimeout(delayDebounceFn); // Cleanup debounce timer
     }, [searchTerm]);
 
@@ -160,8 +160,10 @@ const NavBar = ({ userInfo }) => {
     const onHandleSubmit = (e) => {
         e.preventDefault();
         navigate({
-            pathname: "/search",  // Ensure it's "/search" and not "search"
-            search: `?${createSearchParams({ category, searchTerm })}`,  // Correctly append the query params
+            pathname: "/search",
+            search: `?${createSearchParams({ category, searchTerm })}`, // Adds query params
+        }, {
+            state: { userData }, // Pass userData in the state object
         });
         setSearchTerm("");
         setCategory("All");
