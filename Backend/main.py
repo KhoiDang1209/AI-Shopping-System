@@ -617,7 +617,7 @@ async def get_all_categories(db: Session = Depends(get_db)):
 # ------------------------------
 
 # done
-@app.get("/products/search")
+@app.get("/products/search", response_model=ProductResponse)
 async def search_products(query: str = "", db: Session = Depends(get_db)):
     """Search products by name or category."""
 
@@ -630,30 +630,14 @@ async def search_products(query: str = "", db: Session = Depends(get_db)):
     if not products:
         return JSONResponse(status_code=404, content={"message": "No products found."})
     
-    return [
-        {
-            "product_id": product.product_id,
-            "product_name": product.product_name,
-            "main_category": product.main_category,
-            "main_category_encoded": product.main_category_encoded,
-            "sub_category": product.sub_category,
-            "sub_category_encoded": product.sub_category_encoded,
-            "product_image": product.product_image,
-            "product_link": product.product_link,
-            "average_rating": product.average_rating,
-            "no_of_ratings": product.no_of_ratings,
-            "discount_price_usd": product.discount_price_usd,
-            "actual_price_usd": product.actual_price_usd,
-        }
-        for product in products
-    ]
+    return {"products": products}
 
 # ------------------------------
 # 4.1. Product Detail Page
 # ------------------------------
 
 @app.get("/products/{product_id}")
-async def get_product_detail(product_id: String, db: Session = Depends(get_db)):
+async def get_product_detail(product_id: str, db: Session = Depends(get_db)):
     """Fetch detailed information for a specific product."""
     
     product = db.query(Product).filter(

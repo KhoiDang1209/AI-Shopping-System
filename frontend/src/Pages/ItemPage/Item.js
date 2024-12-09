@@ -23,7 +23,7 @@ const Item = () => {
       Dispatch(AddToCart(item));
     }
 
-    const { id } = useParams(); // Get the ID from the URL
+    const { product_id } = useParams(); // Get the ID from the URL
     const [product, setProduct] = useState(null);
 
     const getProduct = () => {

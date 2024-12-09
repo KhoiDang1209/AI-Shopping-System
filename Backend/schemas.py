@@ -98,10 +98,11 @@ class ProductBase(BaseModel):
     class Config:
         orm_mode = True
 
+class ProductResponse(BaseModel):
+    products: List[ProductBase]
 
 class ProductCreate(ProductBase):
     pass
-
 
 # Order Schemas
 class OrderLineBase(BaseModel):

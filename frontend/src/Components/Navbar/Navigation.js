@@ -73,23 +73,32 @@ const NavBar = ({ userInfo }) => {
     const CartItems = useSelector((state) => state.cart.items);
 
     // khúc này làm suggestion cho search bar
-    const [suggestions, setSuggestions] = useState(null);
+    const [suggestions, setSuggestions] = useState([]);
     const [searchTerm, setSearchTerm] = useState("");
 
-    const getSuggestions = () => {
-        callAPI(`/Data/Product.json`)
-            .then((suggestionResults) => {
-                // Ensure to access the `Product` array inside the response
-                setSuggestions(suggestionResults.Product || []);
-            })
-            .catch((error) => {
-                console.error("Error fetching suggestions:", error);
-            });
+    const getSuggestions = (query) => {
+        fetch(`http://localhost:8000/products/search?query=${query}`)
+        .then((response) => {
+            if (!response.ok) {
+            throw new Error("Failed to fetch suggestions");
+            }
+            return response.json();
+        })
+        .then((data) => {
+            setSuggestions(data.products || []); // Adjust for the API response format
+        })
+        .catch((error) => {
+            console.error("Error fetching suggestions:", error);
+        });
     };
 
     useEffect(() => {
-        getSuggestions();
-    }, []);
+        const delayDebounceFn = setTimeout(() => {
+          getSuggestions(searchTerm);
+        }, 300); // Add debounce to reduce API calls
+    
+        return () => clearTimeout(delayDebounceFn); // Cleanup debounce timer
+    }, [searchTerm]);
 
     const [category, setCategory] = useState("All");
     const navigate = useNavigate();
@@ -175,15 +184,15 @@ const NavBar = ({ userInfo }) => {
                                         suggestions
                                             .filter((Product) => {
                                                 const currentSearchTerm = searchTerm.toLowerCase();
-                                                const title = Product.name.toLowerCase(); // Match with `name` field from JSON
+                                                const title = Product.product_name.toLowerCase(); // Match with `name` field from JSON
                                                 return (
                                                     title.startsWith(currentSearchTerm) && title !== currentSearchTerm
                                                 );
                                             })
                                             .slice(0, 10)
                                             .map((Product) => (
-                                                <div key={Product.id} onClick={() => setSearchTerm(Product.name)}>
-                                                    {Product.name}
+                                                <div key={Product.product_id} onClick={() => setSearchTerm(Product.product_name)}>
+                                                    {Product.product_name}
                                                 </div>
                                             ))
                                     }
