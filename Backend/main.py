@@ -650,22 +650,18 @@ async def related_item(product_id: str, db: Session = Depends(get_db)):
 
 @app.post("/addToCart/")
 async def add_to_cart(request: AddToCartRequest, db: Session = Depends(get_db)):
-    # Extract data from the request
-    product_id = request.product_id
+    product_id = request.product_id.strip()  # Ensure no trailing spaces
     user_email = request.user_email
-    quantity = request.quantity
 
-    # Get the user by email
+    # Get user and product
     user = db.query(SiteUser).filter(SiteUser.email_address == user_email).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
-
-    # Get the product by ID
     product = db.query(Product).filter(Product.product_id == product_id).first()
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
 
-    # Get the user's shopping cart or create a new one if it doesn't exist
+    # Get or create shopping cart
     cart = db.query(ShoppingCart).filter(ShoppingCart.user_id == user.user_id).first()
     if not cart:
         cart = ShoppingCart(user_id=user.user_id)
@@ -673,21 +669,23 @@ async def add_to_cart(request: AddToCartRequest, db: Session = Depends(get_db)):
         db.commit()
         db.refresh(cart)
 
-    # Check if the product is already in the cart
+    # Check for existing cart item
     cart_item = db.query(ShoppingCartItem).filter(
         ShoppingCartItem.shopping_cart_id == cart.shopping_cart_id,
         ShoppingCartItem.product_id == product.product_id
     ).first()
 
     if cart_item:
-        # If the product is already in the cart, update the quantity
-        cart_item.quantity += quantity
+        cart_item.quantity += request.quantity
     else:
-        # If the product is not in the cart, add it as a new item
-        cart_item = ShoppingCartItem(shopping_cart_id=cart.shopping_cart_id, product_id=product.product_id, quantity=quantity, price=product.discount_price_usd)
-        db.add(cart_item)
+        new_cart_item = ShoppingCartItem(
+            shopping_cart_id=cart.shopping_cart_id,
+            product_id=product.product_id,
+            quantity=request.quantity,
+            price=product.discount_price_usd
+        )
+        db.add(new_cart_item)
 
-    # Commit changes to the database
     try:
         db.commit()
     except Exception as e:

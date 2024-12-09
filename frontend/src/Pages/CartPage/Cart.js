@@ -26,28 +26,7 @@ const Cart = () => {
   });
   const [CartItem, SetCartItem] = useState([]);
   const Dispatch = useDispatch();
-  const CartItems = useSelector((state) => state.cart.items);
   const HandleAddToCart = async (item) => {
-    if (!userInfo || !userInfo.email) {
-      // Pop up login request and navigate to login
-      toast.info("Please log in to add items to the cart.", {
-        position: "bottom-right"
-      });
-
-      // Navigate to the login page, passing the current page and the item to add as state
-      navigate('/SignIn', {
-        state: {
-          from: location.pathname,
-          itemToAdd: item,
-        }
-      });
-      return;
-    }
-
-    console.log(item);
-    // toast.success("Added Item To Cart", {
-    //     position: "bottom-right"
-    // });
     Dispatch(AddToCart(item));
     try {
       console.log(item.product_id || item.id, userInfo.email)
@@ -67,7 +46,7 @@ const Cart = () => {
   useEffect(() => {
     fetchCartItems();
   }, []);
-  const totalCost = CartItems.reduce((total, item) => {
+  const totalCost = CartItem.reduce((total, item) => {
     // Fallback values in case the properties are missing
     const quantity = item.quantity || 1; // Default to 1 if quantity is missing
     const price = item.discount_price_usd || item.price || 0; // Default to 0 if price is missing
@@ -226,7 +205,7 @@ const Cart = () => {
 
         <div className="TopRightCart">
           <div>
-            Subtotal ({CartItems.length} items):
+            Subtotal ({CartItem.length} items):
             <span className="SubTotalTitleSpan">
               {GB_CURRENCY.format(totalCost)} {/* Use the totalCost variable */}
             </span>
@@ -244,7 +223,7 @@ const Cart = () => {
         <ToastContainer />
       </div>
       <div className='ItemImageProductPage2'>
-        {CartItems.map((item, ind) => (
+        {CartItem.map((item, ind) => (
           <div className='ItemImageProductPageOne' key={item.product_id}>
             <div className='ImageBlockItemImageProductPageOne'>
               <img src={item.product_image} className="ProductImageProduct" alt={item.product_name} />
