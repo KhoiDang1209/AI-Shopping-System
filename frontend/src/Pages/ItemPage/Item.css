@@ -1,5 +1,91 @@
 /* trang mặt hàng */
 /* không gian chứa mặt hàng */
+.ItemImageProductPage1 {
+    width: 100%;
+    display: grid;
+    gap: 30px;
+    grid-template-columns: repeat(auto-fit, minmax(308px, 1fr));
+    margin-top: -520px;
+    /* Adjust this value to move the container up */
+}
+
+.ItemImageProductPageOne {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+    overflow: hidden;
+    background-color: white;
+    transition: transform 0.3s;
+}
+
+.ImageBlockItemImageProductPageOne {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    /* background-color: rgb(247, 247, 247); */
+    padding: 20px;
+}
+
+.ProductImageProduct {
+    max-width: 100%;
+    max-height: 200px;
+    object-fit: contain;
+}
+
+.ProductNameProduct {
+    padding: 20px;
+    border: 1px solid #efeeee;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.product__name__link:hover {
+    color: #c45500;
+}
+
+.product__name__link {
+    text-decoration: none;
+    color: black;
+    font-weight: 600;
+}
+
+.PriceProductDetailPage {
+    display: flex;
+    align-items: baseline;
+}
+
+.RateHomeDetail {
+    font-size: 22px;
+    font-weight: bold;
+    display: flex;
+    width: 100%;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.AddToCartButton {
+    background-color: #febd69;
+    padding: 10px 20px;
+    border-radius: 5px;
+    font-size: 14px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.3s;
+}
+
+.SaleProductPage {
+    color: #727171;
+    font-size: 14px;
+}
+
+.DeliveryHomepage {
+    font-size: 14px;
+    color: #555;
+}
+
 .items__space {
     height: 100vh;
     /* nhớ sửa lại màu khi xong */
@@ -12,7 +98,7 @@
     min-width: 1000px;
     max-width: 1500px;
     margin: auto;
-    background-color: white; 
+    background-color: white;
 }
 
 .items__box {
@@ -24,7 +110,7 @@
 .items__box__left {
     grid-column: span 3;
     background-color: white;
-    padding: 2rem; 
+    padding: 2rem;
     border-radius: 0.25rem;
     display: flex;
     justify-content: center;
@@ -55,7 +141,7 @@
 
 .items__box__right {
     grid-column: span 2;
-    background-color: white; 
+    background-color: white;
     padding: 1rem;
     border-radius: 0.25rem;
     border-left: 1px solid gray;
@@ -63,13 +149,13 @@
 }
 
 .items__box__middle__down {
-    font-size: 1rem; 
+    font-size: 1rem;
     margin-top: 0.75rem;
 }
 
 /* right box */
 .items__box__right__currency {
-    font-size: 1.25rem; 
+    font-size: 1.25rem;
     font-weight: 600;
     padding-bottom: 5px;
 }

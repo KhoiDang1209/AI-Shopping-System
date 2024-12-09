@@ -10,9 +10,10 @@ import { useSelector, useDispatch } from 'react-redux';
 import { AddToCart } from '../../Redux/Action/Action';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { useParams, useLocation } from 'react-router-dom';
+import { useParams, useLocation, Link } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';  // Import useNavigate
 import axios from "axios";
+import ItemRatings from '../ItemPage/ItemRatings';
 
 const Item = () => {
     const location = useLocation();
@@ -148,6 +149,120 @@ const Item = () => {
                         </div>
                     </div>
                 </div>
+            </div>
+
+            <div className='ItemImageProductPage1'>
+                {/* {currentProducts.map((item) => ( */}
+                <div className='ItemImageProductPageOne' key={product.product_id}>
+                    <div className='ImageBlockItemImageProductPageOne'>
+                        <img src={product.product_image} className="ProductImageProduct" alt={product.product_name} />
+                    </div>
+                    <div className='ProductNameProduct'>
+                        <Link
+                            to={{
+                                pathname: `/Item/${product.product_id}`,
+                            }}
+                            state={{ userData }} // Pass userData in the state prop
+                            className="product__name__link"
+                        >
+                            {product.product_name}
+                        </Link>
+                        <div className='PriceProductDetailPage'>
+                            <div className='RateHomeDetail'>
+                                <div className='RateHomeDetailPrice'>
+                                    {GB_CURRENCY.format(product.discount_price_usd)}
+                                </div>
+                                <div className='AddToCartButton' onClick={() => HandleAddToCart(product)}>
+                                    Add To Cart
+                                </div>
+                            </div>
+                        </div>
+                        <div className='ProductRatings'>
+                            <ItemRatings avgRating={product.average_rating} ratings={product.no_of_ratings} />
+                        </div>
+                        <div className='SaleProductPage'>
+                            Up to 25% off on Black Friday
+                        </div>
+                        <div className='DeliveryHomepage'>
+                            Free Domestic Shipping By Amazon
+                        </div>
+                    </div>
+                </div>
+                {/* ))} */}
+                {/* {currentProducts.map((item) => ( */}
+                <div className='ItemImageProductPageOne' key={product.product_id}>
+                    <div className='ImageBlockItemImageProductPageOne'>
+                        <img src={product.product_image} className="ProductImageProduct" alt={product.product_name} />
+                    </div>
+                    <div className='ProductNameProduct'>
+                        <Link
+                            to={{
+                                pathname: `/Item/${product.product_id}`,
+                            }}
+                            state={{ userData }} // Pass userData in the state prop
+                            className="product__name__link"
+                        >
+                            {product.product_name}
+                        </Link>
+                        <div className='PriceProductDetailPage'>
+                            <div className='RateHomeDetail'>
+                                <div className='RateHomeDetailPrice'>
+                                    {GB_CURRENCY.format(product.discount_price_usd)}
+                                </div>
+                                <div className='AddToCartButton' onClick={() => HandleAddToCart(product)}>
+                                    Add To Cart
+                                </div>
+                            </div>
+                        </div>
+                        <div className='ProductRatings'>
+                            <ItemRatings avgRating={product.average_rating} ratings={product.no_of_ratings} />
+                        </div>
+                        <div className='SaleProductPage'>
+                            Up to 25% off on Black Friday
+                        </div>
+                        <div className='DeliveryHomepage'>
+                            Free Domestic Shipping By Amazon
+                        </div>
+                    </div>
+                </div>
+                {/* ))} */}
+                {/* {currentProducts.map((item) => ( */}
+                <div className='ItemImageProductPageOne' key={product.product_id}>
+                    <div className='ImageBlockItemImageProductPageOne'>
+                        <img src={product.product_image} className="ProductImageProduct" alt={product.product_name} />
+                    </div>
+                    <div className='ProductNameProduct'>
+                        <Link
+                            to={{
+                                pathname: `/Item/${product.product_id}`,
+                            }}
+                            state={{ userData }} // Pass userData in the state prop
+                            className="product__name__link"
+                        >
+                            {product.product_name}
+                        </Link>
+                        <div className='PriceProductDetailPage'>
+                            <div className='RateHomeDetail'>
+                                <div className='RateHomeDetailPrice'>
+                                    {GB_CURRENCY.format(product.discount_price_usd)}
+                                </div>
+                                <div className='AddToCartButton' onClick={() => HandleAddToCart(product)}>
+                                    Add To Cart
+                                </div>
+                            </div>
+                        </div>
+                        <div className='ProductRatings'>
+                            <ItemRatings avgRating={product.average_rating} ratings={product.no_of_ratings} />
+                        </div>
+                        <div className='SaleProductPage'>
+                            Up to 25% off on Black Friday
+                        </div>
+                        <div className='DeliveryHomepage'>
+                            Free Domestic Shipping By Amazon
+                        </div>
+                    </div>
+                </div>
+                {/* ))} */}
             </div>
             <ToastContainer />
             <Footer />
