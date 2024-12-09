@@ -142,6 +142,12 @@ class ShopOrderResponse(ShopOrderBase):
     class Config:
         orm_mode = True
 
+class CartFetch(BaseModel):
+    type: str
+    user_email: str
+    product_id: str = None  # Optional for certain operations
+    quantity: int = None    # Optional for certain operations
+
 class AddToCartRequest(BaseModel):
     product_id: str
     user_email: str

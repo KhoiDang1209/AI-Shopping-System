@@ -798,40 +798,59 @@ async def get_product_categories(db: Session = Depends(get_db)):
 # ------------------------------
 
 @app.post("/cart")
-async def get_cart(
-    type: str = Body(..., embed=True),
-    shopping_cart_id: int = Body(..., embed=True),
+async def handle_cart(
+    request: CartFetch,
     db: Session = Depends(get_db),
 ):
-    if type == "display":
-        cart = db.query(ShoppingCart).filter(ShoppingCart.shopping_cart_id == shopping_cart_id).first()
-        if not cart:
-            return {"cart": []}
+    # Find user by email
+    user = db.query(SiteUser).filter(SiteUser.email_address == request.user_email).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Find the shopping cart
+    cart = db.query(ShoppingCart).filter(ShoppingCart.user_id == user.user_id).first()
+    if not cart:
+        return {"cart": []}
+    cart_id = cart.shopping_cart_id
 
+    if request.type == "display":
+        cart_items = db.query(ShoppingCartItem).filter(ShoppingCartItem.shopping_cart_id == cart_id).all()
+        if not cart_items:
+            return {"cart": []}
         return {
             "cart": [
                 {
-                    "product_item_id": item.product_item_id,
+                    "shopping_cart_id": item.shopping_cart_id,
+                    "product_id": item.product_id,
                     "quantity": item.quantity,
-                    "price": float(item.price),
-                    "name": item.product_item.product_name,  # Assuming ProductItem has this field
-                    "image_url": item.product_item.product_image,  # Assuming ProductItem has this field
-                    "stock": item.product_item.stock,  # Assuming ProductItem has this field
+                    "price": item.price,
                 }
-                for item in cart.items
+                for item in cart_items
             ]
         }
-    if type == "remove-all":
-        db.query(ShoppingCartItem).delete()  # Remove all items from the cart
+
+    elif request.type == "remove-all":
+        db.query(ShoppingCartItem).filter(ShoppingCartItem.shopping_cart_id == cart_id).delete()
         db.commit()
         return {"message": "All items removed from cart."}
-    if type == "update-quantity":
-        cart_item = db.query(ShoppingCartItem).filter(ShoppingCartItem.product_item_id == product_id).first()
+
+    elif request.type == "update-quantity":
+        cart_item = (
+            db.query(ShoppingCartItem)
+            .filter(
+                ShoppingCartItem.shopping_cart_id == cart_id,
+                ShoppingCartItem.product_id == request.product_id
+            )
+            .first()
+        )
         if not cart_item:
             raise HTTPException(status_code=404, detail="Item not found in cart")
-        cart_item.quantity = quantity
+        cart_item.quantity = request.quantity
         db.commit()
         return {"message": "Quantity updated successfully"}
+
+    else:
+        raise HTTPException(status_code=400, detail="Invalid operation type")
 # ------------------------------
 # Remove Item from Cart
 # ------------------------------
@@ -915,6 +934,10 @@ async def checkout(db: Session = Depends(get_db)):
 # Checkout Display
 # ------------------------------
 
+@app.post("/get_association_recommendations")
+async def display_checkout(ids: list[str], db: Session = Depends(get_db)):
+
+    return
 @app.post("/checkout/display")
 async def display_checkout(db: Session = Depends(get_db)):
     """

@@ -72,7 +72,7 @@ const Cart = () => {
 
   const fetchCartItems = async () => {
     try {
-      const response = await axios.post("http://localhost:8000/cart", { type: "display" });
+      const response = await axios.post("http://localhost:8000/cart", { type: "display", user_email: userInfo.email });
       const fetchedCart = response.data.cart;
       SetCartItem(fetchedCart);
     } catch (error) {
@@ -80,7 +80,7 @@ const Cart = () => {
       toast.error("Failed to load cart items.");
     }
   };
-
+  console.log(CartItem)
   // Handle remove item from the cart
   const HandleRemoveFromCart = async (id) => {
     try {
