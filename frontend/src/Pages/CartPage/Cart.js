@@ -147,7 +147,7 @@ const Cart = () => {
           <div className="DeselectAllCart" onClick={handleDeselectAll}>Deselect all items</div>
           <div className="CartPriceTextDivider">Price</div>
           <div className="CartItemDiv">
-            {CartItems.map((item, ind) => (
+            {CartItem.map((item, ind) => (
               <div className="CartItemBlock" key={ind}>
                 <div className="CartItemLeftBlock">
                   <div className="CartItemLeftBlockImage">
