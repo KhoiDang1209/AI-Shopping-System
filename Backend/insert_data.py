@@ -9,7 +9,7 @@ import os
 CSV_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "ModelApp", "Data")
 product_csv_path = os.path.join(CSV_DIR, "new_product.csv")
 user_data_csv_path = os.path.join(CSV_DIR, "new_user_data.csv")
-product_rating_csv_path = os.path.join(CSV_DIR, "new_rating.csv")
+product_rating_csv_path = os.path.join(CSV_DIR, "new_ratings.csv")
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
@@ -59,13 +59,13 @@ def insert_user_data():
     for index, row in user_data_df.iterrows():
         try:
             new_user = SiteUser(
-                user_name=row['user_name'],
+                # user_name=row['user_name'],
                 age=row['age'],
                 gender=row['gender'],
-                email_address=row['email'],
-                phone_number=row['phone'],
+                # email_address=row['email'],
+                # phone_number=row['phone'],
                 city=row['city'],
-                password=row['password']
+                # password=row['password']
             )
             session.add(new_user)
             

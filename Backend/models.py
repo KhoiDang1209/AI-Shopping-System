@@ -22,13 +22,13 @@ class SiteUser(Base):
     
     # User attributes
     user_id = Column(Integer, primary_key=True, autoincrement=True)
-    user_name = Column(String(100), nullable=False)
+    user_name = Column(String(100), nullable=True)
     age = Column(Integer)
     gender = Column(String(10))
-    email_address = Column(String(100), unique=True, nullable=False)
-    phone_number = Column(String(10), unique=True, nullable=False)
+    email_address = Column(String(100), unique=True, nullable=True)
+    phone_number = Column(String(10), unique=True, nullable=True)
     city = Column(String(100))
-    password = Column(String(255), nullable=False)
+    password = Column(String(255), nullable=True)
     
 
     # Other Relationships
