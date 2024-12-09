@@ -821,17 +821,17 @@ async def get_cart(
                 for item in cart.items
             ]
         }
-        if type == "remove-all":
-            db.query(ShoppingCartItem).delete()  # Remove all items from the cart
-            db.commit()
-            return {"message": "All items removed from cart."}
-        if type == "update-quantity":
-            cart_item = db.query(ShoppingCartItem).filter(ShoppingCartItem.product_item_id == product_id).first()
-            if not cart_item:
-                raise HTTPException(status_code=404, detail="Item not found in cart")
-            cart_item.quantity = quantity
-            db.commit()
-            return {"message": "Quantity updated successfully"}
+    if type == "remove-all":
+        db.query(ShoppingCartItem).delete()  # Remove all items from the cart
+        db.commit()
+        return {"message": "All items removed from cart."}
+    if type == "update-quantity":
+        cart_item = db.query(ShoppingCartItem).filter(ShoppingCartItem.product_item_id == product_id).first()
+        if not cart_item:
+            raise HTTPException(status_code=404, detail="Item not found in cart")
+        cart_item.quantity = quantity
+        db.commit()
+        return {"message": "Quantity updated successfully"}
 # ------------------------------
 # Remove Item from Cart
 # ------------------------------
