@@ -1,3 +1,8 @@
+Run fastapi and react
+
+Open 2 terminal
+
+The first one run below command:
 cd Backend
 1. Allow Policy:
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
@@ -5,3 +10,8 @@ Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 env\Scripts\activate
 3. Run:
 uvicorn main:app --reload
+
+The second one run below command:
+
+cd frontend
+npm start

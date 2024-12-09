@@ -1,0 +1,627 @@
+.navbar__component {}
+
+/* navbar trên */
+.navbar__up {
+    background-color: #004435;
+    display: flex;
+    width: 100%;
+    height: 60px;
+    color: white;
+    box-sizing: border-box;
+    padding: 5px;
+    justify-content: space-between;
+}
+
+/* navbar trên, bên trái */
+.navbar__up__left {
+    display: flex;
+    gap: 8px;
+}
+
+
+
+/* Container to hold both the button and the image */
+.button-container {
+    position: relative;
+    /* Establishes the context for absolute positioning */
+    width: 100px;
+    /* Set a fixed width for the container */
+    height: 30px;
+    /* Set the height for the container */
+}
+
+/* Button styles */
+.navbar__logo {
+    width: 100%;
+    /* Make the button fill the container width */
+    height: 100%;
+    /* Make the button fill the container height */
+    text-decoration: none;
+    color: white;
+    display: flex;
+    align-items: center;
+    /* Center the image vertically inside the button */
+    justify-content: center;
+    /* Center the image horizontally inside the button */
+    padding: 8px;
+    cursor: pointer;
+    background: none;
+    border: none;
+
+    /* Hover effect */
+    &:hover {
+        border: 1px solid;
+        border-radius: 3px;
+    }
+}
+
+/* Image inside the button */
+
+/* Image positioned above the button */
+.overlay-image {
+    position: absolute;
+    top: -20px;
+    /* Adjust to position the image above the button */
+    left: 0;
+    width: 50px;
+    /* Size of the image */
+    height: 50px;
+    /* Size of the image */
+    object-fit: contain;
+    /* Ensures the image fits within its bounds */
+    z-index: 1;
+    /* Ensure it appears above the button */
+}
+
+.hidden-button {
+    visibility: hidden;
+}
+
+.amazon__logo {
+    width: 100%;
+    height: 100%;
+}
+
+.navbar__location {
+    width: 105px;
+    display: flex;
+    /* gap: 5px; */
+    padding: 8px 8px 8px 6px;
+    height: 30px;
+    cursor: pointer;
+
+    &:hover {
+        border-radius: 3px;
+        border: 1px solid;
+    }
+}
+
+.location__icon {
+    margin-top: 8px;
+}
+
+.navbar__location__place {
+    display: flex;
+    flex-direction: column;
+}
+
+.place__top {
+    height: 14px;
+    font-size: 14px;
+    color: #ccc;
+    letter-spacing: 0.5px;
+    font-weight: 400;
+    line-height: 15px;
+}
+
+.place__bottom {
+    height: 16px;
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 15px;
+}
+
+/* navbar trên, ở giữa */
+.searchbox__middle {
+    width: 800px;
+    padding: 0 8px 0 8px;
+}
+
+.navbar__searchbox {
+    position: relative;
+}
+
+.searchbox__box {
+    display: flex;
+    width: 100%;
+    height: 40px;
+    border-radius: 3px;
+    border: 1px solid black;
+    margin-top: 4px;
+}
+
+.searchbox__all {
+    display: flex;
+    background-color: #e6e6e6;
+    /* gap: 1px; */
+    border-top-left-radius: 3px;
+    border-bottom-left-radius: 3px;
+    justify-content: center;
+    align-items: center;
+    padding: 5px;
+    cursor: pointer;
+    color: #999999;
+
+    &:hover {
+        border-top-left-radius: 3px;
+        border-bottom-left-radius: 3px;
+        border: 1px solid;
+    }
+}
+
+.searchbox__all__text {
+    padding-bottom: 3px;
+    width: 50%;
+}
+
+.searchbox__all__textbox {
+    width: 14rem;
+    height: 20rem;
+    position: absolute;
+    top: 1.7rem;
+    left: 0px;
+    overflow-y: scroll;
+    overflow-x: hidden;
+    background-color: white;
+    border: 1px solid #232f3e;
+    color: black;
+    padding: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    z-index: 50;
+    border-radius: 3px;
+}
+
+.textbox__text {
+    font-size: 18px;
+    letter-spacing: 0.05em;
+    font-family: "YourFontHere", sans-serif;
+    border-bottom: 1px solid transparent;
+    cursor: pointer;
+    transition: border-bottom-color 0.2s;
+
+    &:hover {
+        border-bottom-color: #232f3e;
+    }
+}
+
+
+.searchbox__input {
+    position: relative;
+    border: 0;
+    padding: 5px;
+    width: 100%;
+
+    &::placeholder {
+        color: gray;
+        font-size: 15px;
+        font-weight: 500;
+    }
+
+    &:focus {
+        outline: none;
+    }
+}
+
+.searchbox__icon {
+    background-color: #a9176f;
+    font-size: 10px;
+    border-top-right-radius: 3px;
+    border-bottom-right-radius: 3px;
+    cursor: pointer;
+    padding: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    &:hover {
+        background-color: #7c1d56;
+    }
+}
+
+/* navbar trên, bên phải */
+.navbar__up__right {
+    display: flex;
+    padding: 5px;
+    color: white;
+    gap: 8px;
+}
+
+.vietnam__logo {
+    gap: 3px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding-top: 10px;
+    padding: 5px;
+    height: 30px;
+    cursor: pointer;
+
+    &:hover {
+        border-radius: 3px;
+        border: 1px solid;
+    }
+}
+
+.vietnam__flag {
+    padding-left: 5px;
+    width: 20px;
+    height: 15px;
+}
+
+.vietnam__text {
+    gap: 1px;
+    font-size: 14px;
+    display: flex;
+    line-height: 10px;
+    align-items: center;
+    font-weight: 700;
+}
+
+.vietnam__dropdown {
+    color: gray;
+}
+
+.account {
+    width: 135px;
+    display: flex;
+    height: 30px;
+    padding: 5px;
+    cursor: pointer;
+    text-decoration: none;
+    position: relative;
+
+    &:hover {
+        border-radius: 3px;
+        border: 1px solid white;
+    }
+}
+
+.account__left {
+    display: flex;
+    position: relative;
+    color: white;
+    text-decoration: none;
+    flex-direction: column;
+}
+
+.account__up {
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.account__down {
+    gap: 1px;
+    font-size: 14px;
+    display: flex;
+    line-height: 15px;
+    align-items: center;
+    font-weight: 700;
+}
+
+.account__dropdown {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: gray;
+    padding-top: 13px;
+}
+
+.return {
+    width: 70px;
+    position: relative;
+    color: white;
+    text-decoration: none;
+    flex-direction: column;
+    display: flex;
+    height: 30px;
+    padding: 5px;
+    cursor: pointer;
+
+    &:hover {
+        border-radius: 3px;
+        border: 1px solid;
+    }
+}
+
+.return__up {
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.return__down {
+    gap: 1px;
+    font-size: 14px;
+    display: flex;
+    line-height: 10px;
+    align-items: center;
+    font-weight: 700;
+}
+
+.cart {
+    display: flex;
+    color: white;
+    position: relative;
+    text-decoration: none;
+    /* flex-direction: column; */
+    height: 30px;
+    padding: 5px;
+    cursor: pointer;
+
+    &:hover {
+        border-radius: 3px;
+        border: 1px solid;
+    }
+}
+
+.cart__up {
+    position: absolute;
+    bottom: 55%;
+    left: 21%;
+    color: white;
+    font-weight: 600;
+    font-size: 16px;
+}
+
+.cart__down {
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.cart__title {
+    display: flex;
+    align-items: end;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.cart__icon {
+    padding-top: 8px;
+}
+
+/* navbar dưới */
+.navbar__down {
+    background-color: #085749;
+    padding: 0 0 0 11px;
+    display: flex;
+    height: 39px;
+    justify-content: space-between;
+    color: white;
+}
+
+.navbar__down__left {
+    display: flex;
+}
+
+.option {
+    display: flex;
+    padding: 8px 9px;
+    justify-content: center;
+    text-decoration: none;
+    color: white;
+    align-items: center;
+    cursor: pointer;
+
+    &:hover {
+        border: 1px solid;
+        border-radius: 3px;
+    }
+}
+
+.option__text {
+    font-size: 14px;
+    padding-left: 5px;
+    font-weight: 400;
+}
+
+.type {
+    display: flex;
+    padding: 8px 9px;
+    justify-content: center;
+    text-decoration: none;
+    color: white;
+    align-items: center;
+    cursor: pointer;
+
+    &:hover {
+        border: 1px solid;
+        border-radius: 3px;
+    }
+}
+
+.type__text {
+    font-size: 14px;
+    padding-left: 5px;
+    font-weight: 400;
+}
+
+/* navbar bên trái */
+/* mục này làm cho màn tối đi mà không làm được nên bỏ qua */
+.sidebar__screen {
+    width: 100%;
+    height: 100vh;
+    color: black;
+    position: fixed;
+    top: 0;
+    left: 0;
+    background-color: rgba(18, 24, 41, 0.5);
+    z-index: 100;
+}
+
+.sidebar__all {
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
+
+.sidebar__box {
+    width: 350px;
+    height: 100%;
+    background-color: white;
+    border: 1px solid black;
+    /* overflow-y: scroll; */
+    z-index: 11;
+}
+
+.sidebar__signin {
+    position: absolute;
+    width: 302px;
+    background-color: #232f3e;
+    color: white;
+    padding: 8px 24px;
+    display: flex;
+    align-items: center;
+    /* justify-content: center; */
+    gap: 10px;
+    height: 25px;
+    z-index: 12;
+}
+
+.sidebar__signin__text {
+    font-weight: bold;
+    font-size: 20px;
+    letter-spacing: 0.025rem;
+}
+
+.sidebar__wrap {
+    margin-top: 40px;
+    height: 94%;
+    overflow: auto;
+}
+
+.sidebar__component {
+    /* padding-top: 0.75rem; */
+    /* padding-bottom: 0.75rem; */
+    border-bottom: 0.5px solid #dadfdf;
+}
+
+.sidebar__heading {
+    /* margin: 0;
+    padding: 8px 24px; */
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+}
+
+.sidebar__component__box {
+    padding: 0;
+}
+
+.sidebar__component__text {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 20px 8px 20px;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out;
+    text-decoration: none;
+    color: black;
+}
+
+.sidebar__component__text:hover {
+    background-color: #e4e4e7;
+}
+
+.sidebar__component__text--modified {
+    display: flex;
+    align-items: center;
+    /* justify-content: space-between; */
+    padding: 8px 20px 8px 20px;
+    cursor: pointer;
+    gap: 10px;
+    transition: background-color 0.2s ease-in-out;
+}
+
+.sidebar__component__text--modified:hover {
+    background-color: #e4e4e7;
+}
+
+.sidebar__close__icon {
+    cursor: pointer;
+    position: absolute;
+    top: 1px;
+    left: 311px;
+    width: 2.5rem;
+    height: 2.5rem;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #232f3e;
+    transition: background-color 0.3s, color 0.3s;
+    z-index: 13;
+}
+
+.sidebar__close__icon:hover {
+    background-color: #f87171;
+    color: white;
+}
+
+/* khúc này làm suggestion cho search bar */
+.suggestion__box {
+    position: absolute;
+    background-color: white;
+    color: black;
+    width: 93%;
+    left: 7%;
+    z-index: 40;
+    cursor: pointer;
+    border-bottom-left-radius: 5px;
+    border-bottom-right-radius: 5px;
+    padding: 5px 0;
+    /* Add some padding for better spacing */
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.suggestion__box div {
+    font-weight: 600;
+    padding: 8px 12px;
+    /* Add padding for individual items */
+    transition: background-color 0.3s ease;
+}
+
+.suggestion__box div:hover {
+    background-color: rgb(199, 199, 199);
+    /* Apply hover effect to individual items */
+}
+
+.account__dropdownMenu {
+    display: none;
+    /* Hide by default */
+    position: absolute;
+    top: 100%;
+    /* Position below the account section */
+    left: 0;
+    background-color: white;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    z-index: 2;
+}
+
+.account__dropdownMenu.open {
+    display: block;
+    /* Show when open */
+}
+
+.account__dropdownOption {
+    padding: 8px 16px;
+    text-decoration: none;
+    color: #000;
+    display: block;
+}
+
+.account__dropdownOption:hover {
+    background-color: #f1f1f1;
+}

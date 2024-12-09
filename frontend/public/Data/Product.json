@@ -1,0 +1,59 @@
+{
+    "Product":[
+        {
+            "id": "1",
+            "name": "ASUS 2024 Vivobook Go 11.6” HD Laptop, Intel Dual Core N4500, Intel Graphics, 4GB, 128GB, Windows 11 Home in S Mode, Star Black, L210KA-ES04",
+            "price": 1000,
+            "quantity": 1,
+            "imageUrl": "https://m.media-amazon.com/images/I/51xxONbwsvL._AC_SL1200_.jpg",
+            "avgRating": 4,
+            "ratings": 300,
+            "description": "something used to be here but no longer",
+            "brand": "ASUS"
+          },
+          {
+            "id": "2",
+            "name": "boAt Airdopes 141 Bluetooth TWS Earbuds with 42H Playtime,Low Latency Mode for Gaming, ENx Tech, IWP, IPX4 Water Resistanc...",
+            "price": 1000,
+            "quantity": 1,
+            "imageUrl": "https://m.media-amazon.com/images/I/61KNJav3S9L._AC_UL480_QL65_.jpg",
+            "avgRating": 4,
+            "ratings": 300,
+            "description": "something used to be here but no longer",
+            "brand": "ASUS"
+          },
+          {
+            "id": "3",
+            "name": "boAt Immortal 121 in Ear TWS Earbuds with Beast Mode(40ms Low Latency) for Gaming, 40H Playtime, Blazing LEDs, Quad Mics...",
+            "price": 1000,
+            "quantity": 1,
+            "imageUrl": "https://m.media-amazon.com/images/I/61q-2yzbBtL._AC_UL480_QL65_.jpg",
+            "avgRating": 4,
+            "ratings": 300,
+            "description": "something used to be here but no longer",
+            "brand": "ASUS"
+          },
+          {
+            "id": "4",
+            "name": "Iphone 121 in Ear TWS Earbuds with Beast Mode(40ms Low Latency) for Gaming, 40H Playtime, Blazing LEDs, Quad Mics ENx Sign...",
+            "price": 1000,
+            "quantity": 1,
+            "imageUrl": "https://m.media-amazon.com/images/I/71v2jVh6nIL._AC_UY327_FMwebp_QL65_.jpg",
+            "avgRating": 4,
+            "ratings": 300,
+            "description": "something used to be here but no longer",
+            "brand": "ASUS"
+          },
+          {
+            "id": "5",
+            "name": "Xiaomi Pad 6| Qualcomm Snapdragon 870| Powered by HyperOS | 144Hz Refresh Rate| 6GB, 128GB| 2.8K+ Display ...",
+            "price": 1000,
+            "quantity": 1,
+            "imageUrl": "https://m.media-amazon.com/images/I/71LRY1j6UHL._AC_UY327_FMwebp_QL65_.jpg",
+            "avgRating": 4,
+            "ratings": 300,
+            "description": "something used to be here but no longer",
+            "brand": "ASUS"
+          }
+    ]
+}

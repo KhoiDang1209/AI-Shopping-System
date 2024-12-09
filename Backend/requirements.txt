@@ -8,3 +8,12 @@ passlib
 click
 bcrypt
 annotate
+psycopg2 
+python-dotenv 
+fastapi-mail 
+starlette 
+sqlalchemy-utils 
+email-validator
+fastapi-mail
+python-dotenv
+python-multipart
