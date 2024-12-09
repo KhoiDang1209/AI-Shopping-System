@@ -12,6 +12,7 @@ import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { GB_CURRENCY } from '../../Utils/constants';
 import ItemRatings from '../ItemPage/ItemRatings';
+import axios from "axios";
 
 const Product = () => {
   const Dispatch = useDispatch();
@@ -24,6 +25,8 @@ const Product = () => {
   }
 
   const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   // Fetch the JSON file from the public folder
   useEffect(() => {
@@ -41,10 +44,84 @@ const Product = () => {
               console.error("Error fetching products:", error);
           });
   }, []);
+    // Fetch products from the backend API
+    // useEffect(() => {
+    //   const fetchProducts = async () => {
+    //     try {
+    //       const response = await axios.post("http://localhost:3000/searchProducts/");
+    //       setProducts(response.data);
+    //     } catch (err) {
+    //       setError("Failed to fetch products.");
+    //       console.error(err);
+    //     } finally {
+    //       setLoading(false);
+    //     }
+    //   };
+    //   fetchProducts();
+    // }, []);
 
-  if (products.length === 0) {
-      return <h1>Loading Products...</h1>;
-  }
+      // Fetch product details by product_id (for individual product page)
+  // const fetchProductDetails = async (productId) => {
+  //   try {
+  //     const response = await axios.get(`http://localhost:3000/product/${productId}`);
+  //     return response.data;
+  //   } catch (err) {
+  //     console.error("Error fetching product details:", err);
+  //     setError("Failed to fetch product details.");
+  //   }
+  // };
+
+  // if (loading) {
+  //   return <h1>Loading Products...</h1>;
+  // }
+
+  // if (error) {
+  //   return <h1>{error}</h1>;
+  // }
+
+  // // Add product to cart and handle quantity update if product already in cart
+  // const handleAddToCartWithQuantity = async (product) => {
+  //   try {
+  //     // Check if the product is already in the cart
+  //     const existingCartItem = CartItems.find(item => item.product_id === product.product_id);
+
+  //     if (existingCartItem) {
+  //       // If the item exists in the cart, update the quantity
+  //       const updatedItem = { ...existingCartItem, quantity: existingCartItem.quantity + 1 };
+  //       Dispatch(AddToCart(updatedItem));  // Update Redux store
+  //       toast.success("Updated quantity in cart!", {
+  //         position: "bottom-right"
+  //       });
+  //     } else {
+  //       // If the item is not in the cart, add it
+  //       const newCartItem = {
+  //         product_id: product.product_id,
+  //         user_email: "user@example.com", // Replace with dynamic user email
+  //         quantity: 1, // Add 1 initially, can be modified as needed
+  //       };
+
+  //       const response = await axios.post("http://localhost:3000/addToCart/", newCartItem);
+  //       if (response.data.success) {
+  //         Dispatch(AddToCart(product));  // Add to Redux store
+  //         toast.success("Added item to cart!", {
+  //           position: "bottom-right"
+  //         });
+  //       } else {
+  //         toast.error("Failed to add item to cart.", {
+  //           position: "bottom-right"
+  //         });
+  //       }
+  //     }
+  //   } catch (error) {
+  //     toast.error("Error while adding item to cart.", {
+  //       position: "bottom-right"
+  //     });
+  //   }
+  // };
+
+  // if (products.length === 0) {
+  //     return <h1>Loading Products...</h1>;
+  // }
 
 
 
