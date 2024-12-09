@@ -21,6 +21,8 @@ from sqlalchemy import func
 from database import engine, SessionLocal
 from models import *
 from schemas import *
+import requests
+# from ModelApp.ML_FastAPI_Docker_Heroku import main
 
 # Load environment variables
 dotenv_path = os.path.join(os.getcwd(), ".env")
@@ -33,7 +35,9 @@ app = FastAPI()
 
 models.Base.metadata.create_all(bind=engine)
 #Do not modify this as need to create table be for insert data
-from insert_data import *
+from recommend import (get_search_recommendations, get_collaborative_recommendations,
+                       get_item_recommendation)
+# from insert_data import *
 
 # @app.on_event("startup")
 # async def startup_event():
@@ -508,6 +512,34 @@ async def get_all_products(db: Session = Depends(get_db)):
         ]
 
     return result
+    
+
+@app.get("/getHomePageProduct/")
+async def get_home_page_product(userid: int, db: Session = Depends(get_db)):
+    
+    result = get_collaborative_recommendations(str(userid))
+    
+    all_products = db.query(Product).filter(
+        Product.product_id.in_(result)
+    ).all()  # Returns a list of Product objects
+    
+    return [
+        {
+            "product_id": product.product_id,
+            "product_name": product.product_name,
+            "main_category": product.main_category,
+            "main_category_encoded": product.main_category_encoded,
+            "sub_category": product.sub_category,
+            "sub_category_encoded": product.sub_category_encoded,
+            "product_image": product.product_image,
+            "product_link": product.product_link,
+            "average_rating": product.average_rating,
+            "no_of_ratings": product.no_of_ratings,
+            "discount_price_usd": product.discount_price_usd,
+            "actual_price_usd": product.actual_price_usd,
+        }
+        for product in all_products
+    ]
 
 
 # Get products by category name
@@ -553,17 +585,36 @@ async def get_all_categories(db: Session = Depends(get_db)):
 # 4. Search Products Page
 # ------------------------------
 
-@app.post("/searchProducts/")
-async def search_products(search: str, db: Session = Depends(get_db)):
-    # Search products by name or category
+# done
+@app.get("/products/search", response_model=ProductResponse)
+async def search_products(query: str = "", db: Session = Depends(get_db)):
+    """Search products by name or category."""
+
+    product_ids = get_search_recommendations(query)
+    
     products = db.query(Product).filter(
-        Product.product_name.ilike(f"%{search}%") | 
-        Product.main_category.ilike(f"%{search}%") |
-        Product.sub_category.ilike(f"%{search}%")
+        Product.product_id.in_(product_ids)
     ).all()
 
     if not products:
-        raise HTTPException(status_code=404, detail="No products found")
+        return JSONResponse(status_code=404, content={"message": "No products found."})
+    
+    return {"products": products}
+
+# ------------------------------
+# 4.1. Product Detail Page
+# ------------------------------
+
+@app.get("/Item/{product_id}")
+async def get_product_detail(product_id: str, db: Session = Depends(get_db)):
+    """Fetch detailed information for a specific product."""
+    
+    product = db.query(Product).filter(
+        Product.product_id == product_id
+    ).first()
+    
+    if not product:
+        raise HTTPException(status_code=404, detail="Product not found")
 
     return [
         {
@@ -579,40 +630,23 @@ async def search_products(search: str, db: Session = Depends(get_db)):
             "no_of_ratings": product.no_of_ratings,
             "discount_price_usd": product.discount_price_usd,
             "actual_price_usd": product.actual_price_usd,
-            "category_id": product.category_id
         }
-        for product in products
     ]
 
 
+@app.get("/RelatedItem/{product_id}")
+async def related_item(product_id: str, db: Session = Depends(get_db)):
+    product_ids = get_item_recommendation(product_id)
+    
+    products = db.query(Product).filter(
+        Product.product_id.in_(product_ids)
+    ).all()
 
-
-# ------------------------------
-# 4.1. Product Detail Page
-# ------------------------------
-
-@app.get("/getProductDetails/{product_id}")
-async def get_product_details(product_id: int, db: Session = Depends(get_db)):
-    product = db.query(Product).filter(Product.product_id == product_id).first()
-
-    if not product:
-        raise HTTPException(status_code=404, detail="Product not found")
-
-    return {
-        "product_id": product.product_id,
-        "product_name": product.product_name,
-        "main_category": product.main_category,
-        "main_category_encoded": product.main_category_encoded,
-        "sub_category": product.sub_category,
-        "sub_category_encoded": product.sub_category_encoded,
-        "product_image": product.product_image,
-        "product_link": product.product_link,
-        "average_rating": product.average_rating,
-        "no_of_ratings": product.no_of_ratings,
-        "discount_price_usd": product.discount_price_usd,
-        "actual_price_usd": product.actual_price_usd,
-        "category_id": product.category_id
-    }
+    if not products:
+        return JSONResponse(status_code=404, content={"message": "No products found."})
+    
+    return {"products": products}
+    
 
 @app.post("/addToCart/")
 async def add_to_cart(request: AddToCartRequest, db: Session = Depends(get_db)):

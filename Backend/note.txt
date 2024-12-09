@@ -55,7 +55,15 @@ sửa table product: giống format file product.csv  OK
 sửa table site_user: làm 1 cách nào đó match format user_data.csv except country OK
 thêm table rating 
 ALTER USER postgres WITH PASSWORD 'bin04102004';
+
 postgresql://postgres:bin04102004@127.0.0.1:5432/AI_Shopping_System
+
+
+AI_related_product_apis:
+  show homepage products done ?
+  show searched products done
+  recommend selected related items notdone
+  recommend in-cart related items notdone
 
 Đức Độ
 CREATE TABLE "country" (

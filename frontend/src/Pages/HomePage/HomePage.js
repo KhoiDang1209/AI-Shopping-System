@@ -107,6 +107,8 @@ const HomePage = () => {
   }, [listOfAllMainCategory, originalProducts]); // Dependencies to re-run the effect when data changes
 
 
+  
+
   return (
     <div className="homepage">
       <NavBar userInfo={userInfo} />

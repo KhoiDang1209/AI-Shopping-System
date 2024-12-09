@@ -17,6 +17,7 @@ import axios from "axios";
 const Product = () => {
   const Dispatch = useDispatch();
   const CartItems = useSelector((state) => state.cart.items);
+
   const HandleAddToCart = (item) => {
     toast.success("Added Item To Cart", {
       position: "bottom-right"
@@ -27,23 +28,28 @@ const Product = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Fetch the JSON file from the public folder
   //Test take product from here
   useEffect(() => {
-    fetch("/Data/Product.json") // Relative to the public folder
-      .then((response) => {
+    const fetchProducts = async () => {
+      try {
+        const response = await fetch("http://localhost:8000/products/search?query=");
         if (!response.ok) {
           throw new Error("Failed to fetch product data.");
         }
-        return response.json();
-      })
-      .then((data) => {
-        setProducts(data.Product);
-      })
-      .catch((error) => {
+        const data = await response.json();
+        setProducts(data);
+      } catch (error) {
         console.error("Error fetching products:", error);
-      });
+        toast.error("Error fetching product data. Please try again later.", {
+          position: "bottom-right",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    }
   }, []);
     // Fetch products from the backend API
     // useEffect(() => {
@@ -126,10 +132,14 @@ const Product = () => {
   // }
 
   if (products.length === 0) {
+
+  if (isLoading) {
     return <h1>Loading Products...</h1>;
   }
 
-
+  if (products.length === 0) {
+    return <h1>No Products Found</h1>;
+  }
 
 
   return (
@@ -215,15 +225,18 @@ const Product = () => {
             {
               products.map((item, index) => {
                 return (
-                  <div className='ItemImageProductPageOne' key={item.id}>
+                  <div className='ItemImageProductPageOne' key={item.product_id}>
                     <div className='ImageBlockItemImageProductPageOne'>
-                      <img src={item.imageUrl} className="ProductImageProduct" />
+                      <img
+                        src={item.product_image}
+                        alt={item.product_name}
+                        className="ProductImageProduct" />
                     </div>
 
                     <div className='ProductNameProduct'>
                       {/* tên sản phẩm */}
-                      <Link to={`/Item/${item.id}`} className="product__name__link">
-                        {item.name}
+                      <Link to={`/Item/${item.product_id}`} className="product__name__link">
+                        {item.product_name}
                       </Link>
                       {/* <div className='ProductNameProductRating'>
                         <StarRateIcon sx={{ fontSize: "15px", color: "#febd69" }} />
@@ -236,9 +249,16 @@ const Product = () => {
                         <div className='CurrencyText'>
                         </div>
                         <div className='RateHomeDetail'>
-                          <div className='RateHomeDetailPrice'>
-                            {GB_CURRENCY.format(item.price)}
-                          </div>
+                        <div className="RateHomeDetailPrice">
+                          <span className="discount-price">
+                            {GB_CURRENCY.format(item.discount_price_usd)}
+                          </span>
+                          &nbsp;
+                          <span className="original-price">
+                            {GB_CURRENCY.format(item.actual_price_usd)}
+                          </span>
+                        </div>
+
                           <div className='AddToCartButton' onClick={() => (HandleAddToCart(item))}>
                             Add To Cart
                           </div>
@@ -246,7 +266,7 @@ const Product = () => {
                       </div>
                       <div className='ProductRatings'>
                         {/* Add star ratings */}
-                        <ItemRatings avgRating={item.avgRating} ratings={item.ratings} />
+                        <ItemRatings avgRating={item.average_rating} ratings={item.no_of_ratings} />
                       </div>
                       <div className='SaleProductPage'>
                         Up to 25% off on Black Friday
@@ -274,5 +294,6 @@ const Product = () => {
 
   )
 }
+}
 
-export default Product
+export default Product;

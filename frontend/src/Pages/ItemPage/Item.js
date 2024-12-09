@@ -23,34 +23,40 @@ const Item = () => {
       Dispatch(AddToCart(item));
     }
 
-    const { id } = useParams(); // Get the ID from the URL
+    const { product_id } = useParams(); // Get the ID from the URL
     const [product, setProduct] = useState(null);
-
-    const getProduct = () => {
-        callAPI(`/Data/Product.json`)
-            .then((data) => {
-                // Find the product by ID
-                const foundProduct = data.Product.find((item) => item.id === id);
-                setProduct(foundProduct || null); // Set product or null if not found
-            })
-            .catch((error) => console.error("Error fetching product:", error));
-    };
-
-    useEffect(() => {
-        getProduct();
-    }, [id]); 
-
-    if (!product) {
-        return <h1>Loading Product ...</h1>;
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    
+    const getProduct = async (product_id) => {
+        fetch(`http://localhost:8000/Item/${product_id}`)
+        .then((response) => {
+            if(!response.ok) {
+                throw new Error("Failed to fetch prodcut");
+            }
+            return response.json();
+        })
+        .then((data) => {
+            setProduct(data[0])
+        })
+        .catch((error) => {
+            console.error("Error fetching product:", error);
+            setError(error.message);
+        })
+        .finally(() => {
+            setLoading(false);
+        })
     }
 
-    // Function to format the price (remove commas or periods and then format)
-    // const formatPrice = (price) => {
-    //     // Remove commas or periods from the string and convert to a number
-    //     const priceNumber = parseFloat(price.replace(/,/g, '').replace(/\./g, ''));
-    //     // Format the number with the desired currency format
-    //     return GB_CURRENCY.format(priceNumber);
-    // };
+    useEffect(() => {
+        getProduct(product_id);
+    }, [product_id]);
+
+    if (!product) {
+        return <h1>Loading Item ...</h1>;
+    }
+
+    if (error) return <h1>{error}</h1>;
 
     return ( product &&
         <div>
@@ -60,7 +66,11 @@ const Item = () => {
                     <div className="items__box">
                         {/* left box */}
                         <div className="items__box__left">
-                            <img src={`${product.imageUrl}`} className="item__box__left__image"/>
+                            <img 
+                                src={product.product_image} 
+                                alt={product.product_name} 
+                                className="item__box__left__image"
+                            />
                         </div>
                         
                         {/* middle box */}
@@ -69,14 +79,14 @@ const Item = () => {
                                 <ItemDetail product={product} ratings={true} />
                             </div>
                             <div className="items__box__middle__down">
-                                {product.description}
+                                {product.product_name}
                             </div>
                         </div>
 
                         {/* right box */}
                         <div className="items__box__right">
                             <div className="items__box__right__currency">
-                                {GB_CURRENCY.format(product.price)}
+                                {GB_CURRENCY.format(product.discount_price_usd)}
                             </div>
                             <div className="items__box__right__text">
                                 Free International Return

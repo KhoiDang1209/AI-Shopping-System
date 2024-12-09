@@ -3,17 +3,22 @@ POST request
 /search for search query
 data={"query": "string"}
 
+# home page, new user
 /trend for recommend collaborative+trend if user are new and has no interest
 data={"id": "string"} id is user_id
 
+# home page, user have interest
 /interest for recommend collaborative+interest if user are new and has interest
 data={"id": "string"} id is user_id
 
-/item for recommend similar item of a given item
+# iommtem page, show related items
+/item for recend similar item of a given item
 data={"id": "string"} id is productid
 
+# cart page, show related items in cart
 /association for recommend associated product when user open a cart with a list of product in that cart
 data={"ids": ["string"]} ids is a list of productid
 
+# home page, rated user
 /collaborative for recommend collaborative of a user that has rated products
 data={"id": "string"} id is user_id
