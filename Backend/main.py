@@ -13,7 +13,7 @@ from passlib.context import CryptContext
 from fastapi_mail import ConnectionConfig, FastMail, MessageSchema, MessageType
 from starlette.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
-
+from toMongo import insert_new_user_to_mongo
 from fastapi.responses import HTMLResponse, JSONResponse
 from sqlalchemy import func
 
@@ -190,7 +190,13 @@ async def postRegister(user: UserRegisterRequest, db: Session = Depends(get_db))
         db.add(db_user)
         db.commit()
         db.refresh(db_user)
-        
+        new_user = {
+            "age": user.age,
+            "gender": user.gender,
+            "city": user.city
+        }
+        result = insert_new_user_to_mongo(new_user)
+        print(result)
         # Return the new user's data
         return {
             "user": {
