@@ -341,7 +341,13 @@ const NavBar = ({ userInfo }) => {
                     </div>
 
                     {/* giỏ hàng */}
-                    <Link to="/Cart" className="cart">
+                    <Link
+                        to={{
+                            pathname: "/Cart",
+                        }}
+                        state={{ userData }} // Pass userData via state
+                        className="cart"
+                    >
                         <span className="cart__up">
                             {CartItems.length}
                         </span>

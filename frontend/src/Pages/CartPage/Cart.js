@@ -7,16 +7,64 @@ import 'react-toastify/dist/ReactToastify.css';
 import NavBar from '../../Components/Navbar/Navigation';
 import Footer from '../../Components/Footer/Footer';
 import { GB_CURRENCY } from '../../Utils/constants';
-import { Link } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import axios from 'axios';
-
+import ItemRatings from '../ItemPage/ItemRatings';
+import { AddToCart } from '../../Redux/Action/Action';
 const Cart = () => {
+  const location = useLocation();
+  const userData = location.state?.userData;
+  const navigate = useNavigate(); // Hook to handle navigation
+  const [userInfo, setUserInfo] = useState({
+    name: userData?.name || '',
+    email: userData?.email || '',
+    phone: userData?.phone || '',
+    address: userData?.address || '',
+    age: userData?.age || '',
+    gender: userData?.gender || '',
+    city: userData?.city || '',
+  });
   const [CartItem, SetCartItem] = useState([]);
   const Dispatch = useDispatch();
   const CartItems = useSelector((state) => state.cart.items);
 
   const totalCost = CartItems.reduce((total, item) => total + item.price, 0);
+  const HandleAddToCart = async (item) => {
+    if (!userInfo || !userInfo.email) {
+      // Pop up login request and navigate to login
+      toast.info("Please log in to add items to the cart.", {
+        position: "bottom-right"
+      });
 
+      // Navigate to the login page, passing the current page and the item to add as state
+      navigate('/SignIn', {
+        state: {
+          from: location.pathname,
+          itemToAdd: item,
+        }
+      });
+      return;
+    }
+
+    console.log(item);
+    // toast.success("Added Item To Cart", {
+    //     position: "bottom-right"
+    // });
+    Dispatch(AddToCart(item));
+    try {
+      console.log(item.product_id || item.id, userInfo.email)
+      const response = await axios.post("http://localhost:8000/addToCart", { product_id: (item.product_id || item.id), user_email: userInfo.email, quantity: 1 });
+
+      if (response.status === 200) {
+        toast.success('Added to cart successfully', {
+          position: 'bottom-right',
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching cart:", error);
+      toast.error(error);
+    }
+  };
   // Fetch cart items when the component mounts
   useEffect(() => {
     fetchCartItems();
@@ -91,7 +139,7 @@ const Cart = () => {
 
   return (
     <div>
-      <NavBar />
+      <NavBar userInfo={userInfo} />
       <div className="Cart">
 
         <div className="TopLeftCart">
@@ -173,6 +221,47 @@ const Cart = () => {
           </Link>
         </div>
         <ToastContainer />
+      </div>
+      <div className='ItemImageProductPage2'>
+        {CartItems.map((item, ind) => (
+          <div className='ItemImageProductPageOne' key={item.product_id}>
+            <div className='ImageBlockItemImageProductPageOne'>
+              <img src={item.product_image} className="ProductImageProduct" alt={item.product_name} />
+            </div>
+            <div className='ProductNameProduct'>
+              <Link
+                to={{
+                  pathname: `/Item/${item.product_id}`,
+                }}
+                state={{ userData }} // Pass userData in the state prop
+                className="product__name__link"
+              >
+                {item.product_name}
+              </Link>
+              <div className='PriceProductDetailPage'>
+                <div className='RateHomeDetail'>
+                  <div className='RateHomeDetailPrice'>
+                    {GB_CURRENCY.format(item.discount_price_usd)}
+                  </div>
+                  <div className='AddToCartButton' onClick={() => HandleAddToCart(item)}>
+                    Add To Cart
+                  </div>
+                </div>
+              </div>
+              <div className='ProductRatings'>
+                <ItemRatings avgRating={item.average_rating} ratings={item.no_of_ratings} />
+              </div>
+              <div className='SaleProductPage'>
+                Up to 25% off on Black Friday
+              </div>
+              <div className='DeliveryHomepage'>
+                Free Domestic Shipping By Amazon
+              </div>
+            </div>
+          </div>
+        ))}
+
+        {/* ))} */}
       </div>
       <Footer />
     </div>
