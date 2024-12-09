@@ -36,6 +36,8 @@ const HomePage = () => {
     }
   };
 
+  
+
   return (
     <div className="homepage">
       <NavBar userInfo={userInfo} />

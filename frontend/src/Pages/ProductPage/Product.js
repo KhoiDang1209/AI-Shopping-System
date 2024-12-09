@@ -31,7 +31,7 @@ const Product = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await fetch("http://localhost:8000/products/search?query=laptop");
+        const response = await fetch("http://localhost:8000/products/search?query=");
         if (!response.ok) {
           throw new Error("Failed to fetch product data.");
         }

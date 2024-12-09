@@ -34,7 +34,8 @@ app = FastAPI()
 
 models.Base.metadata.create_all(bind=engine)
 #Do not modify this as need to create table be for insert data
-from recommend import (get_search_recommendations, get_collaborative_recommendations)
+from recommend import (get_search_recommendations, get_collaborative_recommendations,
+                       get_item_recommendation)
 # from insert_data import *
 
 # @app.on_event("startup")
@@ -665,8 +666,19 @@ async def get_product_detail(product_id: str, db: Session = Depends(get_db)):
     ]
 
 
-# @app.get()
-# async def get_selected_related_item(product):
+@app.get("/RelatedItem/{product_id}")
+async def related_item(product_id: str, db: Session = Depends(get_db)):
+    product_ids = get_item_recommendation(product_id)
+    
+    products = db.query(Product).filter(
+        Product.product_id.in_(product_ids)
+    ).all()
+
+    if not products:
+        return JSONResponse(status_code=404, content={"message": "No products found."})
+    
+    return {"products": products}
+    
 
 @app.post("/cart/add")
 async def add_to_cart(product_id: int, quantity: int, db: Session = Depends(get_db)):

@@ -37,11 +37,7 @@ const Item = () => {
             return response.json();
         })
         .then((data) => {
-            if (data.length > 0) {
-                setProduct(data[0]); // Get the first product in the array
-            } else {
-                throw new Error("No products found");
-            }
+            setProduct(data[0])
         })
         .catch((error) => {
             console.error("Error fetching product:", error);
