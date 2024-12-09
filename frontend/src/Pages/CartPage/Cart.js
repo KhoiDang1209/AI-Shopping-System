@@ -45,7 +45,7 @@ const Cart = () => {
   // Fetch cart items when the component mounts
   useEffect(() => {
     fetchCartItems();
-  }, []);
+  }, [CartItem]);
   const totalCost = CartItem.reduce((total, item) => {
     // Fallback values in case the properties are missing
     const quantity = item.quantity || 1; // Default to 1 if quantity is missing
