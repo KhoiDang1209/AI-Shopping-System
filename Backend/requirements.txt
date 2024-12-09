@@ -17,3 +17,5 @@ email-validator
 fastapi-mail
 python-dotenv
 python-multipart
+pandas 
+sklearn

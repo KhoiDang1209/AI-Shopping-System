@@ -681,8 +681,8 @@ async def get_product_detail(product_id: String, db: Session = Depends(get_db)):
     ]
 
 
-@app.get()
-async def get_selected_related_item(product)
+# @app.get()
+# async def get_selected_related_item(product):
 
 @app.post("/cart/add")
 async def add_to_cart(product_id: int, quantity: int, db: Session = Depends(get_db)):
