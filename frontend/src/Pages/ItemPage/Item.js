@@ -94,8 +94,32 @@ const Item = () => {
             })
     }
 
+    const [relaProducts, setRelaProducts] = useState([]);
+
+    const getRelatedProduct = async(product_id) => {
+        fetch(`http://localhost:8000/RelatedItem/${product_id}`)
+        .then((response) => {
+            if (!response.ok) {
+                throw new Error("Failed to fetch prodcut");
+            }
+            console.log(response);
+            return response.json();
+        })
+        .then((data) => {
+            setRelaProducts(data.products);
+        })
+        .catch((error) => {
+            console.error("Error fetching product:", error);
+            setError(error.message);
+        })
+        .finally(() => {
+            setLoading(false);
+        })
+    }
+
     useEffect(() => {
         getProduct(product_id);
+        getRelatedProduct(product_id);
     }, [product_id]);
 
     if (!product) {
@@ -152,33 +176,37 @@ const Item = () => {
             </div>
 
             <div className='ItemImageProductPage1'>
-                {/* {currentProducts.map((item) => ( */}
-                <div className='ItemImageProductPageOne' key={product.product_id}>
+                {relaProducts.map((relaProduct) => (
+                <div className='ItemImageProductPageOne' key={relaProduct.product_id}>
                     <div className='ImageBlockItemImageProductPageOne'>
-                        <img src={product.product_image} className="ProductImageProduct" alt={product.product_name} />
+                        <img 
+                            className="ProductImageProduct" 
+                            src={relaProduct.product_image}
+                            alt={relaProduct.product_name}
+                        />
                     </div>
                     <div className='ProductNameProduct'>
                         <Link
                             to={{
-                                pathname: `/Item/${product.product_id}`,
+                                pathname: `/Item/${relaProduct.product_id}`,
                             }}
                             state={{ userData }} // Pass userData in the state prop
                             className="product__name__link"
                         >
-                            {product.product_name}
+                            {relaProduct.product_name}
                         </Link>
                         <div className='PriceProductDetailPage'>
                             <div className='RateHomeDetail'>
                                 <div className='RateHomeDetailPrice'>
-                                    {GB_CURRENCY.format(product.discount_price_usd)}
+                                    {GB_CURRENCY.format(relaProduct.discount_price_usd)}
                                 </div>
-                                <div className='AddToCartButton' onClick={() => HandleAddToCart(product)}>
+                                <div className='AddToCartButton' onClick={() => HandleAddToCart(relaProduct)}>
                                     Add To Cart
                                 </div>
                             </div>
                         </div>
                         <div className='ProductRatings'>
-                            <ItemRatings avgRating={product.average_rating} ratings={product.no_of_ratings} />
+                            <ItemRatings average_rating={relaProduct.average_rating} no_of_ratings={relaProduct.no_of_ratings} />
                         </div>
                         <div className='SaleProductPage'>
                             Up to 25% off on Black Friday
@@ -188,81 +216,8 @@ const Item = () => {
                         </div>
                     </div>
                 </div>
-                {/* ))} */}
-                {/* {currentProducts.map((item) => ( */}
-                <div className='ItemImageProductPageOne' key={product.product_id}>
-                    <div className='ImageBlockItemImageProductPageOne'>
-                        <img src={product.product_image} className="ProductImageProduct" alt={product.product_name} />
-                    </div>
-                    <div className='ProductNameProduct'>
-                        <Link
-                            to={{
-                                pathname: `/Item/${product.product_id}`,
-                            }}
-                            state={{ userData }} // Pass userData in the state prop
-                            className="product__name__link"
-                        >
-                            {product.product_name}
-                        </Link>
-                        <div className='PriceProductDetailPage'>
-                            <div className='RateHomeDetail'>
-                                <div className='RateHomeDetailPrice'>
-                                    {GB_CURRENCY.format(product.discount_price_usd)}
-                                </div>
-                                <div className='AddToCartButton' onClick={() => HandleAddToCart(product)}>
-                                    Add To Cart
-                                </div>
-                            </div>
-                        </div>
-                        <div className='ProductRatings'>
-                            <ItemRatings avgRating={product.average_rating} ratings={product.no_of_ratings} />
-                        </div>
-                        <div className='SaleProductPage'>
-                            Up to 25% off on Black Friday
-                        </div>
-                        <div className='DeliveryHomepage'>
-                            Free Domestic Shipping By Amazon
-                        </div>
-                    </div>
-                </div>
-                {/* ))} */}
-                {/* {currentProducts.map((item) => ( */}
-                <div className='ItemImageProductPageOne' key={product.product_id}>
-                    <div className='ImageBlockItemImageProductPageOne'>
-                        <img src={product.product_image} className="ProductImageProduct" alt={product.product_name} />
-                    </div>
-                    <div className='ProductNameProduct'>
-                        <Link
-                            to={{
-                                pathname: `/Item/${product.product_id}`,
-                            }}
-                            state={{ userData }} // Pass userData in the state prop
-                            className="product__name__link"
-                        >
-                            {product.product_name}
-                        </Link>
-                        <div className='PriceProductDetailPage'>
-                            <div className='RateHomeDetail'>
-                                <div className='RateHomeDetailPrice'>
-                                    {GB_CURRENCY.format(product.discount_price_usd)}
-                                </div>
-                                <div className='AddToCartButton' onClick={() => HandleAddToCart(product)}>
-                                    Add To Cart
-                                </div>
-                            </div>
-                        </div>
-                        <div className='ProductRatings'>
-                            <ItemRatings avgRating={product.average_rating} ratings={product.no_of_ratings} />
-                        </div>
-                        <div className='SaleProductPage'>
-                            Up to 25% off on Black Friday
-                        </div>
-                        <div className='DeliveryHomepage'>
-                            Free Domestic Shipping By Amazon
-                        </div>
-                    </div>
-                </div>
-                {/* ))} */}
+                ))}
+    
             </div>
             <ToastContainer />
             <Footer />
