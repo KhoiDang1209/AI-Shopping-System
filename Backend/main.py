@@ -827,7 +827,7 @@ async def cart_related_items(
 
         product_ids_in_cart = [item.ShoppingCartItem.product_id for item in cart_items]
 
-        recommended_product_ids = get_item_recommendation(product_ids_in_cart)
+        recommended_product_ids = get_association_recommendations(product_ids_in_cart)
 
         recommended_products = db.query(Product).filter(
             Product.product_id.in_(recommended_product_ids)

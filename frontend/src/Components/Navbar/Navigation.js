@@ -283,7 +283,7 @@ const NavBar = ({ userInfo }) => {
                     <div className="vietnam__logo">
                         <img src={vietnam} className="vietnam__flag" alt="vietnam_logo" />
                         <div className="vietnam__text">
-                            EN <ArrowDropDownOutlinedIcon sx={{ fontSize: 16, marginLeft: -0.4 }} className="vietnam__dropdown" />
+                            VN <ArrowDropDownOutlinedIcon sx={{ fontSize: 16, marginLeft: -0.4 }} className="vietnam__dropdown" />
                         </div>
                     </div>
 
